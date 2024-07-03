@@ -5,7 +5,11 @@ import { defineEmits } from 'vue'
 const props = defineProps({
   modelValue: Boolean,
   label: String,
-  click: Function
+  click: Function,
+  disabled: {
+    type: Boolean,
+    default: false
+  }
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -19,6 +23,7 @@ watch(
 )
 
 function toggleSwitch() {
+  if (props.disabled) return
   if (props.click) {
     return props.click()
   }
@@ -28,7 +33,12 @@ function toggleSwitch() {
 }
 </script>
 <template>
-  <div class="base-switch">
+  <div
+    class="base-switch"
+    :class="{
+      disabled: disabled
+    }"
+  >
     <p class="label" v-if="label">{{ label }}</p>
     <slot class="label" name="prepend" />
     <div @click="toggleSwitch" class="box" :class="isOn ? 'is-on' : ''">

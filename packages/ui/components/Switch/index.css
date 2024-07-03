@@ -1,6 +1,9 @@
 .base-switch {
   @apply flex items-center gap-1;
 }
+.base-switch.disabled .box {
+  @apply opacity-[0.7];
+}
 .base-switch .box {
   @apply bg-gray-400 p-[5px] flex items-center w-[60px] h-[30px] rounded-[15px] cursor-pointer;
   transition: background-color 0.3s ease;

@@ -14,4 +14,12 @@ export class ChainGrpcStrategyQuery extends BaseGrpc {
     )
     return response
   }
+  async getStrategyById(
+    request: chainFluxStrategyV1beta1Query.GetStrategyByIdRequest
+  ): Promise<chainFluxStrategyV1beta1Query.GetStrategyByIdResponse> {
+    const response: chainFluxStrategyV1beta1Query.GetStrategyByIdResponse = await this.retry(() =>
+      this.client.GetStrategyById(request)
+    )
+    return response
+  }
 }
