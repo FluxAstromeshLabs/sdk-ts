@@ -51,19 +51,28 @@ const main = async () => {
     id: '',
     strategy: fs.readFileSync('bank_strategy.wasm'),
     query: astromeshquery.FISQueryRequest.create({
-      instructions: [{
-        plane: Plane.COSMOS,
-        action: astromeshquery.QueryAction.COSMOS_BANK_BALANCE,
-        address: new Uint8Array(),
-        input: [
-          Uint8Array.from(Buffer.from('lux1jcltmuhplrdcwp7stlr4hlhlhgd4htqhu86cqx,lux1kmmz47pr8h46wcyxw8h3k8s85x0ncykqp0xmgj')),
-          Uint8Array.from(Buffer.from('lux,lux')),
-        ],
-      }],
+      instructions: [
+        {
+          plane: Plane.COSMOS,
+          action: astromeshquery.QueryAction.COSMOS_BANK_BALANCE,
+          address: new Uint8Array(),
+          input: [
+            Uint8Array.from(
+              Buffer.from(
+                'lux1jcltmuhplrdcwp7stlr4hlhlhgd4htqhu86cqx,lux1kmmz47pr8h46wcyxw8h3k8s85x0ncykqp0xmgj'
+              )
+            ),
+            Uint8Array.from(Buffer.from('lux,lux'))
+          ]
+        }
+      ]
     }),
-    description: 'bank strategy helper',
-    type: StrategyType.GENERIC,
-    trigger_permission: undefined,
+    metadata: {
+      description: 'bank strategy helper',
+      type: StrategyType.STRATEGY
+    } as any,
+
+    trigger_permission: undefined
   }
 
   const msgAny: anytypes.Any = {

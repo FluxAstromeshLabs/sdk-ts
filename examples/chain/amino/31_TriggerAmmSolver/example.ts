@@ -12,7 +12,12 @@ import * as codectypemap from '../../../../chain/codec_type_map.json'
 import * as ethcrypto from 'eth-crypto'
 import { ChainGrpcClient } from '../../../../packages/client/chain/ChainGrpcClient'
 import { getEIP712SignBytes } from '../../../../eip712/eip712'
-import { ChainGrpcTxService, getSvmAddressFromLux, simulate, toFluxSvmTransaction } from '../../../../packages'
+import {
+  ChainGrpcTxService,
+  getSvmAddressFromLux,
+  simulate,
+  toFluxSvmTransaction
+} from '../../../../packages'
 import { Plane, TxAction } from '../../../../chain/flux/astromesh/v1beta1/tx'
 import * as svmtx from '../../../../chain/flux/svm/v1beta1/tx'
 import * as astromeshquery from '../../../../chain/flux/astromesh/v1beta1/query'
@@ -29,15 +34,16 @@ async function broadcastMsg(
   gasLimit: number,
   msgType: any,
   msg: any,
-  senderPrivKey: any,
+  senderPrivKey: any
 ) {
   const msgAny: anytypes.Any = {
     type_url: `/${msgType.$type}`,
-    value: msgType.encode(msg).finish(),
+    value: msgType.encode(msg).finish()
   }
-  
+  const key = '/' + msgType.$type
   const msgJSON = {
-    type: codectypemap[`/${msgType.$type}`],
+    // @ts-ignore
+    type: codectypemap[key],
     value: msgType.toJSON(msg)
   }
 
@@ -56,21 +62,19 @@ async function broadcastMsg(
         public_key: senderPubkeyAny,
         mode_info: {
           single: {
-            mode: signingtypes.SignMode.SIGN_MODE_LEGACY_AMINO_JSON,
-          },
+            mode: signingtypes.SignMode.SIGN_MODE_LEGACY_AMINO_JSON
+          }
         },
-        sequence: senderAccSeq.toString(),
-      },
+        sequence: senderAccSeq.toString()
+      }
     ],
     fee: {
-      amount: [
-        {denom: 'lux', amount: '100000000000000'}
-      ],
+      amount: [{ denom: 'lux', amount: '100000000000000' }],
       gas_limit: gasLimit.toString(),
       payer: '',
       granter: ''
     },
-    tip: undefined,
+    tip: undefined
   }
 
   // get signatures
@@ -78,20 +82,22 @@ async function broadcastMsg(
     body_bytes: txtypes.TxBody.encode(txBody).finish(),
     auth_info_bytes: txtypes.AuthInfo.encode(authInfo).finish(),
     chain_id: 'flux-1',
-    account_number: senderAccNum.toString(),
+    account_number: senderAccNum.toString()
   }
 
   let eip712SignDoc = getEIP712SignBytes(signDoc, [msgJSON], '')
-  const msgHash = Buffer.from(getMessage(eip712SignDoc, true, {verifyDomain: false}))
-  
+  const msgHash = Buffer.from(getMessage(eip712SignDoc, true, { verifyDomain: false }))
+
   const senderSign = ethutil.ecsign(msgHash, Buffer.from(senderPrivKey.key))
-  const senderCosmosSig = Uint8Array.from(Buffer.concat([senderSign.r, senderSign.s, Buffer.from([0])]))
+  const senderCosmosSig = Uint8Array.from(
+    Buffer.concat([senderSign.r, senderSign.s, Buffer.from([0])])
+  )
 
   // broadcast tx
   const extOpts: chaintypes.ExtensionOptionsWeb3Tx = {
     typedDataChainID: '1',
-    feePayer:         '',
-    feePayerSig:      Uint8Array.from([]),
+    feePayer: '',
+    feePayerSig: Uint8Array.from([])
   }
   const extOptsAny: anytypes.Any = {
     type_url: '/' + chaintypes.ExtensionOptionsWeb3Tx.$type,
@@ -102,11 +108,11 @@ async function broadcastMsg(
   const txRaw: txtypes.TxRaw = {
     body_bytes: txtypes.TxBody.encode(txBody).finish(),
     auth_info_bytes: txtypes.AuthInfo.encode(authInfo).finish(),
-    signatures: [senderCosmosSig],
+    signatures: [senderCosmosSig]
   }
-  
+
   return await txClient.broadcastTx(
-    txtypes.TxRaw.encode(txRaw).finish(), 
+    txtypes.TxRaw.encode(txRaw).finish(),
     txservice.BroadcastMode.BROADCAST_MODE_SYNC
   )
 }
@@ -138,45 +144,50 @@ const main = async () => {
   const senderInfo = await authClient.getAccount(senderAddr)
   let senderAccNum = parseInt(senderInfo.info!.account_number!)
   let senderAccSeq = parseInt(senderInfo.info!.sequence!)
-  
+
   console.log('sender addr:', senderAddr)
   let senderSvmAccount = getSvmAddressFromLux(senderAddr)
   let needCreateAccount = false
   try {
     console.log(`checking if ${senderSvmAccount.toBase58()} is created or not...`)
-    let res = await svmClient.account({address: senderSvmAccount.toString()})
-    console.log("sender svm account created!")
-  } catch(e) {
-    if (!e.toString().includes("Account not existed")) {
+    let res = await svmClient.account({ address: senderSvmAccount.toString() })
+    console.log('sender svm account created!')
+  } catch (e: any) {
+    if (!e.toString().includes('Account not existed')) {
       throw e
     }
     needCreateAccount = true
   }
 
-  // create account 
+  // create account
   if (needCreateAccount) {
-    console.log("creating sender svm account...")
-  
+    console.log('creating sender svm account...')
+
     let ix = web3.SystemProgram.createAccount({
       fromPubkey: senderSvmAccount,
       newAccountPubkey: senderSvmAccount,
       lamports: 0,
       space: 0,
-      programId: web3.SystemProgram.programId,
+      programId: web3.SystemProgram.programId
     })
-    
+
     let initAccountsTx = new web3.Transaction().add(ix)
     initAccountsTx.feePayer = senderSvmAccount
 
-    const msgCreateAcc: svmtx.MsgTransaction = toFluxSvmTransaction(senderAddr, initAccountsTx, 1000000)
+    const msgCreateAcc: svmtx.MsgTransaction = toFluxSvmTransaction(
+      senderAddr,
+      initAccountsTx,
+      1000000
+    )
 
     await broadcastMsg(
-      txClient, 
-      senderPubkeyAny, 
-      senderAccNum, 
-      senderAccSeq, 
-      1000000, svmtx.MsgTransaction, 
-      msgCreateAcc, 
+      txClient,
+      senderPubkeyAny,
+      senderAccNum,
+      senderAccSeq,
+      1000000,
+      svmtx.MsgTransaction,
+      msgCreateAcc,
       senderPrivKey
     )
 
@@ -192,51 +203,60 @@ const main = async () => {
     dst_plane: Plane.SVM,
     coin: {
       amount: arbitrageAmount,
-      denom: 'usdt',
+      denom: 'usdt'
     }
   })
 
   let transferSvmRes = await broadcastMsg(
-    txClient, 
-    senderPubkeyAny, 
-    senderAccNum, 
-    senderAccSeq, 
-    8000000, 
-    astromeshtypes.MsgAstroTransfer, 
+    txClient,
+    senderPubkeyAny,
+    senderAccNum,
+    senderAccSeq,
+    8000000,
+    astromeshtypes.MsgAstroTransfer,
     transferSvmMsg,
     senderPrivKey
   )
   console.log('transfer svm tx broadcast result:', transferSvmRes)
   senderAccSeq++
-  
+
   const msg: strategytypes.MsgTriggerStrategies = {
     sender: senderAddr,
     ids: ['C707C128D260C536701D4A843A5194B66BDCB40A7D602445680AF2A53FDC70DF'],
     inputs: [
-      Uint8Array.from(Buffer.from(`{"arbitrage":{"pair":"eth-usdt","amount":"${arbitrageAmount}","min_profit":"500000"}}`))
+      Uint8Array.from(
+        Buffer.from(
+          `{"arbitrage":{"pair":"eth-usdt","amount":"${arbitrageAmount}","min_profit":"500000"}}`
+        )
+      )
     ],
     queries: [
       astromeshquery.FISQueryRequest.create({
-          instructions: [{
-          plane: Plane.WASM,
-          action: astromeshquery.QueryAction.VM_QUERY,
-          address: Buffer.from(bech32.fromWords(bech32.decode('lux1aakfpghcanxtc45gpqlx8j3rq0zcpyf49qmhm9mdjrfx036h4z5sdltq0m').words)), 
-          input: [
-            Uint8Array.from(Buffer.from('{"pool":{}}')),
-          ],
-        },
-        {
-          plane: Plane.SVM,
-          action: astromeshquery.QueryAction.VM_QUERY,
-          address: new Uint8Array(),
-          input: [
-            new web3.PublicKey('CP9w46ipnMBBQP2Nqg8DceobmnTFeb9Pri5W2RX1CiSV').toBytes(),
-            new web3.PublicKey('DCJQyrGYeHWocMxpBBWCSJEgtMFZXgwMuXxZnkrHtuvW').toBytes(),
-            new web3.PublicKey('GASMVGvEguNjicG1UhaTiYDPib4geFQBXjtbqAG1HPLH').toBytes(),
-          ],
-        }],
-      }),
-    ],
+        instructions: [
+          {
+            plane: Plane.WASM,
+            action: astromeshquery.QueryAction.VM_QUERY,
+            address: Buffer.from(
+              bech32.fromWords(
+                bech32.decode('lux1aakfpghcanxtc45gpqlx8j3rq0zcpyf49qmhm9mdjrfx036h4z5sdltq0m')
+                  .words
+              )
+            ),
+            input: [Uint8Array.from(Buffer.from('{"pool":{}}'))]
+          },
+          {
+            plane: Plane.SVM,
+            action: astromeshquery.QueryAction.VM_QUERY,
+            address: new Uint8Array(),
+            input: [
+              new web3.PublicKey('CP9w46ipnMBBQP2Nqg8DceobmnTFeb9Pri5W2RX1CiSV').toBytes(),
+              new web3.PublicKey('DCJQyrGYeHWocMxpBBWCSJEgtMFZXgwMuXxZnkrHtuvW').toBytes(),
+              new web3.PublicKey('GASMVGvEguNjicG1UhaTiYDPib4geFQBXjtbqAG1HPLH').toBytes()
+            ]
+          }
+        ]
+      })
+    ]
   }
 
   const msgAny: anytypes.Any = {
@@ -263,18 +283,18 @@ const main = async () => {
 
   try {
     let broadcastRes = await broadcastMsg(
-      txClient, 
-      senderPubkeyAny, 
-      senderAccNum, 
-      senderAccSeq, 
-      gasLimit, 
-      strategytypes.MsgTriggerStrategies, 
-      msg, 
+      txClient,
+      senderPubkeyAny,
+      senderAccNum,
+      senderAccSeq,
+      gasLimit,
+      strategytypes.MsgTriggerStrategies,
+      msg,
       senderPrivKey
     )
 
     console.log('broadcast response:', broadcastRes)
-  } catch(e) {
+  } catch (e) {
     console.log('broadcast error:', e)
   }
 }
