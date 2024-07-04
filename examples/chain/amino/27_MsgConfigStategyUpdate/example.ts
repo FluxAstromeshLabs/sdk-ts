@@ -13,7 +13,11 @@ import * as ethcrypto from 'eth-crypto'
 import { ChainGrpcClient } from '../../../../packages/client/chain/ChainGrpcClient'
 import { getEIP712SignBytes } from '../../../../eip712/eip712'
 import { simulate } from '../../../../packages'
-import { AccessType, PermissionConfig, StrategyType } from '../../../../chain/flux/strategy/v1beta1/strategy'
+import {
+  AccessType,
+  PermissionConfig,
+  StrategyType
+} from '../../../../chain/flux/strategy/v1beta1/strategy'
 import * as astromeshquery from '../../../../chain/flux/astromesh/v1beta1/query'
 import { Plane } from '../../../../chain/flux/astromesh/v1beta1/tx'
 
@@ -50,22 +54,30 @@ const main = async () => {
     id: '52e119efac640d1698ed5369ca027e74591f5260d71b71435007d10ffdc44cc9',
     strategy: new Uint8Array(),
     query: astromeshquery.FISQueryRequest.create({
-      instructions: [{
-        plane: Plane.COSMOS,
-        action: astromeshquery.QueryAction.COSMOS_BANK_BALANCE,
-        address: new Uint8Array(),
-        input: [
-          Uint8Array.from(Buffer.from('lux1kmmz47pr8h46wcyxw8h3k8s85x0ncykqp0xmgj')),
-          Uint8Array.from(Buffer.from('lux')),
-        ],
-      }],
+      instructions: [
+        {
+          plane: Plane.COSMOS,
+          action: astromeshquery.QueryAction.COSMOS_BANK_BALANCE,
+          address: new Uint8Array(),
+          input: [
+            Uint8Array.from(Buffer.from('lux1kmmz47pr8h46wcyxw8h3k8s85x0ncykqp0xmgj')),
+            Uint8Array.from(Buffer.from('lux'))
+          ]
+        }
+      ]
     }),
-    type: StrategyType.GENERIC,
-    description: 'this updated description will be shown up',
+    metadata: {
+      type: StrategyType.STRATEGY,
+      description: 'this updated description will be shown up'
+    } as any,
+
     trigger_permission: PermissionConfig.create({
       type: AccessType.only_addresses,
-      addresses: ['lux1cml96vmptgw99syqrrz8az79xer2pcgp209sv4','lux1kmmz47pr8h46wcyxw8h3k8s85x0ncykqp0xmgj']
-    }),
+      addresses: [
+        'lux1cml96vmptgw99syqrrz8az79xer2pcgp209sv4',
+        'lux1kmmz47pr8h46wcyxw8h3k8s85x0ncykqp0xmgj'
+      ]
+    })
   }
 
   const msgAny: anytypes.Any = {

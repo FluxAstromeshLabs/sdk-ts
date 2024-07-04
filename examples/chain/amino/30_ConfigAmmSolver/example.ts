@@ -51,21 +51,22 @@ const main = async () => {
     id: '',
     strategy: fs.readFileSync('amm_solver.wasm'),
     query: astromeshquery.FISQueryRequest.create({
-      instructions: [],
+      instructions: []
     }),
     trigger_permission: undefined,
     metadata: {
-      name: "Amm swap wizard",
-      description: "Abstracting out swaps and unleashing arbitrage opportunities. It supports basic swaps as well as arbitrage across pools of the same pair",
-      logo: "",
-      website: "https://www.astromesh.xyz",
+      name: 'Amm swap wizard',
+      description:
+        'Abstracting out swaps and unleashing arbitrage opportunities. It supports basic swaps as well as arbitrage across pools of the same pair',
+      logo: '',
+      website: 'https://www.astromesh.xyz',
       type: StrategyType.INTENT_SOLVER,
-      tags: ["defi", "helper"],
-      schema: "",
-      cron_gas_price: "",
+      tags: ['defi', 'helper'],
+      schema: '',
+      cron_gas_price: '',
       cron_input: new Uint8Array(0),
-      cron_interval: "0",
-    },
+      cron_interval: '0'
+    }
   }
 
   const msgAny: anytypes.Any = {
