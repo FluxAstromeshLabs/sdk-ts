@@ -52,9 +52,6 @@ const emit = defineEmits(['update:modelValue'])
 const inputChange = (e: any) => {
   emit('update:modelValue', e.target.value)
 }
-const containerClick = () => {
-  inputRef.value?.focus()
-}
 </script>
 <template>
   <div class="base-text-field" :class="[errorMessage ? 'invalid' : '', containerClass].join(' ')">
@@ -71,7 +68,7 @@ const containerClick = () => {
       {{ helperText }}
     </p>
     <slot name="label" class="label" />
-    <div class="input" :class="class" @click="containerClick">
+    <div class="input" :class="class">
       <BaseIcons v-if="prependIcon" :name="prependIcon" class="prepend-icon" />
       <slot v-else name="prependIcon" class="prepend-icon" />
 

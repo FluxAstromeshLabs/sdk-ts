@@ -28,12 +28,5 @@
       stroke-linecap="round"
       stroke-linejoin="round"
     />
-    <path
-      d="M7 12L12 19L17 12M7 12L12 5M7 12L12 13M12 5L17 12M12 5L12 13M17 12L12 13"
-      stroke="currentColor"
-      stroke-width="1.5"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    />
   </svg>
 </template>

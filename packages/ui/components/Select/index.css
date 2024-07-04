@@ -55,9 +55,9 @@
 
 /* neutral theme */
 .neutral .base-select__popover .v-popper__wrapper {
-  @apply bg-neutral-900;
+  @apply bg-neutral-800;
 }
 
 .neutral .base-select__popover .v-popper__wrapper .v-popper__inner {
-  @apply bg-neutral-800;
+  @apply bg-neutral-700;
 }
