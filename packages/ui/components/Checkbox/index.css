@@ -20,3 +20,7 @@
 .checkbox .checkbox__label {
   @apply text-blueGray-900 dark:text-blueGray-50;
 }
+
+.neutral .checkbox.checked .checkbox__box {
+  @apply bg-neutral-900;
+}

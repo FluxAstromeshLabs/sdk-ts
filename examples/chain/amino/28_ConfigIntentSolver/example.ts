@@ -49,13 +49,15 @@ const main = async () => {
     sender: senderAddr,
     config: strategytypes.Config.deploy,
     id: '',
-    strategy: fs.readFileSync('plane_solver.wasm'),
+    strategy: fs.readFileSync('plane_util.wasm'),
     query: astromeshquery.FISQueryRequest.create({
-      instructions: [],
+      instructions: []
     }),
-    type: StrategyType.INTENT_SOLVER,
-    description: 'astromesh transfer intent solver',
-    trigger_permission: undefined,
+    metadata: {
+      type: StrategyType.INTENT_SOLVER,
+      description: 'astromesh transfer intent solver'
+    } as any,
+    trigger_permission: undefined
   }
 
   const msgAny: anytypes.Any = {

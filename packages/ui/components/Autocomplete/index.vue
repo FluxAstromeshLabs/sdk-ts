@@ -4,9 +4,10 @@ interface Suggestion {
   title: string
   value: string
 }
+
 const props = defineProps({
   suggestions: {
-    type: Array as any,
+    type: Array as () => Array<Suggestion>,
     required: true,
     default: () => []
   },
@@ -79,7 +80,7 @@ onMounted(() => {
 watch(
   () => props,
   (value) => {
-    if (props.value !== internalValue.value) {
+    if (props.value && props.value !== internalValue.value) {
       internalValue.value = props.value
     }
   },
@@ -122,12 +123,10 @@ watch(
         style="right: 0.5rem"
       />
     </div>
-    <div
-      v-if="show && _suggestions.length"
-      class="list bg-blueGray-800 shadow-lg border border-blueGray-light-100 border-t-0 p-2 rounded-xl"
-    >
+
+    <div v-if="show && _suggestions.length" class="list">
       <div
-        class="item cursor-pointer hover:bg-blueGray-light-300 p-2 w-fit"
+        class="item"
         v-for="suggestion in _suggestions"
         :key="suggestion.value"
         :title="suggestion.title"
@@ -140,15 +139,16 @@ watch(
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+.neutral {
+  .list {
+    @apply bg-neutral-900;
+  }
+}
 .list {
-  max-height: 250px;
-  position: absolute;
-  overflow: auto;
-  z-index: 2;
-  width: 100%;
+  @apply bg-blueGray-800 shadow-lg border border-blueGray-light-100 border-t-0 p-2 rounded-xl max-h-[250px] absolute overflow-auto z-[2] w-full;
 }
 .item {
-  min-width: 100%;
+  @apply cursor-pointer hover:bg-blueGray-light-300 p-2 w-fit min-w-full;
 }
 </style>

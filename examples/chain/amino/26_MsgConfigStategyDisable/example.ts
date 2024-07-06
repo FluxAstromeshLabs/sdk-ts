@@ -48,9 +48,10 @@ const main = async () => {
     id: '52e119efac640d1698ed5369ca027e74591f5260d71b71435007d10ffdc44cc9',
     strategy: new Uint8Array(),
     query: undefined,
-    type: StrategyType.GENERIC,
-    description: '',
-    trigger_permission: undefined,
+    metadata: {
+      type: StrategyType.STRATEGY
+    } as any,
+    trigger_permission: undefined
   }
 
   const msgAny: anytypes.Any = {

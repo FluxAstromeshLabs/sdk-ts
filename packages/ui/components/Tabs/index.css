@@ -7,10 +7,6 @@
 .tabs .tabs_item {
   @apply p-4 text-[16px] flex font-bold text-blueGray-500 dark:text-blueGray-400 cursor-pointer border-b border-blueGray-dark-200 dark:border-blueGray-light-200;
 }
-.tabs .tabs_item.active,
-.tabs .tabs_item:hover {
-  @apply text-blueGray-900 dark:text-blueGray-50;
-}
 
 .tabs .active-border {
   @apply bg-blueGray-800 dark:bg-blueGray-50 absolute bottom-0 h-[2px];
@@ -18,4 +14,15 @@
 
 .tabs .tabs_item .icon {
   @apply mr-1;
+}
+
+/* neutral theme */
+
+.neutral .tabs .tabs_item {
+  @apply text-neutral-900 dark:text-neutral-400;
+}
+
+.tabs .tabs_item.active,
+.tabs .tabs_item:hover {
+  @apply text-blueGray-900 dark:text-blueGray-50;
 }

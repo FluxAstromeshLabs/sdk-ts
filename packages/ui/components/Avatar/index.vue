@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import BaseSkeleton from '../Skeleton/index.vue'
+
 const props = defineProps({
   src: {
     type: String,

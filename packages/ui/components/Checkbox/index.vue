@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { ref, watch } from 'vue'
+
 const emit = defineEmits(['update:modelValue'])
 const props = defineProps({
   modelValue: Boolean,
@@ -25,7 +26,9 @@ const checkBoxChange = (value: boolean) => {
   <div
     class="checkbox"
     @click="checkBoxChange(!internalValue)"
-    :class="internalValue ? 'checked' : ''"
+    :class="{
+      checked: internalValue
+    }"
   >
     <p class="checkbox__label">
       <slot name="prepend" />

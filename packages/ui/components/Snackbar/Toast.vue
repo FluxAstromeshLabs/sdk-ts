@@ -43,7 +43,7 @@ watchEffect(() => {
       </div>
       <div class="max-h-[100%] overflow-auto">
         <BaseButton size="sm icon ml-2" @click="hide">
-          <span class="text-blueGray-900">
+          <span class="icon-close">
             <BaseIcons name="close" />
           </span>
         </BaseButton>

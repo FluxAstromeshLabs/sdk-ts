@@ -11,6 +11,10 @@ const props = defineProps({
   leaveTo: {
     type: String,
     default: 'left'
+  },
+  contentClass: {
+    type: String,
+    default: ''
   }
 })
 </script>
@@ -22,10 +26,10 @@ const props = defineProps({
     :leave-active-class="'slide-leave-active'"
     :enter-from-class="'slide-enter-from-' + enterFrom"
     :leave-to-class="'slide-leave-to-' + leaveTo"
-    appear
+    :appear="false"
   >
     <div v-show="isOpen" class="slider-container bg-inherit">
-      <div class="slider-content">
+      <div class="slider-content" :class="contentClass">
         <slot />
       </div>
     </div>
@@ -34,7 +38,6 @@ const props = defineProps({
 
 <style scoped>
 .slider-container {
-  /* position: absolute; */
   top: 0;
   left: 0;
   width: 100%;
@@ -48,6 +51,7 @@ const props = defineProps({
 .slide-leave-active {
   transition: all 0.4s ease;
   opacity: 1;
+  z-index: 3;
   position: absolute !important;
 }
 

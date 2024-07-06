@@ -156,7 +156,7 @@ export const green = {
 export const primary = orange
 export const secondary = lime
 export const fontSize = {
-  '5xl': ['3rem', { lineHeight: '3rem', letterSpacing: '-2%' }],
+  '5xl': ['3rem', { lineHeight: '3rem', letterSpacing: '-2px' }],
   '6xl': [
     '3.75rem',
     {

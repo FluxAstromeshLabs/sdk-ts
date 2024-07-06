@@ -45,9 +45,9 @@ const main = async () => {
 
   const msg: strategytypes.MsgTriggerStrategies = {
     sender: senderAddr,
-    ids: ['9eb83888b44a71f3a1630676aa1f3052deb142bb7661e64a71b7b77938088dd7'],
+    ids: ['f03be7c54c3b01dfa36118ef104ae8c4fcd82c32cac6e6d0d23d832aa207bddb'],
     inputs: [
-      Uint8Array.from(Buffer.from(`{"action":"deposit_equally","denom":"usdt","sender":"lux1jcltmuhplrdcwp7stlr4hlhlhgd4htqhu86cqx","deposit_amount":"30"}`))
+      Uint8Array.from(Buffer.from(`{"deposit_equally":{"denom":"usdt","amount":"30000000"}}`))
     ],
     queries: [
       astromeshquery.FISQueryRequest.create({

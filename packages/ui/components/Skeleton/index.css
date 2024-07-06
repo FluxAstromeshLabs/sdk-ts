@@ -21,11 +21,23 @@
   animation: loadingShine 1s infinite;
 }
 
+/* neutral theme  */
+.neutral .skeleton-loader {
+  @apply bg-neutral-600;
+}
+.neutral .skeleton-loader::before {
+  @apply bg-gradient-to-r from-neutral-600 via-neutral-300 to-neutral-600;
+}
 @keyframes loadingShine {
   from {
     transform: translateX(-100%);
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.5;
   }
   to {
     transform: translateX(100%);
+    opacity: 0.2;
   }
 }

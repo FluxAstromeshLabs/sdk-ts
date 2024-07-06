@@ -1,3 +1,6 @@
+.base-dropdown {
+  @apply cursor-pointer w-[fit-content];
+}
 .base-dropdown__popover .v-popper__arrow-container {
   display: none;
 }
@@ -18,4 +21,13 @@
 }
 .base-dropdown__popover[data-popper-placement='left'] {
   @apply mr-[-6px];
+}
+
+/* neutral theme */
+.neutral .base-dropdown__popover .v-popper__wrapper {
+  @apply bg-neutral-800;
+}
+
+.neutral .base-dropdown__popover .v-popper__wrapper .v-popper__inner {
+  @apply bg-neutral-800;
 }

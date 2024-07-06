@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { Dropdown } from 'floating-vue'
+
 defineProps({
   popperClass: {
     type: String,
@@ -44,7 +45,7 @@ defineExpose({
 <template>
   <Dropdown
     v-bind="$attrs"
-    class="base-dropdown cursor-pointer w-[fit-content]"
+    class="base-dropdown"
     :shown="isOpen"
     @update:shown="onUpdate"
     @show="onOpenDropdown"

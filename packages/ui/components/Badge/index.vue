@@ -11,7 +11,7 @@ defineProps({
 })
 </script>
 <template>
-  <div class="base-badge" :class="color">
+  <div class="base-badge" :class="{ [color]: color }">
     <slot />
   </div>
 </template>

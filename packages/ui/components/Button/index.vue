@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import BaseIcons from '../Icons/index.vue'
 import ProgressCircular from '../ProgressCircular.vue'
+
 type Color =
   | 'primary'
   | 'secondary'
@@ -48,7 +49,12 @@ defineProps({
 <template>
   <button
     class="btn"
-    :class="[size, variant, icon ? 'icon' : '', isLoading ? 'pointer-events-none' : ''].join(' ')"
+    :class="{
+      [size]: size,
+      [variant]: variant,
+      icon: icon,
+      'pointer-events-none': isLoading
+    }"
   >
     <div
       class="flex items-center justify-center absolute w-full h-full top-0 left-0 z-10"
