@@ -333,7 +333,7 @@ export interface MsgChannelUpgradeTimeout {
   signer: string;
 }
 
-/** MsgChannelUpgradeTimeoutRepsonse defines the MsgChannelUpgradeTimeout response type */
+/** MsgChannelUpgradeTimeoutResponse defines the MsgChannelUpgradeTimeout response type */
 export interface MsgChannelUpgradeTimeoutResponse {
 }
 

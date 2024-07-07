@@ -6,6 +6,7 @@
 
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
+import { Hop } from "../v1/transfer";
 
 /** Token defines a struct which represents a token to be transferred. */
 export interface Token {
@@ -22,17 +23,7 @@ export interface Denom {
   /** the base token denomination */
   base: string;
   /** the trace of the token */
-  trace: Trace[];
-}
-
-/**
- * Trace represents the portID and channelID the token arrived through.
- * When a token is sent to a new chain, the portID and channelID of the
- * destination chain are added to a token's trace.
- */
-export interface Trace {
-  port_id: string;
-  channel_id: string;
+  trace: Hop[];
 }
 
 function createBaseToken(): Token {
@@ -123,7 +114,7 @@ export const Denom = {
       writer.uint32(10).string(message.base);
     }
     for (const v of message.trace) {
-      Trace.encode(v!, writer.uint32(26).fork()).ldelim();
+      Hop.encode(v!, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -147,7 +138,7 @@ export const Denom = {
             break;
           }
 
-          message.trace.push(Trace.decode(reader, reader.uint32()));
+          message.trace.push(Hop.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -161,7 +152,7 @@ export const Denom = {
   fromJSON(object: any): Denom {
     return {
       base: isSet(object.base) ? globalThis.String(object.base) : "",
-      trace: globalThis.Array.isArray(object?.trace) ? object.trace.map((e: any) => Trace.fromJSON(e)) : [],
+      trace: globalThis.Array.isArray(object?.trace) ? object.trace.map((e: any) => Hop.fromJSON(e)) : [],
     };
   },
 
@@ -171,7 +162,7 @@ export const Denom = {
       obj.base = message.base;
     }
     if (message.trace?.length) {
-      obj.trace = message.trace.map((e) => Trace.toJSON(e));
+      obj.trace = message.trace.map((e) => Hop.toJSON(e));
     }
     return obj;
   },
@@ -182,83 +173,7 @@ export const Denom = {
   fromPartial(object: DeepPartial<Denom>): Denom {
     const message = createBaseDenom();
     message.base = object.base ?? "";
-    message.trace = object.trace?.map((e) => Trace.fromPartial(e)) || [];
-    return message;
-  },
-};
-
-function createBaseTrace(): Trace {
-  return { port_id: "", channel_id: "" };
-}
-
-export const Trace = {
-  $type: "ibc.applications.transfer.v2.Trace" as const,
-
-  encode(message: Trace, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.port_id !== "") {
-      writer.uint32(10).string(message.port_id);
-    }
-    if (message.channel_id !== "") {
-      writer.uint32(18).string(message.channel_id);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Trace {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseTrace();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.port_id = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.channel_id = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Trace {
-    return {
-      port_id: isSet(object.port_id) ? globalThis.String(object.port_id) : "",
-      channel_id: isSet(object.channel_id) ? globalThis.String(object.channel_id) : "",
-    };
-  },
-
-  toJSON(message: Trace): unknown {
-    const obj: any = {};
-    if (message.port_id !== undefined) {
-      obj.port_id = message.port_id;
-    }
-    if (message.channel_id !== undefined) {
-      obj.channel_id = message.channel_id;
-    }
-    return obj;
-  },
-
-  create(base?: DeepPartial<Trace>): Trace {
-    return Trace.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<Trace>): Trace {
-    const message = createBaseTrace();
-    message.port_id = object.port_id ?? "";
-    message.channel_id = object.channel_id ?? "";
+    message.trace = object.trace?.map((e) => Hop.fromPartial(e)) || [];
     return message;
   },
 };

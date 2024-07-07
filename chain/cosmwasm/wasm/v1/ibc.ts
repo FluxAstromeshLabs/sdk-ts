@@ -35,6 +35,10 @@ export interface MsgIBCSendResponse {
   sequence: string;
 }
 
+/** MsgIBCWriteAcknowledgementResponse */
+export interface MsgIBCWriteAcknowledgementResponse {
+}
+
 /** MsgIBCCloseChannel port and channel need to be owned by the contract */
 export interface MsgIBCCloseChannel {
   channel: string;
@@ -201,6 +205,51 @@ export const MsgIBCSendResponse = {
   fromPartial(object: DeepPartial<MsgIBCSendResponse>): MsgIBCSendResponse {
     const message = createBaseMsgIBCSendResponse();
     message.sequence = object.sequence ?? "0";
+    return message;
+  },
+};
+
+function createBaseMsgIBCWriteAcknowledgementResponse(): MsgIBCWriteAcknowledgementResponse {
+  return {};
+}
+
+export const MsgIBCWriteAcknowledgementResponse = {
+  $type: "cosmwasm.wasm.v1.MsgIBCWriteAcknowledgementResponse" as const,
+
+  encode(_: MsgIBCWriteAcknowledgementResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgIBCWriteAcknowledgementResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgIBCWriteAcknowledgementResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgIBCWriteAcknowledgementResponse {
+    return {};
+  },
+
+  toJSON(_: MsgIBCWriteAcknowledgementResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<MsgIBCWriteAcknowledgementResponse>): MsgIBCWriteAcknowledgementResponse {
+    return MsgIBCWriteAcknowledgementResponse.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<MsgIBCWriteAcknowledgementResponse>): MsgIBCWriteAcknowledgementResponse {
+    const message = createBaseMsgIBCWriteAcknowledgementResponse();
     return message;
   },
 };

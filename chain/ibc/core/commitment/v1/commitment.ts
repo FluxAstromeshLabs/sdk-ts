@@ -29,6 +29,7 @@ export interface MerklePrefix {
  * MerklePath is the path used to verify commitment proofs, which can be an
  * arbitrary structured object (defined by a commitment type).
  * MerklePath is represented from root-to-leaf
+ * Deprecated: Please use commitment/v2 MerklePath instead which supports non UTF-8 key paths.
  */
 export interface MerklePath {
   key_path: string[];
