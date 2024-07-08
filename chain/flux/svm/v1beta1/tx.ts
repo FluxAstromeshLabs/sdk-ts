@@ -11,9 +11,18 @@ import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { Instruction } from "./svm";
 
-export interface MsgTransaction {
-  /** signers are cosmos addresses that signs this message */
+export interface MsgLinkSVMAccount {
   sender: string;
+  svm_pubkey: Uint8Array;
+  svm_signature: Uint8Array;
+}
+
+export interface MsgLinkSVMAccountResponse {
+}
+
+export interface MsgTransaction {
+  /** senders are cosmos addresses that signs this message */
+  signers: string[];
   accounts: string[];
   instructions: Instruction[];
   compute_budget: string;
@@ -23,16 +32,152 @@ export interface MsgTransactionResponse {
   unit_consumed: string;
 }
 
+function createBaseMsgLinkSVMAccount(): MsgLinkSVMAccount {
+  return { sender: "", svm_pubkey: new Uint8Array(0), svm_signature: new Uint8Array(0) };
+}
+
+export const MsgLinkSVMAccount = {
+  $type: "flux.svm.v1beta1.MsgLinkSVMAccount" as const,
+
+  encode(message: MsgLinkSVMAccount, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.sender !== "") {
+      writer.uint32(10).string(message.sender);
+    }
+    if (message.svm_pubkey.length !== 0) {
+      writer.uint32(18).bytes(message.svm_pubkey);
+    }
+    if (message.svm_signature.length !== 0) {
+      writer.uint32(34).bytes(message.svm_signature);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgLinkSVMAccount {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgLinkSVMAccount();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.sender = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.svm_pubkey = reader.bytes();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.svm_signature = reader.bytes();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgLinkSVMAccount {
+    return {
+      sender: isSet(object.sender) ? globalThis.String(object.sender) : "",
+      svm_pubkey: isSet(object.svm_pubkey) ? bytesFromBase64(object.svm_pubkey) : new Uint8Array(0),
+      svm_signature: isSet(object.svm_signature) ? bytesFromBase64(object.svm_signature) : new Uint8Array(0),
+    };
+  },
+
+  toJSON(message: MsgLinkSVMAccount): unknown {
+    const obj: any = {};
+    if (message.sender !== undefined) {
+      obj.sender = message.sender;
+    }
+    if (message.svm_pubkey !== undefined) {
+      obj.svm_pubkey = base64FromBytes(message.svm_pubkey);
+    }
+    if (message.svm_signature !== undefined) {
+      obj.svm_signature = base64FromBytes(message.svm_signature);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<MsgLinkSVMAccount>): MsgLinkSVMAccount {
+    return MsgLinkSVMAccount.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<MsgLinkSVMAccount>): MsgLinkSVMAccount {
+    const message = createBaseMsgLinkSVMAccount();
+    message.sender = object.sender ?? "";
+    message.svm_pubkey = object.svm_pubkey ?? new Uint8Array(0);
+    message.svm_signature = object.svm_signature ?? new Uint8Array(0);
+    return message;
+  },
+};
+
+function createBaseMsgLinkSVMAccountResponse(): MsgLinkSVMAccountResponse {
+  return {};
+}
+
+export const MsgLinkSVMAccountResponse = {
+  $type: "flux.svm.v1beta1.MsgLinkSVMAccountResponse" as const,
+
+  encode(_: MsgLinkSVMAccountResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgLinkSVMAccountResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgLinkSVMAccountResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgLinkSVMAccountResponse {
+    return {};
+  },
+
+  toJSON(_: MsgLinkSVMAccountResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<MsgLinkSVMAccountResponse>): MsgLinkSVMAccountResponse {
+    return MsgLinkSVMAccountResponse.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<MsgLinkSVMAccountResponse>): MsgLinkSVMAccountResponse {
+    const message = createBaseMsgLinkSVMAccountResponse();
+    return message;
+  },
+};
+
 function createBaseMsgTransaction(): MsgTransaction {
-  return { sender: "", accounts: [], instructions: [], compute_budget: "0" };
+  return { signers: [], accounts: [], instructions: [], compute_budget: "0" };
 }
 
 export const MsgTransaction = {
   $type: "flux.svm.v1beta1.MsgTransaction" as const,
 
   encode(message: MsgTransaction, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.sender !== "") {
-      writer.uint32(10).string(message.sender);
+    for (const v of message.signers) {
+      writer.uint32(10).string(v!);
     }
     for (const v of message.accounts) {
       writer.uint32(18).string(v!);
@@ -58,7 +203,7 @@ export const MsgTransaction = {
             break;
           }
 
-          message.sender = reader.string();
+          message.signers.push(reader.string());
           continue;
         case 2:
           if (tag !== 18) {
@@ -92,7 +237,7 @@ export const MsgTransaction = {
 
   fromJSON(object: any): MsgTransaction {
     return {
-      sender: isSet(object.sender) ? globalThis.String(object.sender) : "",
+      signers: globalThis.Array.isArray(object?.signers) ? object.signers.map((e: any) => globalThis.String(e)) : [],
       accounts: globalThis.Array.isArray(object?.accounts) ? object.accounts.map((e: any) => globalThis.String(e)) : [],
       instructions: globalThis.Array.isArray(object?.instructions)
         ? object.instructions.map((e: any) => Instruction.fromJSON(e))
@@ -103,8 +248,8 @@ export const MsgTransaction = {
 
   toJSON(message: MsgTransaction): unknown {
     const obj: any = {};
-    if (message.sender !== undefined) {
-      obj.sender = message.sender;
+    if (message.signers?.length) {
+      obj.signers = message.signers;
     }
     if (message.accounts?.length) {
       obj.accounts = message.accounts;
@@ -123,7 +268,7 @@ export const MsgTransaction = {
   },
   fromPartial(object: DeepPartial<MsgTransaction>): MsgTransaction {
     const message = createBaseMsgTransaction();
-    message.sender = object.sender ?? "";
+    message.signers = object.signers?.map((e) => e) || [];
     message.accounts = object.accounts?.map((e) => e) || [];
     message.instructions = object.instructions?.map((e) => Instruction.fromPartial(e)) || [];
     message.compute_budget = object.compute_budget ?? "0";
@@ -191,6 +336,7 @@ export const MsgTransactionResponse = {
 };
 
 export interface Msg {
+  LinkSVMAccount(request: DeepPartial<MsgLinkSVMAccount>, metadata?: grpc.Metadata): Promise<MsgLinkSVMAccountResponse>;
   Transact(request: DeepPartial<MsgTransaction>, metadata?: grpc.Metadata): Promise<MsgTransactionResponse>;
 }
 
@@ -199,7 +345,15 @@ export class MsgClientImpl implements Msg {
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
+    this.LinkSVMAccount = this.LinkSVMAccount.bind(this);
     this.Transact = this.Transact.bind(this);
+  }
+
+  LinkSVMAccount(
+    request: DeepPartial<MsgLinkSVMAccount>,
+    metadata?: grpc.Metadata,
+  ): Promise<MsgLinkSVMAccountResponse> {
+    return this.rpc.unary(MsgLinkSVMAccountDesc, MsgLinkSVMAccount.fromPartial(request), metadata);
   }
 
   Transact(request: DeepPartial<MsgTransaction>, metadata?: grpc.Metadata): Promise<MsgTransactionResponse> {
@@ -208,6 +362,29 @@ export class MsgClientImpl implements Msg {
 }
 
 export const MsgDesc = { serviceName: "flux.svm.v1beta1.Msg" };
+
+export const MsgLinkSVMAccountDesc: UnaryMethodDefinitionish = {
+  methodName: "LinkSVMAccount",
+  service: MsgDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return MsgLinkSVMAccount.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = MsgLinkSVMAccountResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
 
 export const MsgTransactDesc: UnaryMethodDefinitionish = {
   methodName: "Transact",
@@ -297,6 +474,31 @@ export class GrpcWebImpl {
         },
       });
     });
+  }
+}
+
+function bytesFromBase64(b64: string): Uint8Array {
+  if ((globalThis as any).Buffer) {
+    return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
+  } else {
+    const bin = globalThis.atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; ++i) {
+      arr[i] = bin.charCodeAt(i);
+    }
+    return arr;
+  }
+}
+
+function base64FromBytes(arr: Uint8Array): string {
+  if ((globalThis as any).Buffer) {
+    return globalThis.Buffer.from(arr).toString("base64");
+  } else {
+    const bin: string[] = [];
+    arr.forEach((byte) => {
+      bin.push(globalThis.String.fromCharCode(byte));
+    });
+    return globalThis.btoa(bin.join(""));
   }
 }
 
