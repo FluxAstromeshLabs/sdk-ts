@@ -3,8 +3,12 @@ import { Plane, planeFromJSON, planeToJSON } from "../../../chain/flux/astromesh
 import { Schema, SchemaFISQuery, SchemaPrompt, StrategyMetadata } from "../../../chain/flux/strategy/v1beta1/strategy";
 import { MsgTriggerStrategies } from "../../../chain/flux/strategy/v1beta1/tx";
 
+function replaceTypedPlaceholders(template, values) {
+    return template.replace(/\${(\w+:\w+)}/g, (_, key: string) => values[key] || '');
+}
+
 function replacePlaceholders(template, values) {
-    return template.replace(/\${(\w+)}/g, (_, key: string) => values[key] || '');
+  return template.replace(/\${(\w+)}/g, (_, key: string) => values[key] || '');
 }
 
 /*
@@ -54,22 +58,23 @@ function compileTriggerMsg(
   })
 }
 
-let metadata = Schema.create({
-  groups: [
+let metadataJSON = `
+{
+  "groups": [
     {
-      name: "deposit/transfer helper",
-      prompts: {
-        deposit: {
-          template: "deposit \${amount} \${denom} equally from bank to all planes",
-          query: {
-            instructions: [
+      "name": "deposit/transfer helper",
+      "prompts": {
+        "deposit": {
+          "template": "deposit \${amount} \${denom} equally from bank to all planes",
+          "query": {
+            "instructions": [
               {
-                plane: "COSMOS",
-                action: "COSMOS_ASTROMESH_BALANCE",
+                "plane": "COSMOS",
+                "action": "COSMOS_ASTROMESH_BALANCE",
                 "address": null,
                 "input": [
-                  new Uint8Array(Buffer.from("${wallet}")),
-                  new Uint8Array(Buffer.from("${denom}")),
+                  "JHt3YWxsZXR9",
+                  "JHtkZW5vbX0="
                 ]
               }
             ]
@@ -78,7 +83,8 @@ let metadata = Schema.create({
       }
     }
   ]
-});
+}
+`;
 
 (async() => {
   let consts = {
@@ -88,6 +94,9 @@ let metadata = Schema.create({
     denom: "usdt",
     amount: '30000000',
   }
+
+  let metadata = Schema.fromJSON(JSON.parse(metadataJSON))
+  console.log(metadata)
   let triggerMsg = compileTriggerMsg(
     'lux1jcltmuhplrdcwp7stlr4hlhlhgd4htqhu86cqx',
     '9eb83888b44a71f3a1630676aa1f3052deb142bb7661e64a71b7b77938088dd7',
