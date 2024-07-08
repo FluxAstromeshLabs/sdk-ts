@@ -12,8 +12,13 @@ import {
 } from '../../../chain/flux/strategy/v1beta1/strategy'
 import { MsgTriggerStrategies } from '../../../chain/flux/strategy/v1beta1/tx'
 
+function replaceTypedPlaceholders(template, values) {
+  return template.replace(/\${(\w+:\w+)}/g, (_, key: string) => values[key] || '')
+}
+
 function replacePlaceholders(template, values) {
-  return template.replace(/\${(\w+)}/g, (_, key: string) => values[key] || '')
+  const _template = Buffer.from(template, 'base64').toString()
+  return _template.replace(/\${(\w+)}/g, (_, key: string) => values[key] || '')
 }
 
 /*
@@ -55,6 +60,7 @@ export function compileTriggerMsg(
   let strategyInput = {
     [action]: { ...userInput }
   }
+  console.log('strategyInput', strategyInput)
   return MsgTriggerStrategies.create({
     sender: luxSender,
     ids: [intentId],
@@ -62,6 +68,7 @@ export function compileTriggerMsg(
     queries: [fisQuery]
   })
 }
+
 export function parseTemplateToJSON(input) {
   const regex = /\${(\w+):(\w+)}/g
   let match
@@ -90,36 +97,33 @@ export function parseTemplateToJSON(input) {
   return result.flat().filter((item) => item !== '')
 }
 
-// const input = "deposit ${amount1:amount} ${denom1:string} equally ${wallet:address} from bank to all planes";
-// const parsedData = parseString(input);
-
-// console.log(parsedData);
-
-// let metadata = Schema.create({
-//   groups: [
-//     {
-//       name: 'deposit/transfer helper',
-//       prompts: {
-//         deposit: {
-//           template: 'deposit ${amount} ${denom} equally from bank to all planes',
-//           query: {
-//             instructions: [
-//               {
-//                 plane: 'COSMOS',
-//                 action: 'COSMOS_ASTROMESH_BALANCE',
-//                 address: null,
-//                 input: [
-//                   new Uint8Array(Buffer.from('${wallet}')),
-//                   new Uint8Array(Buffer.from('${denom}'))
-//                 ]
-//               }
-//             ]
-//           }
-//         }
-//       }
-//     }
-//   ]
-// })
+let metadataJSON = `
+{
+  "groups": [
+    {
+      "name": "deposit/transfer helper",
+      "prompts": {
+        "deposit": {
+          "template": "deposit \${amount} \${denom} equally from bank to all planes",
+          "query": {
+            "instructions": [
+              {
+                "plane": "COSMOS",
+                "action": "COSMOS_ASTROMESH_BALANCE",
+                "address": null,
+                "input": [
+                  "JHt3YWxsZXR9",
+                  "JHtkZW5vbX0="
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
+`
 
 // ;(async () => {
 //   let consts = {
@@ -129,6 +133,9 @@ export function parseTemplateToJSON(input) {
 //     denom: 'usdt',
 //     amount: '30000000'
 //   }
+
+//   let metadata = Schema.fromJSON(JSON.parse(metadataJSON))
+//   console.log(metadata)
 //   let triggerMsg = compileTriggerMsg(
 //     'lux1jcltmuhplrdcwp7stlr4hlhlhgd4htqhu86cqx',
 //     '9eb83888b44a71f3a1630676aa1f3052deb142bb7661e64a71b7b77938088dd7',
