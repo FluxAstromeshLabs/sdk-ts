@@ -64,7 +64,7 @@ const main = async () => {
       tags: ['defi', 'helper'],
       schema: '',
       cron_gas_price: '',
-      cron_input: new Uint8Array(0),
+      cron_input: '',
       cron_interval: '0'
     }
   }
