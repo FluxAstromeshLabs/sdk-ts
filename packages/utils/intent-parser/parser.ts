@@ -17,8 +17,7 @@ function replaceTypedPlaceholders(template, values) {
 }
 
 function replacePlaceholders(template, values) {
-  const _template = Buffer.from(template, 'base64').toString()
-  return _template.replace(/\${(\w+)}/g, (_, key: string) => values[key] || '')
+  return template.replace(/\${(\w+)}/g, (_, key: string) => values[key] || '')
 }
 
 /*
