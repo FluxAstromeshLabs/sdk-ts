@@ -51,4 +51,12 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
       strategy: response.strategies[0] || undefined
     }
   }
+  async listStrategiesByOwner(
+    request: explorerQuery.ListStrategiesByOwnerRequest
+  ): Promise<explorerQuery.ListStrategiesResponse> {
+    const response: explorerQuery.ListStrategiesResponse = await this.retry(() =>
+      this.client.ListStrategiesByOwner(request)
+    )
+    return response
+  }
 }
