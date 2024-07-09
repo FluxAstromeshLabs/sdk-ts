@@ -28,7 +28,7 @@ export function compileTriggerMsg(
   luxSender: string,
   intentId: string,
   action: string,
-  prompt: SchemaPrompt,
+  prompt: any, // keep "any" for now so that we can improve schema as we go
   userInput: Object,
   defaultConst: Object
 ): MsgTriggerStrategies {
@@ -43,7 +43,8 @@ export function compileTriggerMsg(
     // replace vars within queries
     let inputs = []
     for (let i = 0; i < ix.input.length; i++) {
-      inputs.push(Buffer.from(replacePlaceholders(Buffer.from(ix.input[i]).toString(), knownVars)))
+      let input = Buffer.from(ix.input[i], 'base64')
+      inputs.push(Buffer.from(replacePlaceholders(input.toString('ascii'), knownVars)))
     }
 
     fisQuery.instructions.push(
@@ -56,8 +57,17 @@ export function compileTriggerMsg(
     )
   }
 
+  let filteredInput = {}
+  if (prompt.msg_fields) {
+    for (let field in userInput) {
+      if (prompt.msg_fields.includes(field)) {
+        filteredInput[field] = userInput[field]
+      }
+    }
+  }
+
   let strategyInput = {
-    [action]: { ...userInput }
+    [action]: { ...filteredInput }
   }
   console.log('strategyInput', strategyInput)
   return MsgTriggerStrategies.create({
@@ -95,54 +105,3 @@ export function parseTemplateToJSON(input) {
   // Flatten the result to remove any empty strings
   return result.flat().filter((item) => item !== '')
 }
-
-let metadataJSON = `
-{
-  "groups": [
-    {
-      "name": "deposit/transfer helper",
-      "prompts": {
-        "deposit": {
-          "template": "deposit \${amount} \${denom} equally from bank to all planes",
-          "query": {
-            "instructions": [
-              {
-                "plane": "COSMOS",
-                "action": "COSMOS_ASTROMESH_BALANCE",
-                "address": null,
-                "input": [
-                  "JHt3YWxsZXR9",
-                  "JHtkZW5vbX0="
-                ]
-              }
-            ]
-          }
-        }
-      }
-    }
-  ]
-}
-`
-
-// ;(async () => {
-//   let consts = {
-//     wallet: 'lux1jcltmuhplrdcwp7stlr4hlhlhgd4htqhu86cqx'
-//   }
-//   let inputVars = {
-//     denom: 'usdt',
-//     amount: '30000000'
-//   }
-
-//   let metadata = Schema.fromJSON(JSON.parse(metadataJSON))
-//   console.log(metadata)
-//   let triggerMsg = compileTriggerMsg(
-//     'lux1jcltmuhplrdcwp7stlr4hlhlhgd4htqhu86cqx',
-//     '9eb83888b44a71f3a1630676aa1f3052deb142bb7661e64a71b7b77938088dd7',
-//     'deposit_equally',
-//     metadata.groups[0].prompts.deposit,
-//     inputVars,
-//     consts
-//   )
-
-//   console.log(JSON.stringify(triggerMsg, null, '  '))
-// })()
