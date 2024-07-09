@@ -105,3 +105,5 @@ export function parseTemplateToJSON(input) {
   // Flatten the result to remove any empty strings
   return result.flat().filter((item) => item !== '')
 }
+
+let metadataJSON = `{"groups":[{"name":"transfer helper","prompts":{"withdraw_all_planes":{"template":"withdraw \${denom:string} from planes to cosmos","msg_fields":[],"query":{"instructions":[{"plane":"COSMOS","action":"COSMOS_ASTROMESH_BALANCE","address":"","input":["JHt3YWxsZXR9","JHtkZW5vbX0="]}]}}}}]}`
