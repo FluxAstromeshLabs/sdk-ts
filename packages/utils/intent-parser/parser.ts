@@ -19,7 +19,7 @@ function compileTriggerMsg(
   luxSender: string,
   intentId: string,
   action: string, 
-  prompt: SchemaPrompt, 
+  prompt: any,  // keep "any" for now so that we can improve schema as we go
   userInput: Object,
   defaultConst: Object,
 ): MsgTriggerStrategies {
@@ -34,8 +34,9 @@ function compileTriggerMsg(
     // replace vars within queries
     let inputs = []
     for(let i = 0; i < ix.input.length; i++) {
+      let input = Buffer.from(ix.input[i], 'base64')
       inputs.push(
-        Buffer.from(replacePlaceholders(Buffer.from(ix.input[i]).toString(), knownVars)),
+        Buffer.from(replacePlaceholders(input.toString('ascii'), knownVars)),
       )
     }
 
@@ -47,8 +48,17 @@ function compileTriggerMsg(
     }))
   }
 
+  let filteredInput = {}
+  if (prompt.msg_fields) {
+    for(let field in userInput) {
+      if (prompt.msg_fields.includes(field)) {
+        filteredInput[field] = userInput[field]
+      }
+    }
+  }
+  
   let strategyInput = {
-    [action]: {...userInput},
+    [action]: {...filteredInput},
   }
   return MsgTriggerStrategies.create({
     sender: luxSender,
@@ -58,33 +68,33 @@ function compileTriggerMsg(
   })
 }
 
-let metadataJSON = `
-{
-  "groups": [
-    {
-      "name": "deposit/transfer helper",
-      "prompts": {
-        "deposit": {
-          "template": "deposit \${amount} \${denom} equally from bank to all planes",
-          "query": {
-            "instructions": [
-              {
-                "plane": "COSMOS",
-                "action": "COSMOS_ASTROMESH_BALANCE",
-                "address": null,
-                "input": [
-                  "JHt3YWxsZXR9",
-                  "JHtkZW5vbX0="
-                ]
-              }
-            ]
-          }
-        }
-      }
-    }
-  ]
-}
-`;
+let metadataJSON = `{"groups":[{"name":"transfer helper","prompts":{"withdraw_all_planes":{"template":"withdraw \${denom:string} from planes to cosmos","msg_fields":[],"query":{"instructions":[{"plane":"COSMOS","action":"COSMOS_ASTROMESH_BALANCE","address":"","input":["JHt3YWxsZXR9","JHtkZW5vbX0="]}]}}}}]}`;
+// let metadataJSON = `{
+//   "groups": [
+//     {
+//       "name": "deposit/transfer helper",
+//       "prompts": {
+//         "deposit": {
+//           "template": "deposit \${amount} \${denom} equally from bank to all planes",
+//           "query": {
+//             "instructions": [
+//               {
+//                 "plane": "COSMOS",
+//                 "action": "COSMOS_ASTROMESH_BALANCE",
+//                 "address": null,
+//                 "input": [
+//                   "JHt3YWxsZXR9",
+//                   "JHtkZW5vbX0="
+//                 ]
+//               }
+//             ]
+//           }
+//         }
+//       }
+//     }
+//   ]
+// }
+// `;
 
 (async() => {
   let consts = {
@@ -92,19 +102,18 @@ let metadataJSON = `
   }
   let inputVars = {
     denom: "usdt",
-    amount: '30000000',
   }
 
-  let metadata = Schema.fromJSON(JSON.parse(metadataJSON))
-  console.log(metadata)
+  let metadata = JSON.parse(metadataJSON)
   let triggerMsg = compileTriggerMsg(
     'lux1jcltmuhplrdcwp7stlr4hlhlhgd4htqhu86cqx',
     '9eb83888b44a71f3a1630676aa1f3052deb142bb7661e64a71b7b77938088dd7',
-    'deposit_equally',
-    metadata.groups[0].prompts.deposit,
+    'withdraw_all_planes',
+    metadata.groups[0].prompts.withdraw_all_planes,
     inputVars,
     consts
   )
 
   console.log(JSON.stringify(triggerMsg, null, '  '))
+  console.log('msg to send:', triggerMsg.inputs[0].toString())
 })()
