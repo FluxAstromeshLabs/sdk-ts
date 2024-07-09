@@ -193,7 +193,7 @@ const main = async () => {
     senderAccSeq++
   }
 
-  let arbitrageAmount = '100000000'
+  let transferAmount = '100000000'
   // transfer to svm
   let transferSvmMsg = astromeshtypes.MsgAstroTransfer.create({
     sender: senderAddr,
@@ -201,7 +201,7 @@ const main = async () => {
     src_plane: Plane.COSMOS,
     dst_plane: Plane.SVM,
     coin: {
-      amount: arbitrageAmount,
+      amount: transferAmount,
       denom: 'usdt'
     }
   })
@@ -221,39 +221,17 @@ const main = async () => {
 
   const msg: strategytypes.MsgTriggerStrategies = {
     sender: senderAddr,
-    ids: ['C707C128D260C536701D4A843A5194B66BDCB40A7D602445680AF2A53FDC70DF'],
+    ids: ['267E22C656E12DC80B73F840748528D3CA5FC93DE4ACC428C828152E21F496A9'],
     inputs: [
       Uint8Array.from(
         Buffer.from(
-          `{"arbitrage":{"pair":"eth-usdt","amount":"${arbitrageAmount}","min_profit":"500000"}}`
+          `{"swap":{"dex_name":"raydium","pair":"btc-usdt","denom":"usdt","amount":"10000000"}}`
         )
       )
     ],
     queries: [
       astromeshquery.FISQueryRequest.create({
-        instructions: [
-          {
-            plane: Plane.WASM,
-            action: astromeshquery.QueryAction.VM_QUERY,
-            address: Buffer.from(
-              bech32.fromWords(
-                bech32.decode('lux1aakfpghcanxtc45gpqlx8j3rq0zcpyf49qmhm9mdjrfx036h4z5sdltq0m')
-                  .words
-              )
-            ),
-            input: [Uint8Array.from(Buffer.from('{"pool":{}}'))]
-          },
-          {
-            plane: Plane.SVM,
-            action: astromeshquery.QueryAction.VM_QUERY,
-            address: new Uint8Array(),
-            input: [
-              new web3.PublicKey('CP9w46ipnMBBQP2Nqg8DceobmnTFeb9Pri5W2RX1CiSV').toBytes(),
-              new web3.PublicKey('DCJQyrGYeHWocMxpBBWCSJEgtMFZXgwMuXxZnkrHtuvW').toBytes(),
-              new web3.PublicKey('GASMVGvEguNjicG1UhaTiYDPib4geFQBXjtbqAG1HPLH').toBytes()
-            ]
-          }
-        ]
+        instructions: [],
       })
     ]
   }
