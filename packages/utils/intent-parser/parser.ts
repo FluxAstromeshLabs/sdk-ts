@@ -77,7 +77,7 @@ export function compileTriggerMsg(
   })
 }
 //@ts-ignore
-export function parseTemplateToJSON(input: string) {
+export function parseTemplateToJSON(input: any) {
   const regex = /\${(\w+):(\w+)}/g
   let match: any
   const result = []
