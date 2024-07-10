@@ -193,16 +193,16 @@ const main = async () => {
     senderAccSeq++
   }
 
-  let transferAmount = '100000000'
-  // transfer to svm
-  let transferSvmMsg = astromeshtypes.MsgAstroTransfer.create({
+  let transferAmount = '10000000' // 0.1 BTC
+  // transfer to evm
+  let transferEvmMsg = astromeshtypes.MsgAstroTransfer.create({
     sender: senderAddr,
     receiver: senderAddr,
     src_plane: Plane.COSMOS,
-    dst_plane: Plane.SVM,
+    dst_plane: Plane.EVM,
     coin: {
       amount: transferAmount,
-      denom: 'usdt'
+      denom: 'btc'
     }
   })
 
@@ -213,7 +213,7 @@ const main = async () => {
     senderAccSeq,
     8000000,
     astromeshtypes.MsgAstroTransfer,
-    transferSvmMsg,
+    transferEvmMsg,
     senderPrivKey
   )
   console.log('transfer svm tx broadcast result:', transferSvmRes)
@@ -221,19 +221,15 @@ const main = async () => {
 
   const msg: strategytypes.MsgTriggerStrategies = {
     sender: senderAddr,
-    ids: ['267E22C656E12DC80B73F840748528D3CA5FC93DE4ACC428C828152E21F496A9'],
+    ids: ['93EBD32484FA797C95CDBC60E5A34572E0263318407982A64F6F377F50C7AA9E'],
     inputs: [
       Uint8Array.from(
         Buffer.from(
-          `{"swap":{"dex_name":"raydium","pair":"btc-usdt","denom":"usdt","amount":"10000000"}}`
+          `{"swap":{"dex_name":"uniswap","pair":"btc-usdt","denom":"btc","amount":"1"}}`
         )
       )
     ],
-    queries: [
-      astromeshquery.FISQueryRequest.create({
-        instructions: [],
-      })
-    ]
+    queries: []
   }
 
   const msgAny: anytypes.Any = {
