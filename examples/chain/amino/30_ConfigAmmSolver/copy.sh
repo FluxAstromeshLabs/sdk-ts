@@ -1,1 +1,0 @@
-cp /Users/phucta/flux/nexus-bots/examples/solver/amm-solver/target/wasm32-unknown-unknown/release/amm_solver.wasm .
