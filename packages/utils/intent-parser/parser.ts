@@ -55,8 +55,8 @@ export function compileTriggerMsg(
       })
     )
   }
-
-  let filteredInput = {}
+  //@ts-ignore
+  let filteredInput: any = {}
   if (prompt.msg_fields) {
     for (let field in userInput) {
       if (prompt.msg_fields.includes(field)) {
@@ -76,10 +76,10 @@ export function compileTriggerMsg(
     queries: [fisQuery]
   })
 }
-
-export function parseTemplateToJSON(input) {
+//@ts-ignore
+export function parseTemplateToJSON(input: string) {
   const regex = /\${(\w+):(\w+)}/g
-  let match
+  let match: any
   const result = []
 
   let lastIndex = 0
