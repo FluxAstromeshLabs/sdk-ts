@@ -193,6 +193,7 @@ const main = async () => {
     senderAccSeq++
   }
 
+  let swapDenom = 'sol'
   let transferAmount = '10000000' // 0.1 BTC
   // transfer to evm
   let transferEvmMsg = astromeshtypes.MsgAstroTransfer.create({
@@ -202,7 +203,7 @@ const main = async () => {
     dst_plane: Plane.EVM,
     coin: {
       amount: transferAmount,
-      denom: 'btc'
+      denom: swapDenom,
     }
   })
 
@@ -221,11 +222,11 @@ const main = async () => {
 
   const msg: strategytypes.MsgTriggerStrategies = {
     sender: senderAddr,
-    ids: ['93EBD32484FA797C95CDBC60E5A34572E0263318407982A64F6F377F50C7AA9E'],
+    ids: ['57EDB6BEE92986D2DF0FC53240F9FCA9546C6275A1C880B38708F6BE35F2CABB'], // Update strategy ID here
     inputs: [
       Uint8Array.from(
         Buffer.from(
-          `{"swap":{"dex_name":"uniswap","pair":"btc-usdt","denom":"btc","amount":"1"}}`
+          `{"swap":{"dex_name":"uniswap","pair":"${swapDenom}-usdt","denom":"${swapDenom}","amount":"100"}}`
         )
       )
     ],
