@@ -11,12 +11,11 @@ import {
   StrategyMetadata
 } from '../../../chain/flux/strategy/v1beta1/strategy'
 import { MsgTriggerStrategies } from '../../../chain/flux/strategy/v1beta1/tx'
-
-function replaceTypedPlaceholders(template: string, values: Array<any>) {
+function replaceTypedPlaceholders(template: string, values: any) {
   return template.replace(/\${(\w+:\w+)}/g, (_: any, key: string) => values[key] || '')
 }
 
-function replacePlaceholders(template: string, values: Array<any>) {
+function replacePlaceholders(template: string, values: any) {
   return template.replace(/\${(\w+)}/g, (_: any, key: string) => values[key] || '')
 }
 
