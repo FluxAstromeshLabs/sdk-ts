@@ -60,6 +60,7 @@ export function compileTriggerMsg(
   if (prompt.msg_fields) {
     for (let field in userInput) {
       if (prompt.msg_fields.includes(field)) {
+        //@ts-ignore
         filteredInput[field] = userInput[field]
       }
     }
