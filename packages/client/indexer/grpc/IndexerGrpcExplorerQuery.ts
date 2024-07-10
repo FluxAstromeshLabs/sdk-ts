@@ -54,6 +54,7 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
   async listStrategiesByOwner(
     request: explorerQuery.ListStrategiesByOwnerRequest
   ): Promise<explorerQuery.ListStrategiesResponse> {
+    console.log('listStrategiesByOwner', request)
     const response: explorerQuery.ListStrategiesResponse = await this.retry(() =>
       this.client.ListStrategiesByOwner(request)
     )
