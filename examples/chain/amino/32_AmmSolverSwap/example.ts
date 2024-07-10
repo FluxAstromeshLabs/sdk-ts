@@ -216,7 +216,7 @@ const main = async () => {
     transferEvmMsg,
     senderPrivKey
   )
-  console.log('transfer svm tx broadcast result:', transferSvmRes)
+  console.log('transfer EVM tx broadcast result:', transferSvmRes)
   senderAccSeq++
 
   const msg: strategytypes.MsgTriggerStrategies = {
