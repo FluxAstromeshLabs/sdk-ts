@@ -18,12 +18,11 @@ import {
   simulate,
   toFluxSvmTransaction
 } from '../../../../packages'
-import { Plane, TxAction } from '../../../../chain/flux/astromesh/v1beta1/tx'
 import * as svmtx from '../../../../chain/flux/svm/v1beta1/tx'
-import * as astromeshquery from '../../../../chain/flux/astromesh/v1beta1/query'
-import * as astromeshtypes from '../../../../chain/flux/astromesh/v1beta1/tx'
 import * as web3 from '@solana/web3.js'
 import * as txservice from '../../../../chain/cosmos/tx/v1beta1/service'
+import * as astromeshtypes from '../../../../chain/flux/astromesh/v1beta1/query'
+import * as fs from 'fs'
 
 async function broadcastMsg(
   txClient: ChainGrpcTxService,
@@ -117,25 +116,6 @@ async function broadcastMsg(
 }
 
 const main = async () => {
-
-  let arr = [
-    new web3.PublicKey('CP9w46ipnMBBQP2Nqg8DceobmnTFeb9Pri5W2RX1CiSV').toBytes(),
-    new web3.PublicKey('DCJQyrGYeHWocMxpBBWCSJEgtMFZXgwMuXxZnkrHtuvW').toBytes(),
-    new web3.PublicKey('GASMVGvEguNjicG1UhaTiYDPib4geFQBXjtbqAG1HPLH').toBytes()
-  ]
-
-  for(let b of arr) {
-    console.log(`"${Buffer.from(b).toString('base64')}",`)
-  }
-
-  let buf = Buffer.from(
-    bech32.fromWords(
-      bech32.decode('lux1aakfpghcanxtc45gpqlx8j3rq0zcpyf49qmhm9mdjrfx036h4z5sdltq0m')
-        .words
-    )
-  )
-  console.log('buf:', buf.toString('base64'))
-
   const chainGrpcClient = new ChainGrpcClient('http://localhost:10337')
   const txClient = chainGrpcClient.transaction
   const authClient = chainGrpcClient.auth
@@ -213,69 +193,20 @@ const main = async () => {
     senderAccSeq++
   }
 
-  let arbitrageAmount = '100000000'
-  // transfer to svm
-  let transferSvmMsg = astromeshtypes.MsgAstroTransfer.create({
-    sender: senderAddr,
-    receiver: senderAddr,
-    src_plane: Plane.COSMOS,
-    dst_plane: Plane.SVM,
-    coin: {
-      amount: arbitrageAmount,
-      denom: 'usdt'
-    }
-  })
-
-  let transferSvmRes = await broadcastMsg(
-    txClient,
-    senderPubkeyAny,
-    senderAccNum,
-    senderAccSeq,
-    8000000,
-    astromeshtypes.MsgAstroTransfer,
-    transferSvmMsg,
-    senderPrivKey
-  )
-  console.log('transfer svm tx broadcast result:', transferSvmRes)
-  senderAccSeq++
-
+  let schema = fs.readFileSync('../30_ConfigAmmSolver/schema.json')
+  let arbitrageSchema = JSON.parse(schema.toString()).groups[0].prompts.arbitrage
+  let arbitrageQuery = astromeshtypes.FISQueryRequest.fromJSON(arbitrageSchema.query)
   const msg: strategytypes.MsgTriggerStrategies = {
     sender: senderAddr,
-    ids: ['DA79495F21D95821DEF3D3293F9967CF97C2470AE80E683D3998E4C90759665C'],
+    ids: ['E9C9B5D050324513606A8F57E95C85A0B61A6941BCA8EE25F85B2EF19B55BA92'],
     inputs: [
       Uint8Array.from(
         Buffer.from(
-          `{"arbitrage":{"pair":"eth-usdt","amount":"${arbitrageAmount}","min_profit":"500000"}}`
+          `{"arbitrage":{"pair":"btc-usdt","amount":"10000000","min_profit":"500000"}}`
         )
       )
     ],
-    queries: [
-      astromeshquery.FISQueryRequest.create({
-        instructions: [
-          {
-            plane: Plane.WASM,
-            action: astromeshquery.QueryAction.VM_QUERY,
-            address: Buffer.from(
-              bech32.fromWords(
-                bech32.decode('lux1aakfpghcanxtc45gpqlx8j3rq0zcpyf49qmhm9mdjrfx036h4z5sdltq0m')
-                  .words
-              )
-            ),
-            input: [Uint8Array.from(Buffer.from('{"pool":{}}'))]
-          },
-          {
-            plane: Plane.SVM,
-            action: astromeshquery.QueryAction.VM_QUERY,
-            address: new Uint8Array(),
-            input: [
-              new web3.PublicKey('CP9w46ipnMBBQP2Nqg8DceobmnTFeb9Pri5W2RX1CiSV').toBytes(),
-              new web3.PublicKey('DCJQyrGYeHWocMxpBBWCSJEgtMFZXgwMuXxZnkrHtuvW').toBytes(),
-              new web3.PublicKey('GASMVGvEguNjicG1UhaTiYDPib4geFQBXjtbqAG1HPLH').toBytes()
-            ]
-          }
-        ]
-      })
-    ]
+    queries: [arbitrageQuery]
   }
 
   const msgAny: anytypes.Any = {
