@@ -117,6 +117,25 @@ async function broadcastMsg(
 }
 
 const main = async () => {
+
+  let arr = [
+    new web3.PublicKey('CP9w46ipnMBBQP2Nqg8DceobmnTFeb9Pri5W2RX1CiSV').toBytes(),
+    new web3.PublicKey('DCJQyrGYeHWocMxpBBWCSJEgtMFZXgwMuXxZnkrHtuvW').toBytes(),
+    new web3.PublicKey('GASMVGvEguNjicG1UhaTiYDPib4geFQBXjtbqAG1HPLH').toBytes()
+  ]
+
+  for(let b of arr) {
+    console.log(`"${Buffer.from(b).toString('base64')}",`)
+  }
+
+  let buf = Buffer.from(
+    bech32.fromWords(
+      bech32.decode('lux1aakfpghcanxtc45gpqlx8j3rq0zcpyf49qmhm9mdjrfx036h4z5sdltq0m')
+        .words
+    )
+  )
+  console.log('buf:', buf.toString('base64'))
+
   const chainGrpcClient = new ChainGrpcClient('http://localhost:10337')
   const txClient = chainGrpcClient.transaction
   const authClient = chainGrpcClient.auth
@@ -157,6 +176,7 @@ const main = async () => {
     }
     needCreateAccount = true
   }
+
 
   // create account
   if (needCreateAccount) {
@@ -221,7 +241,7 @@ const main = async () => {
 
   const msg: strategytypes.MsgTriggerStrategies = {
     sender: senderAddr,
-    ids: ['C707C128D260C536701D4A843A5194B66BDCB40A7D602445680AF2A53FDC70DF'],
+    ids: ['DA79495F21D95821DEF3D3293F9967CF97C2470AE80E683D3998E4C90759665C'],
     inputs: [
       Uint8Array.from(
         Buffer.from(
