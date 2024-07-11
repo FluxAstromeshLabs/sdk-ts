@@ -55,14 +55,14 @@ const main = async () => {
     }),
     trigger_permission: undefined,
     metadata: {
-      name: 'Amm swap wizard',
+      name: 'Amm wizard',
       description:
         'Abstracting out swaps and unleashing arbitrage opportunities. It supports basic swaps as well as arbitrage across pools of the same pair',
       logo: '',
       website: 'https://www.astromesh.xyz',
       type: StrategyType.INTENT_SOLVER,
       tags: ['defi', 'helper'],
-      schema: '',
+      schema: fs.readFileSync('schema.json').toString(),
       cron_gas_price: '',
       cron_input: new Uint8Array(0),
       cron_interval: '0'

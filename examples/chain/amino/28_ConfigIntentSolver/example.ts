@@ -55,7 +55,8 @@ const main = async () => {
     }),
     metadata: {
       type: StrategyType.INTENT_SOLVER,
-      description: 'astromesh transfer intent solver'
+      description: 'astromesh transfer intent solver',
+      schema: '{"groups":[{"name":"transfer helper","prompts":{"withdraw_all_planes":{"template":"withdraw ${denom:string} from planes to cosmos","query":{"instructions":[{"plane":"COSMOS","action":"COSMOS_ASTROMESH_BALANCE","address":"","input":["JHt3YWxsZXR9","JHtkZW5vbX0="]}]}},"deposit_equally":{"template":"deposit ${amount:number} ${denom:string} from cosmos to all planes equally","msg_fields":["amount","denom"],"query":{"instructions":[{"plane":"COSMOS","action":"COSMOS_BANK_BALANCE","address":"","input":["JHt3YWxsZXR9","JHtkZW5vbX0="]}]}}}}]}'
     } as any,
     trigger_permission: undefined
   }

@@ -24,7 +24,6 @@ import * as astromeshquery from '../../../../chain/flux/astromesh/v1beta1/query'
 import * as astromeshtypes from '../../../../chain/flux/astromesh/v1beta1/tx'
 import * as web3 from '@solana/web3.js'
 import * as txservice from '../../../../chain/cosmos/tx/v1beta1/service'
-import { Coin } from '../../../../chain/cosmos/base/v1beta1/coin'
 
 async function broadcastMsg(
   txClient: ChainGrpcTxService,
@@ -194,16 +193,17 @@ const main = async () => {
     senderAccSeq++
   }
 
-  let arbitrageAmount = '100000000'
-  // transfer to svm
-  let transferSvmMsg = astromeshtypes.MsgAstroTransfer.create({
+  let swapDenom = 'eth'
+  let transferAmount = '10000000' // 0.1 BTC
+  // transfer to evm
+  let transferEvmMsg = astromeshtypes.MsgAstroTransfer.create({
     sender: senderAddr,
     receiver: senderAddr,
     src_plane: Plane.COSMOS,
-    dst_plane: Plane.SVM,
+    dst_plane: Plane.EVM,
     coin: {
-      amount: arbitrageAmount,
-      denom: 'usdt'
+      amount: transferAmount,
+      denom: swapDenom,
     }
   })
 
@@ -214,49 +214,23 @@ const main = async () => {
     senderAccSeq,
     8000000,
     astromeshtypes.MsgAstroTransfer,
-    transferSvmMsg,
+    transferEvmMsg,
     senderPrivKey
   )
-  console.log('transfer svm tx broadcast result:', transferSvmRes)
+  console.log('transfer EVM tx broadcast result:', transferSvmRes)
   senderAccSeq++
 
   const msg: strategytypes.MsgTriggerStrategies = {
     sender: senderAddr,
-    ids: ['C707C128D260C536701D4A843A5194B66BDCB40A7D602445680AF2A53FDC70DF'],
+    ids: ['DA79495F21D95821DEF3D3293F9967CF97C2470AE80E683D3998E4C90759665C'], // Update strategy ID here
     inputs: [
       Uint8Array.from(
         Buffer.from(
-          `{"arbitrage":{"pair":"eth-usdt","amount":"${arbitrageAmount}","min_profit":"500000"}}`
+          `{"swap":{"dex_name":"evm uniswap","src_denom":"${swapDenom}","dst_denom":"usdt","amount":"100"}}`
         )
       )
     ],
-    queries: [
-      astromeshquery.FISQueryRequest.create({
-        instructions: [
-          {
-            plane: Plane.WASM,
-            action: astromeshquery.QueryAction.VM_QUERY,
-            address: Buffer.from(
-              bech32.fromWords(
-                bech32.decode('lux1aakfpghcanxtc45gpqlx8j3rq0zcpyf49qmhm9mdjrfx036h4z5sdltq0m')
-                  .words
-              )
-            ),
-            input: [Uint8Array.from(Buffer.from('{"pool":{}}'))]
-          },
-          {
-            plane: Plane.SVM,
-            action: astromeshquery.QueryAction.VM_QUERY,
-            address: new Uint8Array(),
-            input: [
-              new web3.PublicKey('CP9w46ipnMBBQP2Nqg8DceobmnTFeb9Pri5W2RX1CiSV').toBytes(),
-              new web3.PublicKey('DCJQyrGYeHWocMxpBBWCSJEgtMFZXgwMuXxZnkrHtuvW').toBytes(),
-              new web3.PublicKey('GASMVGvEguNjicG1UhaTiYDPib4geFQBXjtbqAG1HPLH').toBytes()
-            ]
-          }
-        ]
-      })
-    ]
+    queries: []
   }
 
   const msgAny: anytypes.Any = {
