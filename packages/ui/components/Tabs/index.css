@@ -1,5 +1,5 @@
 .tabs {
-  @apply flex items-center relative h-[fit-content];
+  @apply flex items-end relative h-[fit-content];
 }
 .tabs.vertical {
   @apply flex-col items-start;
