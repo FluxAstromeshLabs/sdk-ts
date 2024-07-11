@@ -43,7 +43,8 @@ export function compileTriggerMsg(
     let inputs = []
     for (let i = 0; i < ix.input.length; i++) {
       let input = Buffer.from(ix.input[i], 'base64')
-      inputs.push(Buffer.from(replacePlaceholders(input.toString('ascii'), knownVars)))
+      let replacedBytes = replacePlaceholders(input.toString('latin1'), knownVars)
+      inputs.push(Buffer.from(replacedBytes, 'latin1'))
     }
 
     fisQuery.instructions.push(
