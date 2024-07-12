@@ -324,7 +324,7 @@ export const createTransactionWithSigners = async ({
 
   let simulateRes = await simulate(txClient, body, [signer.sequence])
 
-  const gasMultiplier = 3
+  const gasMultiplier = 4
   let gasLimit = simulateRes
     ? Math.ceil(Number(simulateRes?.gas_info?.gas_used) * gasMultiplier)
     : fee.gas
