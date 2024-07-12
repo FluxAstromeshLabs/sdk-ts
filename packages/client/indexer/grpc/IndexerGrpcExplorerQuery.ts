@@ -59,4 +59,12 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
     )
     return response
   }
+  async getBalances(
+    request: explorerQuery.BalancesRequest
+  ): Promise<explorerQuery.BalancesResponse> {
+    const response: explorerQuery.BalancesResponse = await this.retry(() =>
+      this.client.Balances(request)
+    )
+    return response
+  }
 }
