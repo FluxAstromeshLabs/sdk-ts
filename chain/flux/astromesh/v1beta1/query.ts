@@ -14,6 +14,8 @@ export enum QueryAction {
   VM_QUERY = 0,
   COSMOS_BANK_BALANCE = 1,
   COSMOS_ASTROMESH_BALANCE = 2,
+  COSMOS_QUERY = 3,
+  COSMOS_EVENT = 4,
   UNRECOGNIZED = -1,
 }
 
@@ -28,6 +30,12 @@ export function queryActionFromJSON(object: any): QueryAction {
     case 2:
     case "COSMOS_ASTROMESH_BALANCE":
       return QueryAction.COSMOS_ASTROMESH_BALANCE;
+    case 3:
+    case "COSMOS_QUERY":
+      return QueryAction.COSMOS_QUERY;
+    case 4:
+    case "COSMOS_EVENT":
+      return QueryAction.COSMOS_EVENT;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -43,6 +51,10 @@ export function queryActionToJSON(object: QueryAction): string {
       return "COSMOS_BANK_BALANCE";
     case QueryAction.COSMOS_ASTROMESH_BALANCE:
       return "COSMOS_ASTROMESH_BALANCE";
+    case QueryAction.COSMOS_QUERY:
+      return "COSMOS_QUERY";
+    case QueryAction.COSMOS_EVENT:
+      return "COSMOS_EVENT";
     case QueryAction.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";

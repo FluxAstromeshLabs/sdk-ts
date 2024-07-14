@@ -46,17 +46,21 @@ export interface BalancesResponse {
   pagination: PageResponse | undefined;
 }
 
+/** strategy type filter, could be generic strategies, intent solver or cron bot */
+export interface TypeFilter {
+  value: StrategyType;
+}
+
 /**
  * ListStrategiesRequest is a query type to list out existing on-chain strategies
  * with some filters For unused fields, just leave them empty
  */
 export interface ListStrategiesRequest {
   /** use pagination to limit the output item list */
-  pagination:
-    | PageRequest
+  pagination: PageRequest | undefined;
+  type:
+    | TypeFilter
     | undefined;
-  /** strategy type, could be generic strategies or intent solver */
-  type: StrategyType;
   /** strategy id to filter, this is useful to get info of a single strategy */
   id: string;
   /** strategy enable/disable status to filter */
@@ -87,8 +91,10 @@ export interface ListStrategiesByOwnerRequest {
     | undefined;
   /** owner of the strategy, required by this query */
   owner: string;
-  /** strategy type, could be generic strategies or intent solver */
-  type: StrategyType;
+  /** strategy type, could be generic strategies, intent solver or cron bot */
+  type:
+    | TypeFilter
+    | undefined;
   /** strategy enable/disable status to filter */
   enabled:
     | boolean
@@ -597,8 +603,67 @@ export const BalancesResponse = {
   },
 };
 
+function createBaseTypeFilter(): TypeFilter {
+  return { value: 0 };
+}
+
+export const TypeFilter = {
+  $type: "flux.indexer.explorer.TypeFilter" as const,
+
+  encode(message: TypeFilter, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.value !== 0) {
+      writer.uint32(8).int32(message.value);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): TypeFilter {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTypeFilter();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.value = reader.int32() as any;
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): TypeFilter {
+    return { value: isSet(object.value) ? strategyTypeFromJSON(object.value) : 0 };
+  },
+
+  toJSON(message: TypeFilter): unknown {
+    const obj: any = {};
+    if (message.value !== undefined) {
+      obj.value = strategyTypeToJSON(message.value);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<TypeFilter>): TypeFilter {
+    return TypeFilter.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<TypeFilter>): TypeFilter {
+    const message = createBaseTypeFilter();
+    message.value = object.value ?? 0;
+    return message;
+  },
+};
+
 function createBaseListStrategiesRequest(): ListStrategiesRequest {
-  return { pagination: undefined, type: 0, id: "", enabled: undefined, tags: [] };
+  return { pagination: undefined, type: undefined, id: "", enabled: undefined, tags: [] };
 }
 
 export const ListStrategiesRequest = {
@@ -608,8 +673,8 @@ export const ListStrategiesRequest = {
     if (message.pagination !== undefined) {
       PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
     }
-    if (message.type !== 0) {
-      writer.uint32(16).int32(message.type);
+    if (message.type !== undefined) {
+      TypeFilter.encode(message.type, writer.uint32(18).fork()).ldelim();
     }
     if (message.id !== "") {
       writer.uint32(26).string(message.id);
@@ -638,11 +703,11 @@ export const ListStrategiesRequest = {
           message.pagination = PageRequest.decode(reader, reader.uint32());
           continue;
         case 2:
-          if (tag !== 16) {
+          if (tag !== 18) {
             break;
           }
 
-          message.type = reader.int32() as any;
+          message.type = TypeFilter.decode(reader, reader.uint32());
           continue;
         case 3:
           if (tag !== 26) {
@@ -677,7 +742,7 @@ export const ListStrategiesRequest = {
   fromJSON(object: any): ListStrategiesRequest {
     return {
       pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
-      type: isSet(object.type) ? strategyTypeFromJSON(object.type) : 0,
+      type: isSet(object.type) ? TypeFilter.fromJSON(object.type) : undefined,
       id: isSet(object.id) ? globalThis.String(object.id) : "",
       enabled: isSet(object.enabled) ? Boolean(object.enabled) : undefined,
       tags: globalThis.Array.isArray(object?.tags) ? object.tags.map((e: any) => globalThis.String(e)) : [],
@@ -690,7 +755,7 @@ export const ListStrategiesRequest = {
       obj.pagination = PageRequest.toJSON(message.pagination);
     }
     if (message.type !== undefined) {
-      obj.type = strategyTypeToJSON(message.type);
+      obj.type = TypeFilter.toJSON(message.type);
     }
     if (message.id !== undefined) {
       obj.id = message.id;
@@ -712,7 +777,9 @@ export const ListStrategiesRequest = {
     message.pagination = (object.pagination !== undefined && object.pagination !== null)
       ? PageRequest.fromPartial(object.pagination)
       : undefined;
-    message.type = object.type ?? 0;
+    message.type = (object.type !== undefined && object.type !== null)
+      ? TypeFilter.fromPartial(object.type)
+      : undefined;
     message.id = object.id ?? "";
     message.enabled = object.enabled ?? undefined;
     message.tags = object.tags?.map((e) => e) || [];
@@ -801,7 +868,7 @@ export const ListStrategiesResponse = {
 };
 
 function createBaseListStrategiesByOwnerRequest(): ListStrategiesByOwnerRequest {
-  return { pagination: undefined, owner: "", type: 0, enabled: undefined, tags: [] };
+  return { pagination: undefined, owner: "", type: undefined, enabled: undefined, tags: [] };
 }
 
 export const ListStrategiesByOwnerRequest = {
@@ -814,8 +881,8 @@ export const ListStrategiesByOwnerRequest = {
     if (message.owner !== "") {
       writer.uint32(18).string(message.owner);
     }
-    if (message.type !== 0) {
-      writer.uint32(24).int32(message.type);
+    if (message.type !== undefined) {
+      TypeFilter.encode(message.type, writer.uint32(26).fork()).ldelim();
     }
     if (message.enabled !== undefined) {
       BoolValue.encode({ value: message.enabled! }, writer.uint32(34).fork()).ldelim();
@@ -848,11 +915,11 @@ export const ListStrategiesByOwnerRequest = {
           message.owner = reader.string();
           continue;
         case 3:
-          if (tag !== 24) {
+          if (tag !== 26) {
             break;
           }
 
-          message.type = reader.int32() as any;
+          message.type = TypeFilter.decode(reader, reader.uint32());
           continue;
         case 4:
           if (tag !== 34) {
@@ -881,7 +948,7 @@ export const ListStrategiesByOwnerRequest = {
     return {
       pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
       owner: isSet(object.owner) ? globalThis.String(object.owner) : "",
-      type: isSet(object.type) ? strategyTypeFromJSON(object.type) : 0,
+      type: isSet(object.type) ? TypeFilter.fromJSON(object.type) : undefined,
       enabled: isSet(object.enabled) ? Boolean(object.enabled) : undefined,
       tags: globalThis.Array.isArray(object?.tags) ? object.tags.map((e: any) => globalThis.String(e)) : [],
     };
@@ -896,7 +963,7 @@ export const ListStrategiesByOwnerRequest = {
       obj.owner = message.owner;
     }
     if (message.type !== undefined) {
-      obj.type = strategyTypeToJSON(message.type);
+      obj.type = TypeFilter.toJSON(message.type);
     }
     if (message.enabled !== undefined) {
       obj.enabled = message.enabled;
@@ -916,7 +983,9 @@ export const ListStrategiesByOwnerRequest = {
       ? PageRequest.fromPartial(object.pagination)
       : undefined;
     message.owner = object.owner ?? "";
-    message.type = object.type ?? 0;
+    message.type = (object.type !== undefined && object.type !== null)
+      ? TypeFilter.fromPartial(object.type)
+      : undefined;
     message.enabled = object.enabled ?? undefined;
     message.tags = object.tags?.map((e) => e) || [];
     return message;

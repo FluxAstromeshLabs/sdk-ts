@@ -153,7 +153,7 @@ export function toFluxSvmTransaction(
   let accounts = message.accountKeys.map((x) => x.toString())
 
   return svmtx.MsgTransaction.create({
-    sender: senderAddr,
+    signers: [senderAddr],
     accounts: accounts,
     instructions: solTx.instructions.map((ix) => {
       let ixKeys: Array<string> = []

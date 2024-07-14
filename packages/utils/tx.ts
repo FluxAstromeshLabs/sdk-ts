@@ -133,7 +133,7 @@ export const createSignerInfo = ({
   sequence: string
   mode: CosmosTxSigningV1Beta1Signing.SignMode
 }) => {
-  const pubKey = getPublicKey({ key: publicKey ?? "invalid pubkey" })
+  const pubKey = getPublicKey({ key: publicKey ?? 'invalid pubkey' })
   const single = CosmosTxV1Beta1Tx.ModeInfo_Single.create()
   single.mode = mode
 
@@ -324,7 +324,7 @@ export const createTransactionWithSigners = async ({
 
   let simulateRes = await simulate(txClient, body, [signer.sequence])
 
-  const gasMultiplier = 1.8
+  const gasMultiplier = 4
   let gasLimit = simulateRes
     ? Math.ceil(Number(simulateRes?.gas_info?.gas_used) * gasMultiplier)
     : fee.gas

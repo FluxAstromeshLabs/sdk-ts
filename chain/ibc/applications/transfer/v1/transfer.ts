@@ -26,6 +26,27 @@ export interface Params {
   receive_enabled: boolean;
 }
 
+/**
+ * Forwarding defines a list of port ID, channel ID pairs determining the path
+ * through which a packet must be forwarded, and an unwind boolean indicating if
+ * the coin should be unwinded to its native chain before forwarding.
+ */
+export interface Forwarding {
+  /** optional unwinding for the token transfered */
+  unwind: boolean;
+  /** optional intermediate path through which packet will be forwarded */
+  hops: Hop[];
+}
+
+/**
+ * Hop defines a port ID, channel ID pair specifying where tokens must be forwarded
+ * next in a multihop transfer.
+ */
+export interface Hop {
+  port_id: string;
+  channel_id: string;
+}
+
 function createBaseParams(): Params {
   return { send_enabled: false, receive_enabled: false };
 }
@@ -98,6 +119,158 @@ export const Params = {
     const message = createBaseParams();
     message.send_enabled = object.send_enabled ?? false;
     message.receive_enabled = object.receive_enabled ?? false;
+    return message;
+  },
+};
+
+function createBaseForwarding(): Forwarding {
+  return { unwind: false, hops: [] };
+}
+
+export const Forwarding = {
+  $type: "ibc.applications.transfer.v1.Forwarding" as const,
+
+  encode(message: Forwarding, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.unwind !== false) {
+      writer.uint32(8).bool(message.unwind);
+    }
+    for (const v of message.hops) {
+      Hop.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Forwarding {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseForwarding();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.unwind = reader.bool();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.hops.push(Hop.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Forwarding {
+    return {
+      unwind: isSet(object.unwind) ? globalThis.Boolean(object.unwind) : false,
+      hops: globalThis.Array.isArray(object?.hops) ? object.hops.map((e: any) => Hop.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: Forwarding): unknown {
+    const obj: any = {};
+    if (message.unwind !== undefined) {
+      obj.unwind = message.unwind;
+    }
+    if (message.hops?.length) {
+      obj.hops = message.hops.map((e) => Hop.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Forwarding>): Forwarding {
+    return Forwarding.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Forwarding>): Forwarding {
+    const message = createBaseForwarding();
+    message.unwind = object.unwind ?? false;
+    message.hops = object.hops?.map((e) => Hop.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseHop(): Hop {
+  return { port_id: "", channel_id: "" };
+}
+
+export const Hop = {
+  $type: "ibc.applications.transfer.v1.Hop" as const,
+
+  encode(message: Hop, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.port_id !== "") {
+      writer.uint32(10).string(message.port_id);
+    }
+    if (message.channel_id !== "") {
+      writer.uint32(18).string(message.channel_id);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Hop {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseHop();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.port_id = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.channel_id = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Hop {
+    return {
+      port_id: isSet(object.port_id) ? globalThis.String(object.port_id) : "",
+      channel_id: isSet(object.channel_id) ? globalThis.String(object.channel_id) : "",
+    };
+  },
+
+  toJSON(message: Hop): unknown {
+    const obj: any = {};
+    if (message.port_id !== undefined) {
+      obj.port_id = message.port_id;
+    }
+    if (message.channel_id !== undefined) {
+      obj.channel_id = message.channel_id;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Hop>): Hop {
+    return Hop.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Hop>): Hop {
+    const message = createBaseHop();
+    message.port_id = object.port_id ?? "";
+    message.channel_id = object.channel_id ?? "";
     return message;
   },
 };

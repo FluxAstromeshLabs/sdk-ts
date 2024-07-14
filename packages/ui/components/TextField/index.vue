@@ -43,6 +43,10 @@ defineProps({
   helperTextIcon: {
     type: String,
     default: null
+  },
+  required: {
+    type: Boolean,
+    default: false
   }
 })
 const inputRef = ref<any>(null)
@@ -56,7 +60,7 @@ const inputChange = (e: any) => {
 <template>
   <div class="base-text-field" :class="[errorMessage ? 'invalid' : '', containerClass].join(' ')">
     <p class="label flex gap-1" :class="labelClass" v-if="label">
-      {{ label }}
+      {{ label }} <span v-if="required">&ast;</span>
       <BaseTooltip v-if="helperText && helperTextIcon">
         <BaseIcons :name="helperTextIcon" />
         <template #content>
@@ -64,7 +68,10 @@ const inputChange = (e: any) => {
         </template>
       </BaseTooltip>
     </p>
-    <p v-if="helperText && !helperTextIcon" class="text-[14px] mb-2 leading-[20px]">
+    <p
+      v-if="helperText && !helperTextIcon"
+      class="text-[14px] mb-2 leading-[20px] text-neutral-400"
+    >
       {{ helperText }}
     </p>
     <slot name="label" class="label" />

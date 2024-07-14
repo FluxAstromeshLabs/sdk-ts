@@ -34,6 +34,7 @@
     "grpc_tools_node_protoc_ts": "^5.3.3",
     "http-status-codes": "^2.3.0",
     "keccak256": "^1.0.6",
+    "mocha": "^10.4.0",
     "protoc-gen-grpc": "^2.0.4",
     "store2": "^2.14.2"
   },

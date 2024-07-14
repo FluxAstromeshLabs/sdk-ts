@@ -162,7 +162,7 @@ export interface StrategyMetadata {
   /** Strategy gas price, only applicable for cron bots now */
   cron_gas_price: string;
   /** input to control cron bots */
-  cron_input: Uint8Array;
+  cron_input: string;
   /** timestamp interval (s) to trigger cron bots */
   cron_interval: string;
 }
@@ -1048,7 +1048,7 @@ function createBaseStrategyMetadata(): StrategyMetadata {
     tags: [],
     schema: "",
     cron_gas_price: "",
-    cron_input: new Uint8Array(0),
+    cron_input: "",
     cron_interval: "0",
   };
 }
@@ -1081,8 +1081,8 @@ export const StrategyMetadata = {
     if (message.cron_gas_price !== "") {
       writer.uint32(66).string(message.cron_gas_price);
     }
-    if (message.cron_input.length !== 0) {
-      writer.uint32(74).bytes(message.cron_input);
+    if (message.cron_input !== "") {
+      writer.uint32(74).string(message.cron_input);
     }
     if (message.cron_interval !== "0") {
       writer.uint32(80).uint64(message.cron_interval);
@@ -1158,7 +1158,7 @@ export const StrategyMetadata = {
             break;
           }
 
-          message.cron_input = reader.bytes();
+          message.cron_input = reader.string();
           continue;
         case 10:
           if (tag !== 80) {
@@ -1186,7 +1186,7 @@ export const StrategyMetadata = {
       tags: globalThis.Array.isArray(object?.tags) ? object.tags.map((e: any) => globalThis.String(e)) : [],
       schema: isSet(object.schema) ? globalThis.String(object.schema) : "",
       cron_gas_price: isSet(object.cron_gas_price) ? globalThis.String(object.cron_gas_price) : "",
-      cron_input: isSet(object.cron_input) ? bytesFromBase64(object.cron_input) : new Uint8Array(0),
+      cron_input: isSet(object.cron_input) ? globalThis.String(object.cron_input) : "",
       cron_interval: isSet(object.cron_interval) ? globalThis.String(object.cron_interval) : "0",
     };
   },
@@ -1218,7 +1218,7 @@ export const StrategyMetadata = {
       obj.cron_gas_price = message.cron_gas_price;
     }
     if (message.cron_input !== undefined) {
-      obj.cron_input = base64FromBytes(message.cron_input);
+      obj.cron_input = message.cron_input;
     }
     if (message.cron_interval !== undefined) {
       obj.cron_interval = message.cron_interval;
@@ -1239,7 +1239,7 @@ export const StrategyMetadata = {
     message.tags = object.tags?.map((e) => e) || [];
     message.schema = object.schema ?? "";
     message.cron_gas_price = object.cron_gas_price ?? "";
-    message.cron_input = object.cron_input ?? new Uint8Array(0);
+    message.cron_input = object.cron_input ?? "";
     message.cron_interval = object.cron_interval ?? "0";
     return message;
   },

@@ -6,6 +6,7 @@
 
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
+import { Hop } from "../v1/transfer";
 import { Token } from "./token";
 
 /**
@@ -40,6 +41,20 @@ export interface FungibleTokenPacketDataV2 {
   receiver: string;
   /** optional memo */
   memo: string;
+  /** optional forwarding information */
+  forwarding: ForwardingPacketData | undefined;
+}
+
+/**
+ * ForwardingPacketData defines a list of port ID, channel ID pairs determining the path
+ * through which a packet must be forwarded, and the destination memo string to be used in the
+ * final destination of the tokens.
+ */
+export interface ForwardingPacketData {
+  /** optional memo consumed by final destination chain */
+  destination_memo: string;
+  /** optional intermediate path through which packet will be forwarded. */
+  hops: Hop[];
 }
 
 function createBaseFungibleTokenPacketData(): FungibleTokenPacketData {
@@ -164,7 +179,7 @@ export const FungibleTokenPacketData = {
 };
 
 function createBaseFungibleTokenPacketDataV2(): FungibleTokenPacketDataV2 {
-  return { tokens: [], sender: "", receiver: "", memo: "" };
+  return { tokens: [], sender: "", receiver: "", memo: "", forwarding: undefined };
 }
 
 export const FungibleTokenPacketDataV2 = {
@@ -182,6 +197,9 @@ export const FungibleTokenPacketDataV2 = {
     }
     if (message.memo !== "") {
       writer.uint32(34).string(message.memo);
+    }
+    if (message.forwarding !== undefined) {
+      ForwardingPacketData.encode(message.forwarding, writer.uint32(42).fork()).ldelim();
     }
     return writer;
   },
@@ -221,6 +239,13 @@ export const FungibleTokenPacketDataV2 = {
 
           message.memo = reader.string();
           continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.forwarding = ForwardingPacketData.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -236,6 +261,7 @@ export const FungibleTokenPacketDataV2 = {
       sender: isSet(object.sender) ? globalThis.String(object.sender) : "",
       receiver: isSet(object.receiver) ? globalThis.String(object.receiver) : "",
       memo: isSet(object.memo) ? globalThis.String(object.memo) : "",
+      forwarding: isSet(object.forwarding) ? ForwardingPacketData.fromJSON(object.forwarding) : undefined,
     };
   },
 
@@ -253,6 +279,9 @@ export const FungibleTokenPacketDataV2 = {
     if (message.memo !== undefined) {
       obj.memo = message.memo;
     }
+    if (message.forwarding !== undefined) {
+      obj.forwarding = ForwardingPacketData.toJSON(message.forwarding);
+    }
     return obj;
   },
 
@@ -265,6 +294,85 @@ export const FungibleTokenPacketDataV2 = {
     message.sender = object.sender ?? "";
     message.receiver = object.receiver ?? "";
     message.memo = object.memo ?? "";
+    message.forwarding = (object.forwarding !== undefined && object.forwarding !== null)
+      ? ForwardingPacketData.fromPartial(object.forwarding)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseForwardingPacketData(): ForwardingPacketData {
+  return { destination_memo: "", hops: [] };
+}
+
+export const ForwardingPacketData = {
+  $type: "ibc.applications.transfer.v2.ForwardingPacketData" as const,
+
+  encode(message: ForwardingPacketData, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.destination_memo !== "") {
+      writer.uint32(10).string(message.destination_memo);
+    }
+    for (const v of message.hops) {
+      Hop.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ForwardingPacketData {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseForwardingPacketData();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.destination_memo = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.hops.push(Hop.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ForwardingPacketData {
+    return {
+      destination_memo: isSet(object.destination_memo) ? globalThis.String(object.destination_memo) : "",
+      hops: globalThis.Array.isArray(object?.hops) ? object.hops.map((e: any) => Hop.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: ForwardingPacketData): unknown {
+    const obj: any = {};
+    if (message.destination_memo !== undefined) {
+      obj.destination_memo = message.destination_memo;
+    }
+    if (message.hops?.length) {
+      obj.hops = message.hops.map((e) => Hop.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ForwardingPacketData>): ForwardingPacketData {
+    return ForwardingPacketData.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ForwardingPacketData>): ForwardingPacketData {
+    const message = createBaseForwardingPacketData();
+    message.destination_memo = object.destination_memo ?? "";
+    message.hops = object.hops?.map((e) => Hop.fromPartial(e)) || [];
     return message;
   },
 };

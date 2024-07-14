@@ -6,22 +6,26 @@
 
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
-import { Account } from "./svm";
+import { Account, AccountLink } from "./svm";
 
 export interface GenesisState {
+  account_links: AccountLink[];
   accounts: Account[];
 }
 
 function createBaseGenesisState(): GenesisState {
-  return { accounts: [] };
+  return { account_links: [], accounts: [] };
 }
 
 export const GenesisState = {
   $type: "flux.svm.v1beta1.GenesisState" as const,
 
   encode(message: GenesisState, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.account_links) {
+      AccountLink.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
     for (const v of message.accounts) {
-      Account.encode(v!, writer.uint32(10).fork()).ldelim();
+      Account.encode(v!, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -38,6 +42,13 @@ export const GenesisState = {
             break;
           }
 
+          message.account_links.push(AccountLink.decode(reader, reader.uint32()));
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
           message.accounts.push(Account.decode(reader, reader.uint32()));
           continue;
       }
@@ -51,12 +62,18 @@ export const GenesisState = {
 
   fromJSON(object: any): GenesisState {
     return {
+      account_links: globalThis.Array.isArray(object?.account_links)
+        ? object.account_links.map((e: any) => AccountLink.fromJSON(e))
+        : [],
       accounts: globalThis.Array.isArray(object?.accounts) ? object.accounts.map((e: any) => Account.fromJSON(e)) : [],
     };
   },
 
   toJSON(message: GenesisState): unknown {
     const obj: any = {};
+    if (message.account_links?.length) {
+      obj.account_links = message.account_links.map((e) => AccountLink.toJSON(e));
+    }
     if (message.accounts?.length) {
       obj.accounts = message.accounts.map((e) => Account.toJSON(e));
     }
@@ -68,6 +85,7 @@ export const GenesisState = {
   },
   fromPartial(object: DeepPartial<GenesisState>): GenesisState {
     const message = createBaseGenesisState();
+    message.account_links = object.account_links?.map((e) => AccountLink.fromPartial(e)) || [];
     message.accounts = object.accounts?.map((e) => Account.fromPartial(e)) || [];
     return message;
   },
