@@ -6,6 +6,8 @@ import {
 } from '../../../../chain/flux/indexer/explorer/query'
 import { PageRequest } from '../../../../chain/cosmos/base/query/v1beta1/pagination'
 import { Strategy } from '../../../../chain/flux/strategy/v1beta1/strategy'
+import { Subscription } from 'rxjs'
+
 export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
   protected client: explorerQuery.APIClientImpl
 
@@ -59,6 +61,7 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
     )
     return response
   }
+
   async getBalances(
     request: explorerQuery.BalancesRequest
   ): Promise<explorerQuery.BalancesResponse> {
@@ -66,5 +69,15 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
       this.client.Balances(request)
     )
     return response
+  }
+
+  async streamBalances(
+    request: explorerQuery.BalancesRequest,
+    callback: (value: explorerQuery.StreamBalanceResponse) => void,
+    onEndCallback?: (err: any) => void,
+    onStatusCallback?: () => void,
+  ): Promise<Subscription> {
+    const stream = this.client.StreamBalances(request)
+    return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
 }
