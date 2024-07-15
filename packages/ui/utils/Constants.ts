@@ -26,7 +26,7 @@ export const SOCIALS = {
   },
   discord: {
     name: 'Discord',
-    link: 'https://discord.gg/dpfpP6jY',
+    link: 'https://discord.gg/meMSTq6FsQ',
     icon: 'discord'
   }
 }
