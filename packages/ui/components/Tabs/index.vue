@@ -16,7 +16,7 @@ const props = defineProps({
     default: ''
   }
 })
-defineModel('modalValue')
+defineModel('modelValue')
 const emit = defineEmits(['update:modelValue'])
 const position = ref('0px')
 const width = ref('0px')

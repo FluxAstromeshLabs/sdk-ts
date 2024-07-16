@@ -3,8 +3,8 @@ import { ref, useAttrs } from 'vue'
 defineOptions({
   inheritAttrs: false
 })
-const props = defineProps({
-  modalValue: String,
+defineProps({
+  modelValue: String,
   label: {
     type: String,
     required: true
