@@ -9,6 +9,8 @@ import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
 import Long from "long";
 import _m0 from "protobufjs/minimal";
+import { Observable } from "rxjs";
+import { share } from "rxjs/operators";
 import { PageRequest, PageResponse } from "../../../cosmos/base/query/v1beta1/pagination";
 import { BoolValue } from "../../../google/protobuf/wrappers";
 import { Plane, planeFromJSON, planeToJSON } from "../../astromesh/v1beta1/tx";
@@ -134,6 +136,12 @@ export interface GetMetricsRequest {
 
 export interface GetMetricsResponse {
   data: Metrics | undefined;
+}
+
+export interface StreamBalanceResponse {
+  height: string;
+  deleted: string;
+  balances: BalanceInfo[];
 }
 
 function createBaseListEvmContractsRequest(): ListEvmContractsRequest {
@@ -1362,6 +1370,99 @@ export const GetMetricsResponse = {
   },
 };
 
+function createBaseStreamBalanceResponse(): StreamBalanceResponse {
+  return { height: "0", deleted: "0", balances: [] };
+}
+
+export const StreamBalanceResponse = {
+  $type: "flux.indexer.explorer.StreamBalanceResponse" as const,
+
+  encode(message: StreamBalanceResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.height !== "0") {
+      writer.uint32(8).uint64(message.height);
+    }
+    if (message.deleted !== "0") {
+      writer.uint32(16).uint64(message.deleted);
+    }
+    for (const v of message.balances) {
+      BalanceInfo.encode(v!, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamBalanceResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamBalanceResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.height = longToString(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.deleted = longToString(reader.uint64() as Long);
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.balances.push(BalanceInfo.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamBalanceResponse {
+    return {
+      height: isSet(object.height) ? globalThis.String(object.height) : "0",
+      deleted: isSet(object.deleted) ? globalThis.String(object.deleted) : "0",
+      balances: globalThis.Array.isArray(object?.balances)
+        ? object.balances.map((e: any) => BalanceInfo.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: StreamBalanceResponse): unknown {
+    const obj: any = {};
+    if (message.height !== undefined) {
+      obj.height = message.height;
+    }
+    if (message.deleted !== undefined) {
+      obj.deleted = message.deleted;
+    }
+    if (message.balances?.length) {
+      obj.balances = message.balances.map((e) => BalanceInfo.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamBalanceResponse>): StreamBalanceResponse {
+    return StreamBalanceResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamBalanceResponse>): StreamBalanceResponse {
+    const message = createBaseStreamBalanceResponse();
+    message.height = object.height ?? "0";
+    message.deleted = object.deleted ?? "0";
+    message.balances = object.balances?.map((e) => BalanceInfo.fromPartial(e)) || [];
+    return message;
+  },
+};
+
 export interface API {
   ListEvmContracts(
     request: DeepPartial<ListEvmContractsRequest>,
@@ -1377,6 +1478,7 @@ export interface API {
     metadata?: grpc.Metadata,
   ): Promise<ListStrategiesResponse>;
   GetMetrics(request: DeepPartial<GetMetricsRequest>, metadata?: grpc.Metadata): Promise<GetMetricsResponse>;
+  StreamBalances(request: DeepPartial<BalancesRequest>, metadata?: grpc.Metadata): Observable<StreamBalanceResponse>;
 }
 
 export class APIClientImpl implements API {
@@ -1389,6 +1491,7 @@ export class APIClientImpl implements API {
     this.ListStrategies = this.ListStrategies.bind(this);
     this.ListStrategiesByOwner = this.ListStrategiesByOwner.bind(this);
     this.GetMetrics = this.GetMetrics.bind(this);
+    this.StreamBalances = this.StreamBalances.bind(this);
   }
 
   ListEvmContracts(
@@ -1418,6 +1521,10 @@ export class APIClientImpl implements API {
 
   GetMetrics(request: DeepPartial<GetMetricsRequest>, metadata?: grpc.Metadata): Promise<GetMetricsResponse> {
     return this.rpc.unary(APIGetMetricsDesc, GetMetricsRequest.fromPartial(request), metadata);
+  }
+
+  StreamBalances(request: DeepPartial<BalancesRequest>, metadata?: grpc.Metadata): Observable<StreamBalanceResponse> {
+    return this.rpc.invoke(APIStreamBalancesDesc, BalancesRequest.fromPartial(request), metadata);
   }
 }
 
@@ -1538,6 +1645,29 @@ export const APIGetMetricsDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
+export const APIStreamBalancesDesc: UnaryMethodDefinitionish = {
+  methodName: "StreamBalances",
+  service: APIDesc,
+  requestStream: false,
+  responseStream: true,
+  requestType: {
+    serializeBinary() {
+      return BalancesRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = StreamBalanceResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
 interface UnaryMethodDefinitionishR extends grpc.UnaryMethodDefinition<any, any> {
   requestStream: any;
   responseStream: any;
@@ -1551,13 +1681,18 @@ interface Rpc {
     request: any,
     metadata: grpc.Metadata | undefined,
   ): Promise<any>;
+  invoke<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Observable<any>;
 }
 
 export class GrpcWebImpl {
   private host: string;
   private options: {
     transport?: grpc.TransportFactory;
-
+    streamingTransport?: grpc.TransportFactory;
     debug?: boolean;
     metadata?: grpc.Metadata;
     upStreamRetryCodes?: number[];
@@ -1567,7 +1702,7 @@ export class GrpcWebImpl {
     host: string,
     options: {
       transport?: grpc.TransportFactory;
-
+      streamingTransport?: grpc.TransportFactory;
       debug?: boolean;
       metadata?: grpc.Metadata;
       upStreamRetryCodes?: number[];
@@ -1603,6 +1738,46 @@ export class GrpcWebImpl {
         },
       });
     });
+  }
+
+  invoke<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Observable<any> {
+    const upStreamCodes = this.options.upStreamRetryCodes ?? [];
+    const DEFAULT_TIMEOUT_TIME: number = 3_000;
+    const request = { ..._request, ...methodDesc.requestType };
+    const transport = this.options.streamingTransport ?? this.options.transport;
+    const maybeCombinedMetadata = metadata && this.options.metadata
+      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+      : metadata ?? this.options.metadata;
+    return new Observable((observer) => {
+      const upStream = () => {
+        const client = grpc.invoke(methodDesc, {
+          host: this.host,
+          request,
+          ...(transport !== undefined ? { transport } : {}),
+          metadata: maybeCombinedMetadata ?? {},
+          debug: this.options.debug ?? false,
+          onMessage: (next) => observer.next(next),
+          onEnd: (code: grpc.Code, message: string, trailers: grpc.Metadata) => {
+            if (code === 0) {
+              observer.complete();
+            } else if (upStreamCodes.includes(code)) {
+              setTimeout(upStream, DEFAULT_TIMEOUT_TIME);
+            } else {
+              const err = new Error(message) as any;
+              err.code = code;
+              err.metadata = trailers;
+              observer.error(err);
+            }
+          },
+        });
+        observer.add(() => client.close());
+      };
+      upStream();
+    }).pipe(share());
   }
 }
 
