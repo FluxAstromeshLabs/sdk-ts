@@ -4,7 +4,7 @@ defineOptions({
   inheritAttrs: false
 })
 defineProps({
-  modalValue: String,
+  modelValue: String,
   label: {
     type: String
   },

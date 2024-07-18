@@ -2,7 +2,7 @@
 import { ref, defineProps } from 'vue'
 import BaseIcons from '../Icons/index.vue'
 defineProps({
-  modalValue: File,
+  modelValue: File,
   description: {
     type: String,
     default: ''

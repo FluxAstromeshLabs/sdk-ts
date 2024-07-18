@@ -11,7 +11,7 @@ const props = defineProps({
     required: true,
     default: () => []
   },
-  modalValue: String,
+  modelValue: String,
   inputClass: {
     type: String,
     default: ''
