@@ -10,7 +10,7 @@ const isPrimitive : { [key: string]: boolean} = {
   "boolean": true,
 };
 
-export const getEIP712SignBytes = (signDoc: txtypes.SignDoc, msgsJSON: any[], feePayerAddr: string): any => {
+export const getEIP712SignBytes = (signDoc: txtypes.SignDoc, msgsJSON: any[], feePayerAddr: string | undefined): any => {
   const txBody = txtypes.TxBody.decode(signDoc.body_bytes)
   const authInfo = txtypes.AuthInfo.decode(signDoc.auth_info_bytes)
 
@@ -28,8 +28,8 @@ export const getEIP712SignBytes = (signDoc: txtypes.SignDoc, msgsJSON: any[], fe
     account_number: signDoc.account_number,
     chain_id: signDoc.chain_id,
     fee: {
-      amount: authInfo.fee!.amount,
       feePayer: feePayerAddr,
+      amount: authInfo.fee!.amount,
       gas: authInfo.fee!.gas_limit,
     },
     memo: txBody.memo,
@@ -127,6 +127,15 @@ function walkNestedJSON(rootTypes: Eip712Types, jsonObj: any, parentKey: string 
 }
 
 function extractEIP712Types(tx: any): any {
+  let feeTypes = [
+    {name: 'feePayer', type: 'string'},
+    {name: 'amount', type: 'Coin[]'},
+    {name: 'gas', type: 'string'},
+  ]
+  if (tx.fee.feePayer == null || tx.fee.feePayer == "") {
+    feeTypes = feeTypes.splice(1)
+  }
+
   let rootTypes: Eip712Types = {
     'EIP712Domain': [
       {
@@ -159,11 +168,7 @@ function extractEIP712Types(tx: any): any {
       {name: 'sequence', type: 'string'},
       {name: 'timeout_height', type: 'string'},
     ],
-    'Fee': [
-      {name: 'feePayer', type: 'string'},
-      {name: 'amount', type: 'Coin[]'},
-      {name: 'gas', type: 'string'},
-    ],
+    'Fee': feeTypes,
     'Coin': [
       {name: 'denom', type: 'string'},
       {name: 'amount', type: 'string'},

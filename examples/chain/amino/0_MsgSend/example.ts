@@ -98,7 +98,7 @@ const main = async () => {
     account_number: senderAccNum,
   }
 
-  let eip712SignDoc = getEIP712SignBytes(signDoc, [msgJSON],'')
+  let eip712SignDoc = getEIP712SignBytes(signDoc, [msgJSON], '')
   const msgHash = Buffer.from(getMessage(eip712SignDoc, true, {verifyDomain: false}))
 
   const senderSign = ethutil.ecsign(msgHash, Buffer.from(senderPrivKey.key))
