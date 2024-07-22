@@ -138,7 +138,7 @@ function extractEIP712Types(tx: any): any {
     {name: 'amount', type: 'Coin[]'},
     {name: 'gas', type: 'string'},
   ]
-  if (tx.fee.feePayer == null || tx.fee.feePayer == "") {
+  if (tx.fee.feePayer == null || tx.fee.feePayer == '') {
     feeTypes = feeTypes.splice(1)
   }
 
