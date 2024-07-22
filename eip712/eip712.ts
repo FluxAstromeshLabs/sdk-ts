@@ -10,7 +10,7 @@ const isPrimitive : { [key: string]: boolean} = {
   "boolean": true,
 };
 
-export const getEIP712SignBytes = (signDoc: txtypes.SignDoc, msgsJSON: any[], feePayerAddr: string | undefined): any => {
+export const getEIP712SignBytes = (signDoc: txtypes.SignDoc, msgsJSON: any[], feePayerAddr: string | null): any => {
   const txBody = txtypes.TxBody.decode(signDoc.body_bytes)
   const authInfo = txtypes.AuthInfo.decode(signDoc.auth_info_bytes)
 
@@ -23,15 +23,21 @@ export const getEIP712SignBytes = (signDoc: txtypes.SignDoc, msgsJSON: any[], fe
     salt:              '0',
   }
 
+  let fee = {
+    feePayer: feePayerAddr,
+    amount: authInfo.fee!.amount,
+    gas: authInfo.fee!.gas_limit,
+  }
+
+  if (feePayerAddr == '') {
+    delete(fee.feePayer)
+  }
+
   // set tx
   let tx = {
     account_number: signDoc.account_number,
     chain_id: signDoc.chain_id,
-    fee: {
-      feePayer: feePayerAddr,
-      amount: authInfo.fee!.amount,
-      gas: authInfo.fee!.gas_limit,
-    },
+    fee: fee,
     memo: txBody.memo,
     msgs: msgsJSON,
     sequence: authInfo.signer_infos[0].sequence,
