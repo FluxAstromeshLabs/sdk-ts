@@ -10,7 +10,7 @@ const isPrimitive : { [key: string]: boolean} = {
   "boolean": true,
 };
 
-export const getEIP712SignBytes = (signDoc: txtypes.SignDoc, msgsJSON: any[], feePayerAddr: string | null): any => {
+export const getEIP712SignBytes = (signDoc: txtypes.SignDoc, msgsJSON: any[], feePayerAddr: string): any => {
   const txBody = txtypes.TxBody.decode(signDoc.body_bytes)
   const authInfo = txtypes.AuthInfo.decode(signDoc.auth_info_bytes)
 
