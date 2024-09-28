@@ -1,12 +1,11 @@
 import * as ethwallet from '@ethereumjs/wallet'
 import * as ethutil from '@ethereumjs/util'
-import { getMessage } from 'eip-712';
+import { sha256 } from "ethereum-cryptography/sha256.js";
 import { bech32 } from 'bech32'
 import * as fs from 'node:fs'
 import { NodeHttpTransport } from '@improbable-eng/grpc-web-node-http-transport';
 
 import * as anytypes from '../../../../chain/google/protobuf/any'
-import * as chaintypes from '../../../../chain/flux/types/v1beta1/tx_ext'
 import * as svmtx from '../../../../chain/flux/svm/v1beta1/tx'
 import * as svmservice from '../../../../chain/flux/svm/v1beta1/query'
 import * as txtypes from '../../../../chain/cosmos/tx/v1beta1/tx'
@@ -19,10 +18,22 @@ import * as ethcrypto from 'eth-crypto';
 import * as banktypes from '../../../../chain/cosmos/bank/v1beta1/tx'
 
 import * as web3 from '@solana/web3.js'
-import { getEIP712SignBytes } from '../../../../eip712/eip712'
 import { encodeData, UPGRADABLE_LOADER_LAYOUTS, toFluxSvmTransaction, BigNumber } from '../../../../packages/utils'
 import { Coin } from '../../../../chain/cosmos/base/v1beta1/coin';
-import { Ed25519, Ed25519Keypair } from '@cosmjs/crypto';
+import { Ed25519, Ed25519Keypair, keccak256 } from '@cosmjs/crypto';
+
+const defaultLamportsPerByteYear = 1000000000 * 365 / 100 / (1024 * 1024)
+const defaultExemptionThreshold = 2.0
+const defaultGasPrice = 500000000
+
+function getWalletAddr(wallet: ethwallet.Wallet) {
+  return bech32.encode('lux', bech32.toWords(wallet.getAddress()))
+}
+
+// TODO: Get rent config from chain to correct
+function getRentExemptLamportAmount(dataLen: number): number {
+  return Math.round(defaultLamportsPerByteYear * (dataLen + 128) * defaultExemptionThreshold)
+}
 
 async function getSvmAccountLink(svmClient: svmservice.Query, cosmosAddr: string): Promise<svmservice.AccountLinkResponse> {
   return svmClient.AccountLink({
@@ -30,13 +41,49 @@ async function getSvmAccountLink(svmClient: svmservice.Query, cosmosAddr: string
   })
 }
 
-async function broadcastMsgs(
+
+async function checkTxWithRetry(
   txClient: txservice.Service,
-  senderAccNum: [number],
-  senderAccSeq: [number],
-  msgTypes: [any],
-  msgs: [any], 
-  wallets: [ethwallet.Wallet],
+  txHash: string,
+  timeout = 30000,
+  retryInterval = 1000
+): Promise<any> {
+  const startTime = Date.now();
+  const retry = async (): Promise<any> => {
+    // Check if the timeout has been exceeded
+    if (Date.now() - startTime >= timeout) {
+      throw new Error("Timeout exceeded, transaction not included in a block");
+    }
+
+    try {
+      // Attempt to fetch the transaction
+      const result = await txClient.GetTx({ hash: txHash });
+
+      // If the result is found, return it
+      if (result) {
+        return result;
+      }
+    } catch (error) {
+      // If error is not related to 'tx not found', rethrow the error
+      if (!error.toString().includes("tx not found")) {
+        throw error;
+      }
+    }
+
+    // If transaction not found, wait for retry interval and retry
+    return new Promise((resolve) => setTimeout(resolve, retryInterval)).then(retry);
+  };
+
+  return retry();
+}
+
+async function broadcastMsgsSync(
+  txClient: txservice.Service,
+  senderAccNums: number[],
+  senderAccSeqs: number[],
+  msgTypes: any[],
+  msgs: any[], 
+  wallets: ethwallet.Wallet[],
 ) {
   let msgAnys = []
   for(let i=0; i<msgs.length; i++) {
@@ -61,12 +108,12 @@ async function broadcastMsgs(
   const txBody: txtypes.TxBody = {
     messages: msgAnys,
     memo: '',
-    timeout_height: '119000',
+    timeout_height: '16041999',
     extension_options: [],
     non_critical_extension_options: []
   }
 
-  let signerInfos: [txtypes.SignerInfo]
+  let signerInfos = []
   for(let i=0; i<wallets.length; i++) {
     const senderXPubkey = ethcrypto.publicKey.compress(
       Buffer.from(wallets[i].getPublicKey()).toString('hex'),
@@ -81,10 +128,10 @@ async function broadcastMsgs(
       public_key: senderPubkeyAny,
       mode_info: {
         single: {
-          mode: signingtypes.SignMode.SIGN_MODE_LEGACY_AMINO_JSON,
+          mode: signingtypes.SignMode.SIGN_MODE_DIRECT,
         },
       },
-      sequence: senderAccSeq.toString(),
+      sequence: senderAccSeqs[i].toString(),
     }))
   }
 
@@ -92,44 +139,58 @@ async function broadcastMsgs(
     signer_infos: signerInfos,
     fee: {
       amount: [
-        {denom: 'lux', amount: '100000000000000'}
+        {denom: 'lux', amount: '2000000000000000'}
       ],
-      gas_limit: '4000000',
+      gas_limit: '0',
       payer: '',
       granter: ''
     },
     tip: undefined,
   }
 
-  let signDoc: txtypes.SignDoc = {
+  // simulate tx to estimate gas
+  let simulateSigs = []
+  for(let i=0; i<wallets.length; i++) {
+    simulateSigs.push(new Uint8Array())
+  }
+
+  let txRaw: txtypes.TxRaw = {
     body_bytes: txtypes.TxBody.encode(txBody).finish(),
     auth_info_bytes: txtypes.AuthInfo.encode(authInfo).finish(),
-    chain_id: 'flux-1',
-    account_number: senderAccNum.toString(),
+    signatures: simulateSigs,
   }
 
-  let eip712SignDoc = getEIP712SignBytes(signDoc, msgJsons, '')
-  const msgHash = Buffer.from(getMessage(eip712SignDoc, true, {verifyDomain: false}))
+  const simulateReq: txservice.SimulateRequest = {
+    tx: undefined,
+    tx_bytes: txtypes.TxRaw.encode(txRaw).finish(),
+  }
+  // TODO: handle error properly, this is for demo purpose
+  let simResp = await txClient.Simulate(simulateReq)
+  let estGas = Math.round(parseInt(simResp.gas_info.gas_used) * 1.5)
 
+  // tweak the gas and fee
+  authInfo.fee.gas_limit = estGas.toString()
+  authInfo.fee.amount[0].amount = (new BigNumber(estGas)).multipliedBy(new BigNumber(defaultGasPrice)).toString()
+
+  // build tx
   let sigs = []
   for(let i=0; i<wallets.length; i++) {
+    let signDoc: txtypes.SignDoc = {
+      body_bytes: txtypes.TxBody.encode(txBody).finish(),
+      auth_info_bytes: txtypes.AuthInfo.encode(authInfo).finish(),
+      chain_id: 'flux-1',
+      account_number: senderAccNums[i].toString(),
+    }
+
+    const signBytes = txtypes.SignDoc.encode(signDoc).finish()  
+    
+    const msgHash = Buffer.from(keccak256(signBytes))
     const senderSign = ethutil.ecsign(msgHash, Buffer.from(wallets[i].getPrivateKey()))
-    const senderCosmosSig = Uint8Array.from(Buffer.concat([senderSign.r, senderSign.s, Buffer.from([0])]))
+    const senderCosmosSig = Uint8Array.from(Buffer.concat([senderSign.r, senderSign.s]))
     sigs.push(senderCosmosSig)
   }
-  
-  const extOpts: chaintypes.ExtensionOptionsWeb3Tx = {
-    typedDataChainID: '1',
-    feePayer:         '',
-    feePayerSig:      Uint8Array.from([]),
-  }
-  const extOptsAny: anytypes.Any = {
-    type_url: '/' + chaintypes.ExtensionOptionsWeb3Tx.$type,
-    value: chaintypes.ExtensionOptionsWeb3Tx.encode(extOpts).finish()
-  }
-  txBody.extension_options = [extOptsAny]
 
-  const txRaw: txtypes.TxRaw = {
+  txRaw = {
     body_bytes: txtypes.TxBody.encode(txBody).finish(),
     auth_info_bytes: txtypes.AuthInfo.encode(authInfo).finish(),
     signatures: sigs,
@@ -140,11 +201,13 @@ async function broadcastMsgs(
     mode: txservice.BroadcastMode.BROADCAST_MODE_SYNC,
   }
   
-  return await txClient.BroadcastTx(broadcastReq)
-}
+  let resp = await txClient.BroadcastTx(broadcastReq)
+  if (resp.tx_response.code != 0) {
+    throw `tx error, code: ${resp.tx_response.code}, log: ${resp.tx_response.raw_log}`
+  }
 
-function getWalletAddr(wallet: ethwallet.Wallet) {
-  return bech32.encode('lux', bech32.toWords(wallet.getAddress()))
+  let txHash = resp.tx_response.txhash
+  return await checkTxWithRetry(txClient, txHash)
 }
 
 async function linkSvmAccount(
@@ -154,13 +217,13 @@ async function linkSvmAccount(
   wallet: ethwallet.Wallet,
   svmKeypair: web3.Keypair, 
   luxAmount: BigNumber,
-) {
+): Promise<web3.PublicKey> {
   const cosmosAddress = getWalletAddr(wallet)
   let accountLink: svmservice.AccountLinkResponse
   try {
     accountLink = await getSvmAccountLink(svmClient, cosmosAddress)
   } catch(e: any) {
-    if (!e.toString().includes("not exist")) {
+    if (!e.toString().includes("account link not found")) {
       throw e
     }
   }
@@ -168,11 +231,11 @@ async function linkSvmAccount(
   // fetch sender acc info
   const senderInfo = await authClient.AccountInfo({address: getWalletAddr(wallet)})
 
-  // sign and link account
-  let keypair = (new Ed25519Keypair(svmKeypair.secretKey, svmKeypair.publicKey.toBuffer()))
-  let linkSig = await Ed25519.createSignature(wallet.getPublicKey(), keypair) 
-
   if (!accountLink) {
+    // sign and link account, actual private key is only 
+    let keypair = (new Ed25519Keypair(Buffer.from(svmKeypair.secretKey.buffer.slice(0, 32)), svmKeypair.publicKey.toBuffer()))
+    let linkSig = await Ed25519.createSignature(wallet.getAddress(), keypair)
+  
     let msg = svmtx.MsgLinkSVMAccount.create({
       sender: getWalletAddr(wallet),
       svm_pubkey: svmKeypair.publicKey.toBuffer(),
@@ -183,7 +246,7 @@ async function linkSvmAccount(
       })
     })
 
-    await broadcastMsgs(
+    await broadcastMsgsSync(
       txClient, 
       [parseInt(senderInfo.info.account_number)], 
       [parseInt(senderInfo.info.sequence)],
@@ -191,11 +254,10 @@ async function linkSvmAccount(
       [msg],
       [wallet]
     )
-
-    return keypair.pubkey
+    return new web3.PublicKey(keypair.pubkey)
   }
 
-  return accountLink.link.svm_addr
+  return new web3.PublicKey(accountLink.link.svm_addr)
 }
 
 
@@ -208,17 +270,11 @@ async function linkSvmAccount(
   const svmClient = new svmservice.QueryClientImpl(cc)
 
   const ownerCosmosWallet = ethwallet.Wallet.fromPrivateKey(Uint8Array.from(Buffer.from('88CBEAD91AEE890D27BF06E003ADE3D4E952427E88F88D31D61D3EF5E5D54305', 'hex')))
-  // const senderPrivKey: ethsecp256k1.PrivKey = {key: ownerWallet.getPrivateKey()}
-  // const senderXPubkey = ethcrypto.publicKey.compress(Buffer.from(ownerWallet.getPublicKey()).toString('hex'))
-  // const senderPubkey: ethsecp256k1.PubKey = {key: Buffer.from(senderXPubkey, 'hex')}
-  // const senderPubkeyAny: anytypes.Any = {
-  //   type_url: '/' + ethsecp256k1.PubKey.$type,
-  //   value: ethsecp256k1.PubKey.encode(senderPubkey).finish()
-  // }
-  const senderAddr = bech32.encode('lux', bech32.toWords(ownerCosmosWallet.getAddress()))
-  const senderInfo = await authClient.AccountInfo({address: senderAddr})
-  const senderAccNum = parseInt(senderInfo.info!.account_number!)
-  const senderAccSeq = parseInt(senderInfo.info!.sequence!)
+  const ownerAddr = bech32.encode('lux', bech32.toWords(ownerCosmosWallet.getAddress()))
+  let ownerInfo = await authClient.AccountInfo({address: ownerAddr})
+  let ownerAccNum = parseInt(ownerInfo.info!.account_number!)
+  let ownerAccSeq = parseInt(ownerInfo.info!.sequence!)
+
   let programCosmosWallet = ethwallet.Wallet.generate()
   let programBufferCosmosWallet = ethwallet.Wallet.generate()
   const ownerSvmKeypair = web3.Keypair.generate()
@@ -228,32 +284,35 @@ async function linkSvmAccount(
     inputs: [{
       address: getWalletAddr(ownerCosmosWallet),
       coins: [{
-        denom: 'lux', amount: '2',
+        denom: 'lux', amount: '2000000000000000000',
       }]
     }],
     outputs: [
       {
         address: getWalletAddr(programCosmosWallet),
         coins: [{
-          denom: 'lux', amount: '1',
+          denom: 'lux', amount: '1000000000000000000',
         }]
       },
       {
         address: getWalletAddr(programBufferCosmosWallet),
         coins: [{
-          denom: 'lux', amount: '1',
+          denom: 'lux', amount: '1000000000000000000',
         }]
       }
     ]
   })
 
-  let sendMsgResp = await broadcastMsgs(txClient, [senderAccNum], [senderAccSeq], [banktypes.MsgMultiSend], [sendMsg], [ownerCosmosWallet])
+  let sendMsgResp = await broadcastMsgsSync(txClient, [ownerAccNum], [ownerAccSeq], [banktypes.MsgMultiSend], [sendMsg], [ownerCosmosWallet])
   console.log('send lux to create account:', sendMsgResp)
 
+  // Generate and link the Program SVM account (no lamports needed)
+  console.log('=== linking uploader svm program to cosmos addr ===')
   let ownerPubkey = await linkSvmAccount(txClient, authClient, svmClient, ownerCosmosWallet, ownerSvmKeypair, new BigNumber(1000000000000))
 
-  // Generate and link the Program SVM account (no lamports needed)
-  const programSvmKeypair = web3.Keypair.generate();
+  console.log('=== linking program keypair to cosmos addr ===')
+  const programSvmKeypair = web3.Keypair.generate()
+  const programCosmosAddr = getWalletAddr(programCosmosWallet)
   let programPubkey = await linkSvmAccount(
     txClient,
     authClient,
@@ -261,10 +320,12 @@ async function linkSvmAccount(
     programCosmosWallet,
     programSvmKeypair,
     new BigNumber(0)
-  );
+  )
 
   // Generate and link the Program Buffer SVM account (no lamports needed)
-  const programBufferSvmKeypair = web3.Keypair.generate();
+  console.log('=== linking program buffer keypair to cosmos addr ===')
+  const programBufferSvmKeypair = web3.Keypair.generate()
+  const programBufferCosmosAddr = getWalletAddr(programBufferCosmosWallet)
   let programBufferPubkey = await linkSvmAccount(
     txClient,
     authClient,
@@ -272,40 +333,26 @@ async function linkSvmAccount(
     programBufferCosmosWallet,
     programBufferSvmKeypair,
     new BigNumber(0)
-  );
-  
-  
+  )
+
+  console.log('=== start uploading program ===')
   const systemPubkey = new web3.PublicKey("11111111111111111111111111111111")
   const upgradableLoaderPubkey = new web3.PublicKey("BPFLoaderUpgradeab1e11111111111111111111111")
   const sysvarClockPubkey = new web3.PublicKey("SysvarC1ock11111111111111111111111111111111")
   const sysvarRentPubkey = new web3.PublicKey("SysvarRent111111111111111111111111111111111")
-  const programInteractor = new web3.PublicKey("CHtHn3aTHBt244rxsjgebLc7qZodMMBGK5vzPKvPPirc")
   const programBinary = fs.readFileSync('example.so')
-
-  const svmPrivKey = new web3.Keypair()
-  const linkedAccount = await linkSvmAccount(txClient, wallet, svmPrivKey)
-
-
   let createProgramIx = web3.SystemProgram.createAccount({
-    fromPubkey: callerPubkey,
+    fromPubkey: ownerPubkey,
     newAccountPubkey: programPubkey,
-    lamports: 0,
+    lamports: getRentExemptLamportAmount(36),
     space: 36,
     programId: upgradableLoaderPubkey,
   })
 
-  let createInteractorIx = web3.SystemProgram.createAccount({
-    fromPubkey: callerPubkey,
-    newAccountPubkey: programInteractor,
-    lamports: 0,
-    space: 4,
-    programId: programPubkey,
-  })
-
   let createBufferAccountTx = web3.SystemProgram.createAccount({
-    fromPubkey: callerPubkey,
+    fromPubkey: ownerPubkey,
     newAccountPubkey: programBufferPubkey,
-    lamports: 0,
+    lamports: getRentExemptLamportAmount(programBinary.length + 48),
     space: programBinary.length + 48,
     programId: upgradableLoaderPubkey,
   })
@@ -319,7 +366,7 @@ async function linkSvmAccount(
         isWritable: true,
       },
       {
-        pubkey: callerPubkey,
+        pubkey: ownerPubkey,
         isSigner: true,
         isWritable: true,
       },
@@ -330,13 +377,42 @@ async function linkSvmAccount(
   let initAccountsTx = new web3.Transaction()
     .add(createProgramIx)
     .add(createBufferAccountTx)
-    .add(createInteractorIx)
     .add(initBufferIx)
-  initAccountsTx.feePayer = callerPubkey
+  initAccountsTx.feePayer = ownerPubkey
 
-  const msgCreateAccounts: svmtx.MsgTransaction = toFluxSvmTransaction(senderAddr, initAccountsTx, 1000000)
-  let initAccountsResult = await broadcastSvmTransactionMsg(txClient, senderPubkeyAny, senderAccNum, senderAccSeq, msgCreateAccounts, senderPrivKey)
-  
+  const createAccountsTx = toFluxSvmTransaction(
+    [
+      ownerAddr, 
+      programCosmosAddr,
+      programBufferCosmosAddr,
+    ], 
+    initAccountsTx, 1000000,
+  )
+
+  // refresh addrs' sequences
+  let ownerAccInfo = await authClient.AccountInfo({address: ownerAddr})
+  let programAccInfo = await authClient.AccountInfo({address: programCosmosAddr})
+  let programBufferAccInfo = await authClient.AccountInfo({address: programBufferCosmosAddr})
+  let createAccountsTxsResult = await broadcastMsgsSync(
+    txClient, 
+    [
+      parseInt(ownerAccInfo.info.account_number),
+      parseInt(programAccInfo.info.account_number),
+      parseInt(programBufferAccInfo.info.account_number),
+    ], 
+    [
+      parseInt(ownerAccInfo.info.sequence),
+      parseInt(programAccInfo.info.sequence),
+      parseInt(programBufferAccInfo.info.sequence),
+    ], 
+    [svmtx.MsgTransaction],
+    [createAccountsTx],
+    [ownerCosmosWallet, programCosmosWallet, programBufferCosmosWallet],
+  )
+  if (createAccountsTxsResult.tx_response.code != 0) {
+    throw `upload err code: ${createAccountsTxsResult.tx_response.code}, log: ${createAccountsTxsResult.tx_response.raw_log}`
+  }
+
   const chunkSize = 1200
   let solUploadTransaction = new web3.Transaction()
   for(let i = 0; i < programBinary.length; i += chunkSize) {
@@ -361,7 +437,7 @@ async function linkSvmAccount(
           isWritable: true,
         },
         {
-          pubkey: callerPubkey,
+          pubkey: ownerPubkey,
           isSigner: true,
           isWritable: true,
         },
@@ -372,16 +448,17 @@ async function linkSvmAccount(
     solUploadTransaction = solUploadTransaction.add(uploadIx)
   }
 
+  let programExecutableDataPubkey = web3.PublicKey.findProgramAddressSync([programPubkey.toBuffer()], upgradableLoaderPubkey)[0]
   let finalizeIx = new web3.TransactionInstruction({
     programId: upgradableLoaderPubkey,
     keys: [
       {
-        pubkey:  callerPubkey,
+        pubkey:  ownerPubkey,
         isWritable: true,
         isSigner:   true,
       },
       {
-        pubkey:  programDataPubkey,
+        pubkey:  programExecutableDataPubkey,
         isWritable: true,
         isSigner:   false,
       },
@@ -411,7 +488,7 @@ async function linkSvmAccount(
         isSigner:   false,
       },
       {
-        pubkey:  callerPubkey,
+        pubkey:  ownerPubkey,
         isWritable: true,
         isSigner:   true,
       },
@@ -422,31 +499,38 @@ async function linkSvmAccount(
   })
 
   solUploadTransaction.add(finalizeIx)
-  solUploadTransaction.feePayer = callerPubkey
+  solUploadTransaction.feePayer = ownerPubkey
 
-  let fluxUploadTx = toFluxSvmTransaction(senderAddr, solUploadTransaction, 1000000)
-  let uploadResult = await broadcastSvmTransactionMsg(txClient, senderPubkeyAny, senderAccNum, senderAccSeq + 1, fluxUploadTx, senderPrivKey)
-  
-  let executeIx = new web3.TransactionInstruction({
-    programId: programPubkey,
-    keys: [
-      {
-        pubkey:  programInteractor,
-        isWritable: true,
-        isSigner:   true,
-      },
-      {
-        pubkey:  programDataPubkey,
-        isWritable: false,
-        isSigner:   false,
-      },
-    ],
-    data: Buffer.from([0]),
-  })
+  let uploadProgramTx = toFluxSvmTransaction([
+      ownerAddr, 
+      programCosmosAddr,
+      programBufferCosmosAddr,
+    ], 
+    solUploadTransaction, 
+    1000000,
+  )
 
-  let executeTransaction = new web3.Transaction().add(executeIx)
-  executeTransaction.feePayer = programInteractor
+  let uploadTxResult = await broadcastMsgsSync(
+    txClient,
+    [
+      parseInt(ownerAccInfo.info.account_number),
+      parseInt(programAccInfo.info.account_number),
+      parseInt(programBufferAccInfo.info.account_number),
+    ], 
+    [
+      parseInt(ownerAccInfo.info.sequence) + 1,
+      parseInt(programAccInfo.info.sequence) + 1,
+      parseInt(programBufferAccInfo.info.sequence) + 1,
+    ], 
+    [svmtx.MsgTransaction],
+    [uploadProgramTx],
+    [ownerCosmosWallet, programCosmosWallet, programBufferCosmosWallet],
+  )
 
-  let fluxExecuteTx = toFluxSvmTransaction(senderAddr, executeTransaction, 1000000)
-  let executeResult = await broadcastSvmTransactionMsg(txClient, senderPubkeyAny, senderAccNum, senderAccSeq + 2, fluxExecuteTx, senderPrivKey)
+  console.log(`✅ program uploaded. pubkey: ${programPubkey.toBase58()}, linked cosmos key: ${getWalletAddr(programBufferCosmosWallet)}`)
+  if (uploadTxResult.tx_response.code != 0) {
+    throw `upload err code: ${uploadTxResult.tx_response.code}, log: ${uploadTxResult.tx_response.raw_log}`
+  }
+
+  console.log(`tx: ${uploadTxResult.tx_response.txhash} (height: ${uploadTxResult.tx_response.height}). Gas used / want: ${uploadTxResult.tx_response.gas_used}/${uploadTxResult.tx_response.gas_wanted}`)
 })()

@@ -143,7 +143,7 @@ export const UPGRADABLE_LOADER_LAYOUTS = {
 }
 
 export function toFluxSvmTransaction(
-  senderAddr: string,
+  senderAddrs: string[],
   solTx: web3.Transaction,
   budget: Number
 ): svmtx.MsgTransaction {
@@ -153,7 +153,7 @@ export function toFluxSvmTransaction(
   let accounts = message.accountKeys.map((x) => x.toString())
 
   return svmtx.MsgTransaction.create({
-    signers: [senderAddr],
+    signers: senderAddrs,
     accounts: accounts,
     instructions: solTx.instructions.map((ix) => {
       let ixKeys: Array<string> = []
