@@ -20,7 +20,7 @@ export class ChainGrpcSVMQuery extends BaseGrpc {
     )
     return response
   }
-  //Account
+
   async account({ address }: { address: string }): Promise<svmQuery.AccountResponse> {
     const request = svmQuery.AccountRequest.create({
       address
