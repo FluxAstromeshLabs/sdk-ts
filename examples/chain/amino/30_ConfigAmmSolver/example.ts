@@ -65,7 +65,8 @@ const main = async () => {
       schema: fs.readFileSync('schema.json').toString(),
       cron_gas_price: '',
       cron_input: '',
-      cron_interval: '0'
+      cron_interval: '0',
+      aggregated_query_keys: []
     }
   }
 
