@@ -75,9 +75,15 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
     request: explorerQuery.BalancesRequest,
     callback: (value: explorerQuery.StreamBalanceResponse) => void,
     onEndCallback?: (err: any) => void,
-    onStatusCallback?: () => void,
+    onStatusCallback?: () => void
   ): Promise<Subscription> {
     const stream = this.client.StreamBalances(request)
     return stream.subscribe(callback, onEndCallback, onStatusCallback)
+  }
+  async getMetrics(): Promise<explorerQuery.GetMetricsResponse> {
+    const response: explorerQuery.GetMetricsResponse = await this.retry(() =>
+      this.client.GetMetrics({})
+    )
+    return response
   }
 }
