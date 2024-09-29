@@ -30,7 +30,7 @@ function getWalletAddr(wallet: ethwallet.Wallet) {
   return bech32.encode('lux', bech32.toWords(wallet.getAddress()))
 }
 
-// TODO: Get rent config from chain to correct
+// TODO: Get rent config from chain to calculate lamport exempt amount properly
 function getRentExemptLamportAmount(dataLen: number): number {
   return Math.round(defaultLamportsPerByteYear * (dataLen + 128) * defaultExemptionThreshold)
 }
