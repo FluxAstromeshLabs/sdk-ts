@@ -2,7 +2,7 @@
 // versions:
 //   protoc-gen-ts_proto  v1.178.0
 //   protoc               unknown
-// source: flux/stream/v1beta1/query.proto
+// source: flux/eventstream/v1beta1/query.proto
 
 /* eslint-disable */
 import { grpc } from "@improbable-eng/grpc-web";
@@ -16,8 +16,8 @@ import { EventAttribute } from "../../../tendermint/abci/types";
 
 /** WARNING: always append to bottom or you will mess up indexer logic */
 export enum Op {
-  /** SyntheticUpdate - Synthetic events */
-  SyntheticUpdate = 0,
+  /** COSMOS_SET - COSMOS event default op */
+  COSMOS_SET = 0,
   /** FNFTUpdateClass - FNFT */
   FNFTUpdateClass = 100,
   FNFTCreate = 101,
@@ -44,23 +44,29 @@ export enum Op {
   /** SvmExecute - SVM */
   SvmExecute = 4000,
   SvmAccUpdate = 4001,
-  /** BankUpdate - astromesh */
-  BankUpdate = 5000,
+  SvmAccLinkCreate = 4002,
+  /** AstromeshBalanceSet - astromesh */
+  AstromeshBalanceSet = 5000,
+  AstromeshBalanceDiff = 5001,
+  AstromeshMetadataUpdate = 5002,
   /** StrategyDeploy - strategy */
   StrategyDeploy = 6000,
   StrategyUpdate = 6001,
+  StrategyTrigger = 60002,
   /** WasmEventEmitted - wasm */
   WasmEventEmitted = 7000,
   /** NewTxs - tx */
   NewTxs = 8000,
+  /** OracleSimpleUpdate - oracle */
+  OracleSimpleUpdate = 9000,
   UNRECOGNIZED = -1,
 }
 
 export function opFromJSON(object: any): Op {
   switch (object) {
     case 0:
-    case "SyntheticUpdate":
-      return Op.SyntheticUpdate;
+    case "COSMOS_SET":
+      return Op.COSMOS_SET;
     case 100:
     case "FNFTUpdateClass":
       return Op.FNFTUpdateClass;
@@ -118,21 +124,36 @@ export function opFromJSON(object: any): Op {
     case 4001:
     case "SvmAccUpdate":
       return Op.SvmAccUpdate;
+    case 4002:
+    case "SvmAccLinkCreate":
+      return Op.SvmAccLinkCreate;
     case 5000:
-    case "BankUpdate":
-      return Op.BankUpdate;
+    case "AstromeshBalanceSet":
+      return Op.AstromeshBalanceSet;
+    case 5001:
+    case "AstromeshBalanceDiff":
+      return Op.AstromeshBalanceDiff;
+    case 5002:
+    case "AstromeshMetadataUpdate":
+      return Op.AstromeshMetadataUpdate;
     case 6000:
     case "StrategyDeploy":
       return Op.StrategyDeploy;
     case 6001:
     case "StrategyUpdate":
       return Op.StrategyUpdate;
+    case 60002:
+    case "StrategyTrigger":
+      return Op.StrategyTrigger;
     case 7000:
     case "WasmEventEmitted":
       return Op.WasmEventEmitted;
     case 8000:
     case "NewTxs":
       return Op.NewTxs;
+    case 9000:
+    case "OracleSimpleUpdate":
+      return Op.OracleSimpleUpdate;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -142,8 +163,8 @@ export function opFromJSON(object: any): Op {
 
 export function opToJSON(object: Op): string {
   switch (object) {
-    case Op.SyntheticUpdate:
-      return "SyntheticUpdate";
+    case Op.COSMOS_SET:
+      return "COSMOS_SET";
     case Op.FNFTUpdateClass:
       return "FNFTUpdateClass";
     case Op.FNFTCreate:
@@ -182,16 +203,26 @@ export function opToJSON(object: Op): string {
       return "SvmExecute";
     case Op.SvmAccUpdate:
       return "SvmAccUpdate";
-    case Op.BankUpdate:
-      return "BankUpdate";
+    case Op.SvmAccLinkCreate:
+      return "SvmAccLinkCreate";
+    case Op.AstromeshBalanceSet:
+      return "AstromeshBalanceSet";
+    case Op.AstromeshBalanceDiff:
+      return "AstromeshBalanceDiff";
+    case Op.AstromeshMetadataUpdate:
+      return "AstromeshMetadataUpdate";
     case Op.StrategyDeploy:
       return "StrategyDeploy";
     case Op.StrategyUpdate:
       return "StrategyUpdate";
+    case Op.StrategyTrigger:
+      return "StrategyTrigger";
     case Op.WasmEventEmitted:
       return "WasmEventEmitted";
     case Op.NewTxs:
       return "NewTxs";
+    case Op.OracleSimpleUpdate:
+      return "OracleSimpleUpdate";
     case Op.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -208,17 +239,16 @@ export interface EventsResponse {
   height: string;
   time: string;
   modules: string[];
-  events: Event[];
+  events: ModuleEvents[];
   tm_queries: string[];
   tm_data: string[];
 }
 
-export interface Event {
-  event_ops: EventOp[];
+export interface ModuleEvents {
+  any_events: AnyEvent[];
 }
 
-export interface EventOp {
-  op: Op;
+export interface AnyEvent {
   module: string;
   data: Any | undefined;
 }
@@ -244,7 +274,7 @@ function createBaseEventsRequest(): EventsRequest {
 }
 
 export const EventsRequest = {
-  $type: "flux.stream.v1beta1.EventsRequest" as const,
+  $type: "flux.eventstream.v1beta1.EventsRequest" as const,
 
   encode(message: EventsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.height !== "0") {
@@ -337,7 +367,7 @@ function createBaseEventsResponse(): EventsResponse {
 }
 
 export const EventsResponse = {
-  $type: "flux.stream.v1beta1.EventsResponse" as const,
+  $type: "flux.eventstream.v1beta1.EventsResponse" as const,
 
   encode(message: EventsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.height !== "0") {
@@ -350,7 +380,7 @@ export const EventsResponse = {
       writer.uint32(26).string(v!);
     }
     for (const v of message.events) {
-      Event.encode(v!, writer.uint32(34).fork()).ldelim();
+      ModuleEvents.encode(v!, writer.uint32(34).fork()).ldelim();
     }
     for (const v of message.tm_queries) {
       writer.uint32(42).string(v!);
@@ -394,7 +424,7 @@ export const EventsResponse = {
             break;
           }
 
-          message.events.push(Event.decode(reader, reader.uint32()));
+          message.events.push(ModuleEvents.decode(reader, reader.uint32()));
           continue;
         case 5:
           if (tag !== 42) {
@@ -424,7 +454,7 @@ export const EventsResponse = {
       height: isSet(object.height) ? globalThis.String(object.height) : "0",
       time: isSet(object.time) ? globalThis.String(object.time) : "0",
       modules: globalThis.Array.isArray(object?.modules) ? object.modules.map((e: any) => globalThis.String(e)) : [],
-      events: globalThis.Array.isArray(object?.events) ? object.events.map((e: any) => Event.fromJSON(e)) : [],
+      events: globalThis.Array.isArray(object?.events) ? object.events.map((e: any) => ModuleEvents.fromJSON(e)) : [],
       tm_queries: globalThis.Array.isArray(object?.tm_queries)
         ? object.tm_queries.map((e: any) => globalThis.String(e))
         : [],
@@ -444,7 +474,7 @@ export const EventsResponse = {
       obj.modules = message.modules;
     }
     if (message.events?.length) {
-      obj.events = message.events.map((e) => Event.toJSON(e));
+      obj.events = message.events.map((e) => ModuleEvents.toJSON(e));
     }
     if (message.tm_queries?.length) {
       obj.tm_queries = message.tm_queries;
@@ -463,31 +493,31 @@ export const EventsResponse = {
     message.height = object.height ?? "0";
     message.time = object.time ?? "0";
     message.modules = object.modules?.map((e) => e) || [];
-    message.events = object.events?.map((e) => Event.fromPartial(e)) || [];
+    message.events = object.events?.map((e) => ModuleEvents.fromPartial(e)) || [];
     message.tm_queries = object.tm_queries?.map((e) => e) || [];
     message.tm_data = object.tm_data?.map((e) => e) || [];
     return message;
   },
 };
 
-function createBaseEvent(): Event {
-  return { event_ops: [] };
+function createBaseModuleEvents(): ModuleEvents {
+  return { any_events: [] };
 }
 
-export const Event = {
-  $type: "flux.stream.v1beta1.Event" as const,
+export const ModuleEvents = {
+  $type: "flux.eventstream.v1beta1.ModuleEvents" as const,
 
-  encode(message: Event, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.event_ops) {
-      EventOp.encode(v!, writer.uint32(10).fork()).ldelim();
+  encode(message: ModuleEvents, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.any_events) {
+      AnyEvent.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): Event {
+  decode(input: _m0.Reader | Uint8Array, length?: number): ModuleEvents {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseEvent();
+    const message = createBaseModuleEvents();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -496,7 +526,7 @@ export const Event = {
             break;
           }
 
-          message.event_ops.push(EventOp.decode(reader, reader.uint32()));
+          message.any_events.push(AnyEvent.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -507,43 +537,40 @@ export const Event = {
     return message;
   },
 
-  fromJSON(object: any): Event {
+  fromJSON(object: any): ModuleEvents {
     return {
-      event_ops: globalThis.Array.isArray(object?.event_ops)
-        ? object.event_ops.map((e: any) => EventOp.fromJSON(e))
+      any_events: globalThis.Array.isArray(object?.any_events)
+        ? object.any_events.map((e: any) => AnyEvent.fromJSON(e))
         : [],
     };
   },
 
-  toJSON(message: Event): unknown {
+  toJSON(message: ModuleEvents): unknown {
     const obj: any = {};
-    if (message.event_ops?.length) {
-      obj.event_ops = message.event_ops.map((e) => EventOp.toJSON(e));
+    if (message.any_events?.length) {
+      obj.any_events = message.any_events.map((e) => AnyEvent.toJSON(e));
     }
     return obj;
   },
 
-  create(base?: DeepPartial<Event>): Event {
-    return Event.fromPartial(base ?? {});
+  create(base?: DeepPartial<ModuleEvents>): ModuleEvents {
+    return ModuleEvents.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<Event>): Event {
-    const message = createBaseEvent();
-    message.event_ops = object.event_ops?.map((e) => EventOp.fromPartial(e)) || [];
+  fromPartial(object: DeepPartial<ModuleEvents>): ModuleEvents {
+    const message = createBaseModuleEvents();
+    message.any_events = object.any_events?.map((e) => AnyEvent.fromPartial(e)) || [];
     return message;
   },
 };
 
-function createBaseEventOp(): EventOp {
-  return { op: 0, module: "", data: undefined };
+function createBaseAnyEvent(): AnyEvent {
+  return { module: "", data: undefined };
 }
 
-export const EventOp = {
-  $type: "flux.stream.v1beta1.EventOp" as const,
+export const AnyEvent = {
+  $type: "flux.eventstream.v1beta1.AnyEvent" as const,
 
-  encode(message: EventOp, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.op !== 0) {
-      writer.uint32(8).int32(message.op);
-    }
+  encode(message: AnyEvent, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.module !== "") {
       writer.uint32(18).string(message.module);
     }
@@ -553,20 +580,13 @@ export const EventOp = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventOp {
+  decode(input: _m0.Reader | Uint8Array, length?: number): AnyEvent {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseEventOp();
+    const message = createBaseAnyEvent();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.op = reader.int32() as any;
-          continue;
         case 2:
           if (tag !== 18) {
             break;
@@ -590,19 +610,15 @@ export const EventOp = {
     return message;
   },
 
-  fromJSON(object: any): EventOp {
+  fromJSON(object: any): AnyEvent {
     return {
-      op: isSet(object.op) ? opFromJSON(object.op) : 0,
       module: isSet(object.module) ? globalThis.String(object.module) : "",
       data: isSet(object.data) ? Any.fromJSON(object.data) : undefined,
     };
   },
 
-  toJSON(message: EventOp): unknown {
+  toJSON(message: AnyEvent): unknown {
     const obj: any = {};
-    if (message.op !== undefined) {
-      obj.op = opToJSON(message.op);
-    }
     if (message.module !== undefined) {
       obj.module = message.module;
     }
@@ -612,12 +628,11 @@ export const EventOp = {
     return obj;
   },
 
-  create(base?: DeepPartial<EventOp>): EventOp {
-    return EventOp.fromPartial(base ?? {});
+  create(base?: DeepPartial<AnyEvent>): AnyEvent {
+    return AnyEvent.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<EventOp>): EventOp {
-    const message = createBaseEventOp();
-    message.op = object.op ?? 0;
+  fromPartial(object: DeepPartial<AnyEvent>): AnyEvent {
+    const message = createBaseAnyEvent();
     message.module = object.module ?? "";
     message.data = (object.data !== undefined && object.data !== null) ? Any.fromPartial(object.data) : undefined;
     return message;
@@ -629,7 +644,7 @@ function createBaseSyncStatus(): SyncStatus {
 }
 
 export const SyncStatus = {
-  $type: "flux.stream.v1beta1.SyncStatus" as const,
+  $type: "flux.eventstream.v1beta1.SyncStatus" as const,
 
   encode(message: SyncStatus, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.last_block !== "0") {
@@ -735,7 +750,7 @@ function createBaseNewTxsEvent(): NewTxsEvent {
 }
 
 export const NewTxsEvent = {
-  $type: "flux.stream.v1beta1.NewTxsEvent" as const,
+  $type: "flux.eventstream.v1beta1.NewTxsEvent" as const,
 
   encode(message: NewTxsEvent, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.count !== 0) {
@@ -811,7 +826,7 @@ function createBaseWasmEvent(): WasmEvent {
 }
 
 export const WasmEvent = {
-  $type: "flux.stream.v1beta1.WasmEvent" as const,
+  $type: "flux.eventstream.v1beta1.WasmEvent" as const,
 
   encode(message: WasmEvent, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.attributes) {
@@ -892,7 +907,7 @@ export class QueryClientImpl implements Query {
   }
 }
 
-export const QueryDesc = { serviceName: "flux.stream.v1beta1.Query" };
+export const QueryDesc = { serviceName: "flux.eventstream.v1beta1.Query" };
 
 export const QueryGetEventsDesc: UnaryMethodDefinitionish = {
   methodName: "GetEvents",

@@ -62,7 +62,7 @@ export interface MsgInstantiateContractResponse {
 
 /**
  * MsgInstantiateContract2 create a new smart contract instance for the given
- * code id with a predicable address.
+ * code id with a predictable address.
  */
 export interface MsgInstantiateContract2 {
   /** Sender is the that actor that signed the messages */

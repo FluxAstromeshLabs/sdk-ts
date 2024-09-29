@@ -6,45 +6,59 @@
 
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
+import { Op, opFromJSON, opToJSON } from "../../eventstream/v1beta1/query";
 import { ContractInfo } from "./evm";
 
-export interface EventDeploy {
+export interface DeployEvent {
+  op: Op;
   contract: ContractInfo | undefined;
 }
 
-export interface EventExecute {
+export interface ExecuteEvent {
+  op: Op;
   address: string;
 }
 
-export interface EventEmitLog {
+export interface EmitLogEvent {
+  op: Op;
   address: string;
   topics: Uint8Array[];
   data: Uint8Array;
 }
 
-function createBaseEventDeploy(): EventDeploy {
-  return { contract: undefined };
+function createBaseDeployEvent(): DeployEvent {
+  return { op: 0, contract: undefined };
 }
 
-export const EventDeploy = {
-  $type: "flux.evm.v1beta1.EventDeploy" as const,
+export const DeployEvent = {
+  $type: "flux.evm.v1beta1.DeployEvent" as const,
 
-  encode(message: EventDeploy, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: DeployEvent, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.op !== 0) {
+      writer.uint32(8).int32(message.op);
+    }
     if (message.contract !== undefined) {
-      ContractInfo.encode(message.contract, writer.uint32(10).fork()).ldelim();
+      ContractInfo.encode(message.contract, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventDeploy {
+  decode(input: _m0.Reader | Uint8Array, length?: number): DeployEvent {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseEventDeploy();
+    const message = createBaseDeployEvent();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 10) {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.op = reader.int32() as any;
+          continue;
+        case 2:
+          if (tag !== 18) {
             break;
           }
 
@@ -59,23 +73,30 @@ export const EventDeploy = {
     return message;
   },
 
-  fromJSON(object: any): EventDeploy {
-    return { contract: isSet(object.contract) ? ContractInfo.fromJSON(object.contract) : undefined };
+  fromJSON(object: any): DeployEvent {
+    return {
+      op: isSet(object.op) ? opFromJSON(object.op) : 0,
+      contract: isSet(object.contract) ? ContractInfo.fromJSON(object.contract) : undefined,
+    };
   },
 
-  toJSON(message: EventDeploy): unknown {
+  toJSON(message: DeployEvent): unknown {
     const obj: any = {};
+    if (message.op !== undefined) {
+      obj.op = opToJSON(message.op);
+    }
     if (message.contract !== undefined) {
       obj.contract = ContractInfo.toJSON(message.contract);
     }
     return obj;
   },
 
-  create(base?: DeepPartial<EventDeploy>): EventDeploy {
-    return EventDeploy.fromPartial(base ?? {});
+  create(base?: DeepPartial<DeployEvent>): DeployEvent {
+    return DeployEvent.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<EventDeploy>): EventDeploy {
-    const message = createBaseEventDeploy();
+  fromPartial(object: DeepPartial<DeployEvent>): DeployEvent {
+    const message = createBaseDeployEvent();
+    message.op = object.op ?? 0;
     message.contract = (object.contract !== undefined && object.contract !== null)
       ? ContractInfo.fromPartial(object.contract)
       : undefined;
@@ -83,29 +104,39 @@ export const EventDeploy = {
   },
 };
 
-function createBaseEventExecute(): EventExecute {
-  return { address: "" };
+function createBaseExecuteEvent(): ExecuteEvent {
+  return { op: 0, address: "" };
 }
 
-export const EventExecute = {
-  $type: "flux.evm.v1beta1.EventExecute" as const,
+export const ExecuteEvent = {
+  $type: "flux.evm.v1beta1.ExecuteEvent" as const,
 
-  encode(message: EventExecute, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: ExecuteEvent, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.op !== 0) {
+      writer.uint32(8).int32(message.op);
+    }
     if (message.address !== "") {
-      writer.uint32(10).string(message.address);
+      writer.uint32(18).string(message.address);
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventExecute {
+  decode(input: _m0.Reader | Uint8Array, length?: number): ExecuteEvent {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseEventExecute();
+    const message = createBaseExecuteEvent();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 10) {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.op = reader.int32() as any;
+          continue;
+        case 2:
+          if (tag !== 18) {
             break;
           }
 
@@ -120,71 +151,88 @@ export const EventExecute = {
     return message;
   },
 
-  fromJSON(object: any): EventExecute {
-    return { address: isSet(object.address) ? globalThis.String(object.address) : "" };
+  fromJSON(object: any): ExecuteEvent {
+    return {
+      op: isSet(object.op) ? opFromJSON(object.op) : 0,
+      address: isSet(object.address) ? globalThis.String(object.address) : "",
+    };
   },
 
-  toJSON(message: EventExecute): unknown {
+  toJSON(message: ExecuteEvent): unknown {
     const obj: any = {};
+    if (message.op !== undefined) {
+      obj.op = opToJSON(message.op);
+    }
     if (message.address !== undefined) {
       obj.address = message.address;
     }
     return obj;
   },
 
-  create(base?: DeepPartial<EventExecute>): EventExecute {
-    return EventExecute.fromPartial(base ?? {});
+  create(base?: DeepPartial<ExecuteEvent>): ExecuteEvent {
+    return ExecuteEvent.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<EventExecute>): EventExecute {
-    const message = createBaseEventExecute();
+  fromPartial(object: DeepPartial<ExecuteEvent>): ExecuteEvent {
+    const message = createBaseExecuteEvent();
+    message.op = object.op ?? 0;
     message.address = object.address ?? "";
     return message;
   },
 };
 
-function createBaseEventEmitLog(): EventEmitLog {
-  return { address: "", topics: [], data: new Uint8Array(0) };
+function createBaseEmitLogEvent(): EmitLogEvent {
+  return { op: 0, address: "", topics: [], data: new Uint8Array(0) };
 }
 
-export const EventEmitLog = {
-  $type: "flux.evm.v1beta1.EventEmitLog" as const,
+export const EmitLogEvent = {
+  $type: "flux.evm.v1beta1.EmitLogEvent" as const,
 
-  encode(message: EventEmitLog, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: EmitLogEvent, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.op !== 0) {
+      writer.uint32(8).int32(message.op);
+    }
     if (message.address !== "") {
-      writer.uint32(10).string(message.address);
+      writer.uint32(18).string(message.address);
     }
     for (const v of message.topics) {
-      writer.uint32(18).bytes(v!);
+      writer.uint32(26).bytes(v!);
     }
     if (message.data.length !== 0) {
-      writer.uint32(26).bytes(message.data);
+      writer.uint32(34).bytes(message.data);
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventEmitLog {
+  decode(input: _m0.Reader | Uint8Array, length?: number): EmitLogEvent {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseEventEmitLog();
+    const message = createBaseEmitLogEvent();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 10) {
+          if (tag !== 8) {
             break;
           }
 
-          message.address = reader.string();
+          message.op = reader.int32() as any;
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.topics.push(reader.bytes());
+          message.address = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
+            break;
+          }
+
+          message.topics.push(reader.bytes());
+          continue;
+        case 4:
+          if (tag !== 34) {
             break;
           }
 
@@ -199,16 +247,20 @@ export const EventEmitLog = {
     return message;
   },
 
-  fromJSON(object: any): EventEmitLog {
+  fromJSON(object: any): EmitLogEvent {
     return {
+      op: isSet(object.op) ? opFromJSON(object.op) : 0,
       address: isSet(object.address) ? globalThis.String(object.address) : "",
       topics: globalThis.Array.isArray(object?.topics) ? object.topics.map((e: any) => bytesFromBase64(e)) : [],
       data: isSet(object.data) ? bytesFromBase64(object.data) : new Uint8Array(0),
     };
   },
 
-  toJSON(message: EventEmitLog): unknown {
+  toJSON(message: EmitLogEvent): unknown {
     const obj: any = {};
+    if (message.op !== undefined) {
+      obj.op = opToJSON(message.op);
+    }
     if (message.address !== undefined) {
       obj.address = message.address;
     }
@@ -221,11 +273,12 @@ export const EventEmitLog = {
     return obj;
   },
 
-  create(base?: DeepPartial<EventEmitLog>): EventEmitLog {
-    return EventEmitLog.fromPartial(base ?? {});
+  create(base?: DeepPartial<EmitLogEvent>): EmitLogEvent {
+    return EmitLogEvent.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<EventEmitLog>): EventEmitLog {
-    const message = createBaseEventEmitLog();
+  fromPartial(object: DeepPartial<EmitLogEvent>): EmitLogEvent {
+    const message = createBaseEmitLogEvent();
+    message.op = object.op ?? 0;
     message.address = object.address ?? "";
     message.topics = object.topics?.map((e) => e) || [];
     message.data = object.data ?? new Uint8Array(0);

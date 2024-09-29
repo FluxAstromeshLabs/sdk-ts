@@ -8,7 +8,7 @@
 import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
 import _m0 from "protobufjs/minimal";
-import { Account } from "./svm";
+import { Account, AccountLink } from "./svm";
 
 export interface AccountRequest {
   address: string;
@@ -18,12 +18,20 @@ export interface AccountResponse {
   account: Account | undefined;
 }
 
-export interface ProgramAccountsRequest {
+export interface AccountsByOwnerRequest {
   address: string;
 }
 
-export interface ProgramAccountsResponse {
+export interface AccountsByOwnerResponse {
   addresses: string[];
+}
+
+export interface AccountLinkRequest {
+  address: string;
+}
+
+export interface AccountLinkResponse {
+  link: AccountLink | undefined;
 }
 
 function createBaseAccountRequest(): AccountRequest {
@@ -146,24 +154,24 @@ export const AccountResponse = {
   },
 };
 
-function createBaseProgramAccountsRequest(): ProgramAccountsRequest {
+function createBaseAccountsByOwnerRequest(): AccountsByOwnerRequest {
   return { address: "" };
 }
 
-export const ProgramAccountsRequest = {
-  $type: "flux.svm.v1beta1.ProgramAccountsRequest" as const,
+export const AccountsByOwnerRequest = {
+  $type: "flux.svm.v1beta1.AccountsByOwnerRequest" as const,
 
-  encode(message: ProgramAccountsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: AccountsByOwnerRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.address !== "") {
       writer.uint32(10).string(message.address);
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): ProgramAccountsRequest {
+  decode(input: _m0.Reader | Uint8Array, length?: number): AccountsByOwnerRequest {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseProgramAccountsRequest();
+    const message = createBaseAccountsByOwnerRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -183,11 +191,11 @@ export const ProgramAccountsRequest = {
     return message;
   },
 
-  fromJSON(object: any): ProgramAccountsRequest {
+  fromJSON(object: any): AccountsByOwnerRequest {
     return { address: isSet(object.address) ? globalThis.String(object.address) : "" };
   },
 
-  toJSON(message: ProgramAccountsRequest): unknown {
+  toJSON(message: AccountsByOwnerRequest): unknown {
     const obj: any = {};
     if (message.address !== undefined) {
       obj.address = message.address;
@@ -195,34 +203,34 @@ export const ProgramAccountsRequest = {
     return obj;
   },
 
-  create(base?: DeepPartial<ProgramAccountsRequest>): ProgramAccountsRequest {
-    return ProgramAccountsRequest.fromPartial(base ?? {});
+  create(base?: DeepPartial<AccountsByOwnerRequest>): AccountsByOwnerRequest {
+    return AccountsByOwnerRequest.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<ProgramAccountsRequest>): ProgramAccountsRequest {
-    const message = createBaseProgramAccountsRequest();
+  fromPartial(object: DeepPartial<AccountsByOwnerRequest>): AccountsByOwnerRequest {
+    const message = createBaseAccountsByOwnerRequest();
     message.address = object.address ?? "";
     return message;
   },
 };
 
-function createBaseProgramAccountsResponse(): ProgramAccountsResponse {
+function createBaseAccountsByOwnerResponse(): AccountsByOwnerResponse {
   return { addresses: [] };
 }
 
-export const ProgramAccountsResponse = {
-  $type: "flux.svm.v1beta1.ProgramAccountsResponse" as const,
+export const AccountsByOwnerResponse = {
+  $type: "flux.svm.v1beta1.AccountsByOwnerResponse" as const,
 
-  encode(message: ProgramAccountsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: AccountsByOwnerResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.addresses) {
       writer.uint32(10).string(v!);
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): ProgramAccountsResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): AccountsByOwnerResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseProgramAccountsResponse();
+    const message = createBaseAccountsByOwnerResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -242,7 +250,7 @@ export const ProgramAccountsResponse = {
     return message;
   },
 
-  fromJSON(object: any): ProgramAccountsResponse {
+  fromJSON(object: any): AccountsByOwnerResponse {
     return {
       addresses: globalThis.Array.isArray(object?.addresses)
         ? object.addresses.map((e: any) => globalThis.String(e))
@@ -250,7 +258,7 @@ export const ProgramAccountsResponse = {
     };
   },
 
-  toJSON(message: ProgramAccountsResponse): unknown {
+  toJSON(message: AccountsByOwnerResponse): unknown {
     const obj: any = {};
     if (message.addresses?.length) {
       obj.addresses = message.addresses;
@@ -258,22 +266,147 @@ export const ProgramAccountsResponse = {
     return obj;
   },
 
-  create(base?: DeepPartial<ProgramAccountsResponse>): ProgramAccountsResponse {
-    return ProgramAccountsResponse.fromPartial(base ?? {});
+  create(base?: DeepPartial<AccountsByOwnerResponse>): AccountsByOwnerResponse {
+    return AccountsByOwnerResponse.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<ProgramAccountsResponse>): ProgramAccountsResponse {
-    const message = createBaseProgramAccountsResponse();
+  fromPartial(object: DeepPartial<AccountsByOwnerResponse>): AccountsByOwnerResponse {
+    const message = createBaseAccountsByOwnerResponse();
     message.addresses = object.addresses?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseAccountLinkRequest(): AccountLinkRequest {
+  return { address: "" };
+}
+
+export const AccountLinkRequest = {
+  $type: "flux.svm.v1beta1.AccountLinkRequest" as const,
+
+  encode(message: AccountLinkRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.address !== "") {
+      writer.uint32(10).string(message.address);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): AccountLinkRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAccountLinkRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.address = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AccountLinkRequest {
+    return { address: isSet(object.address) ? globalThis.String(object.address) : "" };
+  },
+
+  toJSON(message: AccountLinkRequest): unknown {
+    const obj: any = {};
+    if (message.address !== undefined) {
+      obj.address = message.address;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<AccountLinkRequest>): AccountLinkRequest {
+    return AccountLinkRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<AccountLinkRequest>): AccountLinkRequest {
+    const message = createBaseAccountLinkRequest();
+    message.address = object.address ?? "";
+    return message;
+  },
+};
+
+function createBaseAccountLinkResponse(): AccountLinkResponse {
+  return { link: undefined };
+}
+
+export const AccountLinkResponse = {
+  $type: "flux.svm.v1beta1.AccountLinkResponse" as const,
+
+  encode(message: AccountLinkResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.link !== undefined) {
+      AccountLink.encode(message.link, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): AccountLinkResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAccountLinkResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.link = AccountLink.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AccountLinkResponse {
+    return { link: isSet(object.link) ? AccountLink.fromJSON(object.link) : undefined };
+  },
+
+  toJSON(message: AccountLinkResponse): unknown {
+    const obj: any = {};
+    if (message.link !== undefined) {
+      obj.link = AccountLink.toJSON(message.link);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<AccountLinkResponse>): AccountLinkResponse {
+    return AccountLinkResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<AccountLinkResponse>): AccountLinkResponse {
+    const message = createBaseAccountLinkResponse();
+    message.link = (object.link !== undefined && object.link !== null)
+      ? AccountLink.fromPartial(object.link)
+      : undefined;
     return message;
   },
 };
 
 export interface Query {
   Account(request: DeepPartial<AccountRequest>, metadata?: grpc.Metadata): Promise<AccountResponse>;
-  ProgramAccounts(
-    request: DeepPartial<ProgramAccountsRequest>,
+  AccountsByOwner(
+    request: DeepPartial<AccountsByOwnerRequest>,
     metadata?: grpc.Metadata,
-  ): Promise<ProgramAccountsResponse>;
+  ): Promise<AccountsByOwnerResponse>;
+  AccountLink(request: DeepPartial<AccountLinkRequest>, metadata?: grpc.Metadata): Promise<AccountLinkResponse>;
+  AccountLinkBySvmAddr(
+    request: DeepPartial<AccountLinkRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<AccountLinkResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -282,18 +415,31 @@ export class QueryClientImpl implements Query {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.Account = this.Account.bind(this);
-    this.ProgramAccounts = this.ProgramAccounts.bind(this);
+    this.AccountsByOwner = this.AccountsByOwner.bind(this);
+    this.AccountLink = this.AccountLink.bind(this);
+    this.AccountLinkBySvmAddr = this.AccountLinkBySvmAddr.bind(this);
   }
 
   Account(request: DeepPartial<AccountRequest>, metadata?: grpc.Metadata): Promise<AccountResponse> {
     return this.rpc.unary(QueryAccountDesc, AccountRequest.fromPartial(request), metadata);
   }
 
-  ProgramAccounts(
-    request: DeepPartial<ProgramAccountsRequest>,
+  AccountsByOwner(
+    request: DeepPartial<AccountsByOwnerRequest>,
     metadata?: grpc.Metadata,
-  ): Promise<ProgramAccountsResponse> {
-    return this.rpc.unary(QueryProgramAccountsDesc, ProgramAccountsRequest.fromPartial(request), metadata);
+  ): Promise<AccountsByOwnerResponse> {
+    return this.rpc.unary(QueryAccountsByOwnerDesc, AccountsByOwnerRequest.fromPartial(request), metadata);
+  }
+
+  AccountLink(request: DeepPartial<AccountLinkRequest>, metadata?: grpc.Metadata): Promise<AccountLinkResponse> {
+    return this.rpc.unary(QueryAccountLinkDesc, AccountLinkRequest.fromPartial(request), metadata);
+  }
+
+  AccountLinkBySvmAddr(
+    request: DeepPartial<AccountLinkRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<AccountLinkResponse> {
+    return this.rpc.unary(QueryAccountLinkBySvmAddrDesc, AccountLinkRequest.fromPartial(request), metadata);
   }
 }
 
@@ -322,19 +468,65 @@ export const QueryAccountDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const QueryProgramAccountsDesc: UnaryMethodDefinitionish = {
-  methodName: "ProgramAccounts",
+export const QueryAccountsByOwnerDesc: UnaryMethodDefinitionish = {
+  methodName: "AccountsByOwner",
   service: QueryDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return ProgramAccountsRequest.encode(this).finish();
+      return AccountsByOwnerRequest.encode(this).finish();
     },
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = ProgramAccountsResponse.decode(data);
+      const value = AccountsByOwnerResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryAccountLinkDesc: UnaryMethodDefinitionish = {
+  methodName: "AccountLink",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return AccountLinkRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = AccountLinkResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryAccountLinkBySvmAddrDesc: UnaryMethodDefinitionish = {
+  methodName: "AccountLinkBySvmAddr",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return AccountLinkRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = AccountLinkResponse.decode(data);
       return {
         ...value,
         toObject() {

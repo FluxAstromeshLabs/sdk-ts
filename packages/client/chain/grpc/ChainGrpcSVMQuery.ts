@@ -11,12 +11,12 @@ export class ChainGrpcSVMQuery extends BaseGrpc {
     address
   }: {
     address: string
-  }): Promise<svmQuery.ProgramAccountsResponse> {
-    const request = svmQuery.ProgramAccountsRequest.create({
+  }): Promise<svmQuery.AccountsByOwnerResponse> {
+    const request = svmQuery.AccountsByOwnerRequest.create({
       address
     })
-    const response: svmQuery.ProgramAccountsResponse = await this.retry(() =>
-      this.client.ProgramAccounts(request)
+    const response: svmQuery.AccountsByOwnerResponse = await this.retry(() =>
+      this.client.Account(request)
     )
     return response
   }

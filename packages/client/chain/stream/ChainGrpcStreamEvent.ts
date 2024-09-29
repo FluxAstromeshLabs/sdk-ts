@@ -1,4 +1,4 @@
-import * as streamService from '../../../../chain/flux/stream/v1beta1/query'
+import * as streamService from '../../../../chain/flux/eventstream/v1beta1/query'
 import { Subscription } from 'rxjs'
 export class ChainGrpcStreamEvent {
   protected client: streamService.QueryClientImpl

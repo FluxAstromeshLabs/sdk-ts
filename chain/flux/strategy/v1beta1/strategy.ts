@@ -91,17 +91,12 @@ export interface Strategy {
   id: Uint8Array;
   code_checksum: Uint8Array;
   owner: string;
-  query:
-    | FISQueryRequest
-    | undefined;
-  /**
-   * query hash stores hash(query), so that msg server don't need to calculate
-   * all the time
-   */
-  query_hash: Uint8Array;
+  query: FISQueryRequest | undefined;
   is_enabled: boolean;
   trigger_permission: PermissionConfig | undefined;
   metadata: StrategyMetadata | undefined;
+  height: string;
+  deleted: string;
 }
 
 /**
@@ -159,6 +154,8 @@ export interface StrategyMetadata {
   tags: string[];
   /** Strategy schema, usually used for intent's instructions display on FE */
   schema: string;
+  /** aggreated query strings */
+  aggregated_query_keys: string[];
   /** Strategy gas price, only applicable for cron bots now */
   cron_gas_price: string;
   /** input to control cron bots */
@@ -264,10 +261,11 @@ function createBaseStrategy(): Strategy {
     code_checksum: new Uint8Array(0),
     owner: "",
     query: undefined,
-    query_hash: new Uint8Array(0),
     is_enabled: false,
     trigger_permission: undefined,
     metadata: undefined,
+    height: "0",
+    deleted: "0",
   };
 }
 
@@ -287,17 +285,20 @@ export const Strategy = {
     if (message.query !== undefined) {
       FISQueryRequest.encode(message.query, writer.uint32(34).fork()).ldelim();
     }
-    if (message.query_hash.length !== 0) {
-      writer.uint32(42).bytes(message.query_hash);
-    }
     if (message.is_enabled !== false) {
-      writer.uint32(48).bool(message.is_enabled);
+      writer.uint32(40).bool(message.is_enabled);
     }
     if (message.trigger_permission !== undefined) {
-      PermissionConfig.encode(message.trigger_permission, writer.uint32(58).fork()).ldelim();
+      PermissionConfig.encode(message.trigger_permission, writer.uint32(50).fork()).ldelim();
     }
     if (message.metadata !== undefined) {
-      StrategyMetadata.encode(message.metadata, writer.uint32(66).fork()).ldelim();
+      StrategyMetadata.encode(message.metadata, writer.uint32(58).fork()).ldelim();
+    }
+    if (message.height !== "0") {
+      writer.uint32(64).int64(message.height);
+    }
+    if (message.deleted !== "0") {
+      writer.uint32(72).int64(message.deleted);
     }
     return writer;
   },
@@ -338,32 +339,39 @@ export const Strategy = {
           message.query = FISQueryRequest.decode(reader, reader.uint32());
           continue;
         case 5:
-          if (tag !== 42) {
-            break;
-          }
-
-          message.query_hash = reader.bytes();
-          continue;
-        case 6:
-          if (tag !== 48) {
+          if (tag !== 40) {
             break;
           }
 
           message.is_enabled = reader.bool();
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.trigger_permission = PermissionConfig.decode(reader, reader.uint32());
           continue;
         case 7:
           if (tag !== 58) {
             break;
           }
 
-          message.trigger_permission = PermissionConfig.decode(reader, reader.uint32());
+          message.metadata = StrategyMetadata.decode(reader, reader.uint32());
           continue;
         case 8:
-          if (tag !== 66) {
+          if (tag !== 64) {
             break;
           }
 
-          message.metadata = StrategyMetadata.decode(reader, reader.uint32());
+          message.height = longToString(reader.int64() as Long);
+          continue;
+        case 9:
+          if (tag !== 72) {
+            break;
+          }
+
+          message.deleted = longToString(reader.int64() as Long);
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -380,12 +388,13 @@ export const Strategy = {
       code_checksum: isSet(object.code_checksum) ? bytesFromBase64(object.code_checksum) : new Uint8Array(0),
       owner: isSet(object.owner) ? globalThis.String(object.owner) : "",
       query: isSet(object.query) ? FISQueryRequest.fromJSON(object.query) : undefined,
-      query_hash: isSet(object.query_hash) ? bytesFromBase64(object.query_hash) : new Uint8Array(0),
       is_enabled: isSet(object.is_enabled) ? globalThis.Boolean(object.is_enabled) : false,
       trigger_permission: isSet(object.trigger_permission)
         ? PermissionConfig.fromJSON(object.trigger_permission)
         : undefined,
       metadata: isSet(object.metadata) ? StrategyMetadata.fromJSON(object.metadata) : undefined,
+      height: isSet(object.height) ? globalThis.String(object.height) : "0",
+      deleted: isSet(object.deleted) ? globalThis.String(object.deleted) : "0",
     };
   },
 
@@ -403,9 +412,6 @@ export const Strategy = {
     if (message.query !== undefined) {
       obj.query = FISQueryRequest.toJSON(message.query);
     }
-    if (message.query_hash !== undefined) {
-      obj.query_hash = base64FromBytes(message.query_hash);
-    }
     if (message.is_enabled !== undefined) {
       obj.is_enabled = message.is_enabled;
     }
@@ -414,6 +420,12 @@ export const Strategy = {
     }
     if (message.metadata !== undefined) {
       obj.metadata = StrategyMetadata.toJSON(message.metadata);
+    }
+    if (message.height !== undefined) {
+      obj.height = message.height;
+    }
+    if (message.deleted !== undefined) {
+      obj.deleted = message.deleted;
     }
     return obj;
   },
@@ -429,7 +441,6 @@ export const Strategy = {
     message.query = (object.query !== undefined && object.query !== null)
       ? FISQueryRequest.fromPartial(object.query)
       : undefined;
-    message.query_hash = object.query_hash ?? new Uint8Array(0);
     message.is_enabled = object.is_enabled ?? false;
     message.trigger_permission = (object.trigger_permission !== undefined && object.trigger_permission !== null)
       ? PermissionConfig.fromPartial(object.trigger_permission)
@@ -437,6 +448,8 @@ export const Strategy = {
     message.metadata = (object.metadata !== undefined && object.metadata !== null)
       ? StrategyMetadata.fromPartial(object.metadata)
       : undefined;
+    message.height = object.height ?? "0";
+    message.deleted = object.deleted ?? "0";
     return message;
   },
 };
@@ -1047,6 +1060,7 @@ function createBaseStrategyMetadata(): StrategyMetadata {
     type: 0,
     tags: [],
     schema: "",
+    aggregated_query_keys: [],
     cron_gas_price: "",
     cron_input: "",
     cron_interval: "0",
@@ -1078,14 +1092,17 @@ export const StrategyMetadata = {
     if (message.schema !== "") {
       writer.uint32(58).string(message.schema);
     }
+    for (const v of message.aggregated_query_keys) {
+      writer.uint32(66).string(v!);
+    }
     if (message.cron_gas_price !== "") {
-      writer.uint32(66).string(message.cron_gas_price);
+      writer.uint32(74).string(message.cron_gas_price);
     }
     if (message.cron_input !== "") {
-      writer.uint32(74).string(message.cron_input);
+      writer.uint32(82).string(message.cron_input);
     }
     if (message.cron_interval !== "0") {
-      writer.uint32(80).uint64(message.cron_interval);
+      writer.uint32(88).uint64(message.cron_interval);
     }
     return writer;
   },
@@ -1151,17 +1168,24 @@ export const StrategyMetadata = {
             break;
           }
 
-          message.cron_gas_price = reader.string();
+          message.aggregated_query_keys.push(reader.string());
           continue;
         case 9:
           if (tag !== 74) {
             break;
           }
 
-          message.cron_input = reader.string();
+          message.cron_gas_price = reader.string();
           continue;
         case 10:
-          if (tag !== 80) {
+          if (tag !== 82) {
+            break;
+          }
+
+          message.cron_input = reader.string();
+          continue;
+        case 11:
+          if (tag !== 88) {
             break;
           }
 
@@ -1185,6 +1209,9 @@ export const StrategyMetadata = {
       type: isSet(object.type) ? strategyTypeFromJSON(object.type) : 0,
       tags: globalThis.Array.isArray(object?.tags) ? object.tags.map((e: any) => globalThis.String(e)) : [],
       schema: isSet(object.schema) ? globalThis.String(object.schema) : "",
+      aggregated_query_keys: globalThis.Array.isArray(object?.aggregated_query_keys)
+        ? object.aggregated_query_keys.map((e: any) => globalThis.String(e))
+        : [],
       cron_gas_price: isSet(object.cron_gas_price) ? globalThis.String(object.cron_gas_price) : "",
       cron_input: isSet(object.cron_input) ? globalThis.String(object.cron_input) : "",
       cron_interval: isSet(object.cron_interval) ? globalThis.String(object.cron_interval) : "0",
@@ -1214,6 +1241,9 @@ export const StrategyMetadata = {
     if (message.schema !== undefined) {
       obj.schema = message.schema;
     }
+    if (message.aggregated_query_keys?.length) {
+      obj.aggregated_query_keys = message.aggregated_query_keys;
+    }
     if (message.cron_gas_price !== undefined) {
       obj.cron_gas_price = message.cron_gas_price;
     }
@@ -1238,6 +1268,7 @@ export const StrategyMetadata = {
     message.type = object.type ?? 0;
     message.tags = object.tags?.map((e) => e) || [];
     message.schema = object.schema ?? "";
+    message.aggregated_query_keys = object.aggregated_query_keys?.map((e) => e) || [];
     message.cron_gas_price = object.cron_gas_price ?? "";
     message.cron_input = object.cron_input ?? "";
     message.cron_interval = object.cron_interval ?? "0";

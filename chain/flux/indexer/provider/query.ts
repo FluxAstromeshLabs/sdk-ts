@@ -11,7 +11,7 @@ import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { Observable } from "rxjs";
 import { share } from "rxjs/operators";
-import { Event } from "../../stream/v1beta1/query";
+import { ModuleEvents } from "../../eventstream/v1beta1/query";
 
 export interface ProviderBlockRequest {
   height: string;
@@ -34,7 +34,7 @@ export interface ProviderEventsResponse {
   height: string;
   time: string;
   modules: string[];
-  events: Event[];
+  events: ModuleEvents[];
 }
 
 function createBaseProviderBlockRequest(): ProviderBlockRequest {
@@ -311,7 +311,7 @@ export const ProviderEventsResponse = {
       writer.uint32(26).string(v!);
     }
     for (const v of message.events) {
-      Event.encode(v!, writer.uint32(34).fork()).ldelim();
+      ModuleEvents.encode(v!, writer.uint32(34).fork()).ldelim();
     }
     return writer;
   },
@@ -349,7 +349,7 @@ export const ProviderEventsResponse = {
             break;
           }
 
-          message.events.push(Event.decode(reader, reader.uint32()));
+          message.events.push(ModuleEvents.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -365,7 +365,7 @@ export const ProviderEventsResponse = {
       height: isSet(object.height) ? globalThis.String(object.height) : "0",
       time: isSet(object.time) ? globalThis.String(object.time) : "0",
       modules: globalThis.Array.isArray(object?.modules) ? object.modules.map((e: any) => globalThis.String(e)) : [],
-      events: globalThis.Array.isArray(object?.events) ? object.events.map((e: any) => Event.fromJSON(e)) : [],
+      events: globalThis.Array.isArray(object?.events) ? object.events.map((e: any) => ModuleEvents.fromJSON(e)) : [],
     };
   },
 
@@ -381,7 +381,7 @@ export const ProviderEventsResponse = {
       obj.modules = message.modules;
     }
     if (message.events?.length) {
-      obj.events = message.events.map((e) => Event.toJSON(e));
+      obj.events = message.events.map((e) => ModuleEvents.toJSON(e));
     }
     return obj;
   },
@@ -394,7 +394,7 @@ export const ProviderEventsResponse = {
     message.height = object.height ?? "0";
     message.time = object.time ?? "0";
     message.modules = object.modules?.map((e) => e) || [];
-    message.events = object.events?.map((e) => Event.fromPartial(e)) || [];
+    message.events = object.events?.map((e) => ModuleEvents.fromPartial(e)) || [];
     return message;
   },
 };

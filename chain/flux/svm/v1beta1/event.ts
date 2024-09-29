@@ -6,49 +6,68 @@
 
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
+import { Op, opFromJSON, opToJSON } from "../../eventstream/v1beta1/query";
+import { Account, AccountLink } from "./svm";
 
-export interface EventExecute {
+export interface ExecuteEvent {
+  op: Op;
   error: string;
   logs: string[];
 }
 
-export interface EventAccUpdate {
-  accs: Uint8Array[];
+export interface AccUpdateEvent {
+  op: Op;
+  accs: Account[];
 }
 
-function createBaseEventExecute(): EventExecute {
-  return { error: "", logs: [] };
+export interface LinkEvent {
+  op: Op;
+  link: AccountLink | undefined;
 }
 
-export const EventExecute = {
-  $type: "flux.svm.v1beta1.EventExecute" as const,
+function createBaseExecuteEvent(): ExecuteEvent {
+  return { op: 0, error: "", logs: [] };
+}
 
-  encode(message: EventExecute, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const ExecuteEvent = {
+  $type: "flux.svm.v1beta1.ExecuteEvent" as const,
+
+  encode(message: ExecuteEvent, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.op !== 0) {
+      writer.uint32(8).int32(message.op);
+    }
     if (message.error !== "") {
-      writer.uint32(10).string(message.error);
+      writer.uint32(18).string(message.error);
     }
     for (const v of message.logs) {
-      writer.uint32(18).string(v!);
+      writer.uint32(26).string(v!);
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventExecute {
+  decode(input: _m0.Reader | Uint8Array, length?: number): ExecuteEvent {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseEventExecute();
+    const message = createBaseExecuteEvent();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 10) {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.op = reader.int32() as any;
+          continue;
+        case 2:
+          if (tag !== 18) {
             break;
           }
 
           message.error = reader.string();
           continue;
-        case 2:
-          if (tag !== 18) {
+        case 3:
+          if (tag !== 26) {
             break;
           }
 
@@ -63,15 +82,19 @@ export const EventExecute = {
     return message;
   },
 
-  fromJSON(object: any): EventExecute {
+  fromJSON(object: any): ExecuteEvent {
     return {
+      op: isSet(object.op) ? opFromJSON(object.op) : 0,
       error: isSet(object.error) ? globalThis.String(object.error) : "",
       logs: globalThis.Array.isArray(object?.logs) ? object.logs.map((e: any) => globalThis.String(e)) : [],
     };
   },
 
-  toJSON(message: EventExecute): unknown {
+  toJSON(message: ExecuteEvent): unknown {
     const obj: any = {};
+    if (message.op !== undefined) {
+      obj.op = opToJSON(message.op);
+    }
     if (message.error !== undefined) {
       obj.error = message.error;
     }
@@ -81,44 +104,55 @@ export const EventExecute = {
     return obj;
   },
 
-  create(base?: DeepPartial<EventExecute>): EventExecute {
-    return EventExecute.fromPartial(base ?? {});
+  create(base?: DeepPartial<ExecuteEvent>): ExecuteEvent {
+    return ExecuteEvent.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<EventExecute>): EventExecute {
-    const message = createBaseEventExecute();
+  fromPartial(object: DeepPartial<ExecuteEvent>): ExecuteEvent {
+    const message = createBaseExecuteEvent();
+    message.op = object.op ?? 0;
     message.error = object.error ?? "";
     message.logs = object.logs?.map((e) => e) || [];
     return message;
   },
 };
 
-function createBaseEventAccUpdate(): EventAccUpdate {
-  return { accs: [] };
+function createBaseAccUpdateEvent(): AccUpdateEvent {
+  return { op: 0, accs: [] };
 }
 
-export const EventAccUpdate = {
-  $type: "flux.svm.v1beta1.EventAccUpdate" as const,
+export const AccUpdateEvent = {
+  $type: "flux.svm.v1beta1.AccUpdateEvent" as const,
 
-  encode(message: EventAccUpdate, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: AccUpdateEvent, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.op !== 0) {
+      writer.uint32(8).int32(message.op);
+    }
     for (const v of message.accs) {
-      writer.uint32(10).bytes(v!);
+      Account.encode(v!, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): EventAccUpdate {
+  decode(input: _m0.Reader | Uint8Array, length?: number): AccUpdateEvent {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseEventAccUpdate();
+    const message = createBaseAccUpdateEvent();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 10) {
+          if (tag !== 8) {
             break;
           }
 
-          message.accs.push(reader.bytes());
+          message.op = reader.int32() as any;
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.accs.push(Account.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -129,52 +163,112 @@ export const EventAccUpdate = {
     return message;
   },
 
-  fromJSON(object: any): EventAccUpdate {
-    return { accs: globalThis.Array.isArray(object?.accs) ? object.accs.map((e: any) => bytesFromBase64(e)) : [] };
+  fromJSON(object: any): AccUpdateEvent {
+    return {
+      op: isSet(object.op) ? opFromJSON(object.op) : 0,
+      accs: globalThis.Array.isArray(object?.accs) ? object.accs.map((e: any) => Account.fromJSON(e)) : [],
+    };
   },
 
-  toJSON(message: EventAccUpdate): unknown {
+  toJSON(message: AccUpdateEvent): unknown {
     const obj: any = {};
+    if (message.op !== undefined) {
+      obj.op = opToJSON(message.op);
+    }
     if (message.accs?.length) {
-      obj.accs = message.accs.map((e) => base64FromBytes(e));
+      obj.accs = message.accs.map((e) => Account.toJSON(e));
     }
     return obj;
   },
 
-  create(base?: DeepPartial<EventAccUpdate>): EventAccUpdate {
-    return EventAccUpdate.fromPartial(base ?? {});
+  create(base?: DeepPartial<AccUpdateEvent>): AccUpdateEvent {
+    return AccUpdateEvent.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<EventAccUpdate>): EventAccUpdate {
-    const message = createBaseEventAccUpdate();
-    message.accs = object.accs?.map((e) => e) || [];
+  fromPartial(object: DeepPartial<AccUpdateEvent>): AccUpdateEvent {
+    const message = createBaseAccUpdateEvent();
+    message.op = object.op ?? 0;
+    message.accs = object.accs?.map((e) => Account.fromPartial(e)) || [];
     return message;
   },
 };
 
-function bytesFromBase64(b64: string): Uint8Array {
-  if ((globalThis as any).Buffer) {
-    return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
-  } else {
-    const bin = globalThis.atob(b64);
-    const arr = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; ++i) {
-      arr[i] = bin.charCodeAt(i);
-    }
-    return arr;
-  }
+function createBaseLinkEvent(): LinkEvent {
+  return { op: 0, link: undefined };
 }
 
-function base64FromBytes(arr: Uint8Array): string {
-  if ((globalThis as any).Buffer) {
-    return globalThis.Buffer.from(arr).toString("base64");
-  } else {
-    const bin: string[] = [];
-    arr.forEach((byte) => {
-      bin.push(globalThis.String.fromCharCode(byte));
-    });
-    return globalThis.btoa(bin.join(""));
-  }
-}
+export const LinkEvent = {
+  $type: "flux.svm.v1beta1.LinkEvent" as const,
+
+  encode(message: LinkEvent, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.op !== 0) {
+      writer.uint32(8).int32(message.op);
+    }
+    if (message.link !== undefined) {
+      AccountLink.encode(message.link, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): LinkEvent {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseLinkEvent();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.op = reader.int32() as any;
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.link = AccountLink.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): LinkEvent {
+    return {
+      op: isSet(object.op) ? opFromJSON(object.op) : 0,
+      link: isSet(object.link) ? AccountLink.fromJSON(object.link) : undefined,
+    };
+  },
+
+  toJSON(message: LinkEvent): unknown {
+    const obj: any = {};
+    if (message.op !== undefined) {
+      obj.op = opToJSON(message.op);
+    }
+    if (message.link !== undefined) {
+      obj.link = AccountLink.toJSON(message.link);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<LinkEvent>): LinkEvent {
+    return LinkEvent.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<LinkEvent>): LinkEvent {
+    const message = createBaseLinkEvent();
+    message.op = object.op ?? 0;
+    message.link = (object.link !== undefined && object.link !== null)
+      ? AccountLink.fromPartial(object.link)
+      : undefined;
+    return message;
+  },
+};
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 

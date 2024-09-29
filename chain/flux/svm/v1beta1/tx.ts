@@ -9,12 +9,14 @@ import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
 import Long from "long";
 import _m0 from "protobufjs/minimal";
+import { Coin } from "../../../cosmos/base/v1beta1/coin";
 import { Instruction } from "./svm";
 
 export interface MsgLinkSVMAccount {
   sender: string;
   svm_pubkey: Uint8Array;
   svm_signature: Uint8Array;
+  amount: Coin | undefined;
 }
 
 export interface MsgLinkSVMAccountResponse {
@@ -33,7 +35,7 @@ export interface MsgTransactionResponse {
 }
 
 function createBaseMsgLinkSVMAccount(): MsgLinkSVMAccount {
-  return { sender: "", svm_pubkey: new Uint8Array(0), svm_signature: new Uint8Array(0) };
+  return { sender: "", svm_pubkey: new Uint8Array(0), svm_signature: new Uint8Array(0), amount: undefined };
 }
 
 export const MsgLinkSVMAccount = {
@@ -47,7 +49,10 @@ export const MsgLinkSVMAccount = {
       writer.uint32(18).bytes(message.svm_pubkey);
     }
     if (message.svm_signature.length !== 0) {
-      writer.uint32(34).bytes(message.svm_signature);
+      writer.uint32(26).bytes(message.svm_signature);
+    }
+    if (message.amount !== undefined) {
+      Coin.encode(message.amount, writer.uint32(34).fork()).ldelim();
     }
     return writer;
   },
@@ -73,12 +78,19 @@ export const MsgLinkSVMAccount = {
 
           message.svm_pubkey = reader.bytes();
           continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.svm_signature = reader.bytes();
+          continue;
         case 4:
           if (tag !== 34) {
             break;
           }
 
-          message.svm_signature = reader.bytes();
+          message.amount = Coin.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -94,6 +106,7 @@ export const MsgLinkSVMAccount = {
       sender: isSet(object.sender) ? globalThis.String(object.sender) : "",
       svm_pubkey: isSet(object.svm_pubkey) ? bytesFromBase64(object.svm_pubkey) : new Uint8Array(0),
       svm_signature: isSet(object.svm_signature) ? bytesFromBase64(object.svm_signature) : new Uint8Array(0),
+      amount: isSet(object.amount) ? Coin.fromJSON(object.amount) : undefined,
     };
   },
 
@@ -108,6 +121,9 @@ export const MsgLinkSVMAccount = {
     if (message.svm_signature !== undefined) {
       obj.svm_signature = base64FromBytes(message.svm_signature);
     }
+    if (message.amount !== undefined) {
+      obj.amount = Coin.toJSON(message.amount);
+    }
     return obj;
   },
 
@@ -119,6 +135,9 @@ export const MsgLinkSVMAccount = {
     message.sender = object.sender ?? "";
     message.svm_pubkey = object.svm_pubkey ?? new Uint8Array(0);
     message.svm_signature = object.svm_signature ?? new Uint8Array(0);
+    message.amount = (object.amount !== undefined && object.amount !== null)
+      ? Coin.fromPartial(object.amount)
+      : undefined;
     return message;
   },
 };

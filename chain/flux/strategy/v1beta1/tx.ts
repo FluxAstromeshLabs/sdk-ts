@@ -9,7 +9,7 @@ import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
 import _m0 from "protobufjs/minimal";
 import { FISQueryRequest } from "../../astromesh/v1beta1/query";
-import { FISInstructionResponse } from "../../astromesh/v1beta1/tx";
+import { FISInstruction, FISInstructionResponse } from "../../astromesh/v1beta1/tx";
 import { PermissionConfig, StrategyMetadata } from "./strategy";
 
 export enum Config {
@@ -86,6 +86,7 @@ export interface MsgTriggerStrategies {
 
 export interface StrategyResponse {
   id: string;
+  ixs: FISInstruction[];
   ix_responses: FISInstructionResponse[];
 }
 
@@ -428,7 +429,7 @@ export const MsgTriggerStrategies = {
 };
 
 function createBaseStrategyResponse(): StrategyResponse {
-  return { id: "", ix_responses: [] };
+  return { id: "", ixs: [], ix_responses: [] };
 }
 
 export const StrategyResponse = {
@@ -438,8 +439,11 @@ export const StrategyResponse = {
     if (message.id !== "") {
       writer.uint32(10).string(message.id);
     }
+    for (const v of message.ixs) {
+      FISInstruction.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
     for (const v of message.ix_responses) {
-      FISInstructionResponse.encode(v!, writer.uint32(18).fork()).ldelim();
+      FISInstructionResponse.encode(v!, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -463,6 +467,13 @@ export const StrategyResponse = {
             break;
           }
 
+          message.ixs.push(FISInstruction.decode(reader, reader.uint32()));
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
           message.ix_responses.push(FISInstructionResponse.decode(reader, reader.uint32()));
           continue;
       }
@@ -477,6 +488,7 @@ export const StrategyResponse = {
   fromJSON(object: any): StrategyResponse {
     return {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
+      ixs: globalThis.Array.isArray(object?.ixs) ? object.ixs.map((e: any) => FISInstruction.fromJSON(e)) : [],
       ix_responses: globalThis.Array.isArray(object?.ix_responses)
         ? object.ix_responses.map((e: any) => FISInstructionResponse.fromJSON(e))
         : [],
@@ -487,6 +499,9 @@ export const StrategyResponse = {
     const obj: any = {};
     if (message.id !== undefined) {
       obj.id = message.id;
+    }
+    if (message.ixs?.length) {
+      obj.ixs = message.ixs.map((e) => FISInstruction.toJSON(e));
     }
     if (message.ix_responses?.length) {
       obj.ix_responses = message.ix_responses.map((e) => FISInstructionResponse.toJSON(e));
@@ -500,6 +515,7 @@ export const StrategyResponse = {
   fromPartial(object: DeepPartial<StrategyResponse>): StrategyResponse {
     const message = createBaseStrategyResponse();
     message.id = object.id ?? "";
+    message.ixs = object.ixs?.map((e) => FISInstruction.fromPartial(e)) || [];
     message.ix_responses = object.ix_responses?.map((e) => FISInstructionResponse.fromPartial(e)) || [];
     return message;
   },

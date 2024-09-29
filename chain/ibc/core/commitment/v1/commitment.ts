@@ -26,16 +26,6 @@ export interface MerklePrefix {
 }
 
 /**
- * MerklePath is the path used to verify commitment proofs, which can be an
- * arbitrary structured object (defined by a commitment type).
- * MerklePath is represented from root-to-leaf
- * Deprecated: Please use commitment/v2 MerklePath instead which supports non UTF-8 key paths.
- */
-export interface MerklePath {
-  key_path: string[];
-}
-
-/**
  * MerkleProof is a wrapper type over a chain of CommitmentProofs.
  * It demonstrates membership or non-membership for an element or set of
  * elements, verifiable in conjunction with a known commitment root. Proofs
@@ -160,67 +150,6 @@ export const MerklePrefix = {
   fromPartial(object: DeepPartial<MerklePrefix>): MerklePrefix {
     const message = createBaseMerklePrefix();
     message.key_prefix = object.key_prefix ?? new Uint8Array(0);
-    return message;
-  },
-};
-
-function createBaseMerklePath(): MerklePath {
-  return { key_path: [] };
-}
-
-export const MerklePath = {
-  $type: "ibc.core.commitment.v1.MerklePath" as const,
-
-  encode(message: MerklePath, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.key_path) {
-      writer.uint32(10).string(v!);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MerklePath {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMerklePath();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.key_path.push(reader.string());
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): MerklePath {
-    return {
-      key_path: globalThis.Array.isArray(object?.key_path) ? object.key_path.map((e: any) => globalThis.String(e)) : [],
-    };
-  },
-
-  toJSON(message: MerklePath): unknown {
-    const obj: any = {};
-    if (message.key_path?.length) {
-      obj.key_path = message.key_path;
-    }
-    return obj;
-  },
-
-  create(base?: DeepPartial<MerklePath>): MerklePath {
-    return MerklePath.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<MerklePath>): MerklePath {
-    const message = createBaseMerklePath();
-    message.key_path = object.key_path?.map((e) => e) || [];
     return message;
   },
 };

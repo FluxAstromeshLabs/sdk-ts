@@ -57,7 +57,7 @@ export interface QueryContractHistoryResponse {
  * RPC method
  */
 export interface QueryContractsByCodeRequest {
-  /** grpc-gateway_out does not support Go style CodID */
+  /** grpc-gateway_out does not support Go style CodeID */
   code_id: string;
   /** pagination defines an optional pagination for the request. */
   pagination: PageRequest | undefined;
@@ -136,8 +136,22 @@ export interface QuerySmartContractStateResponse {
 
 /** QueryCodeRequest is the request type for the Query/Code RPC method */
 export interface QueryCodeRequest {
-  /** grpc-gateway_out does not support Go style CodID */
+  /** grpc-gateway_out does not support Go style CodeID */
   code_id: string;
+}
+
+/** QueryCodeInfoRequest is the request type for the Query/CodeInfo RPC method */
+export interface QueryCodeInfoRequest {
+  /** grpc-gateway_out does not support Go style CodeID */
+  code_id: string;
+}
+
+/** QueryCodeInfoResponse is the response type for the Query/CodeInfo RPC method */
+export interface QueryCodeInfoResponse {
+  code_id: string;
+  creator: string;
+  checksum: Uint8Array;
+  instantiate_permission: AccessConfig | undefined;
 }
 
 /** CodeInfoResponse contains code meta data from CodeInfo */
@@ -1184,6 +1198,176 @@ export const QueryCodeRequest = {
   },
 };
 
+function createBaseQueryCodeInfoRequest(): QueryCodeInfoRequest {
+  return { code_id: "0" };
+}
+
+export const QueryCodeInfoRequest = {
+  $type: "cosmwasm.wasm.v1.QueryCodeInfoRequest" as const,
+
+  encode(message: QueryCodeInfoRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.code_id !== "0") {
+      writer.uint32(8).uint64(message.code_id);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryCodeInfoRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryCodeInfoRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.code_id = longToString(reader.uint64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryCodeInfoRequest {
+    return { code_id: isSet(object.code_id) ? globalThis.String(object.code_id) : "0" };
+  },
+
+  toJSON(message: QueryCodeInfoRequest): unknown {
+    const obj: any = {};
+    if (message.code_id !== undefined) {
+      obj.code_id = message.code_id;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<QueryCodeInfoRequest>): QueryCodeInfoRequest {
+    return QueryCodeInfoRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<QueryCodeInfoRequest>): QueryCodeInfoRequest {
+    const message = createBaseQueryCodeInfoRequest();
+    message.code_id = object.code_id ?? "0";
+    return message;
+  },
+};
+
+function createBaseQueryCodeInfoResponse(): QueryCodeInfoResponse {
+  return { code_id: "0", creator: "", checksum: new Uint8Array(0), instantiate_permission: undefined };
+}
+
+export const QueryCodeInfoResponse = {
+  $type: "cosmwasm.wasm.v1.QueryCodeInfoResponse" as const,
+
+  encode(message: QueryCodeInfoResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.code_id !== "0") {
+      writer.uint32(8).uint64(message.code_id);
+    }
+    if (message.creator !== "") {
+      writer.uint32(18).string(message.creator);
+    }
+    if (message.checksum.length !== 0) {
+      writer.uint32(26).bytes(message.checksum);
+    }
+    if (message.instantiate_permission !== undefined) {
+      AccessConfig.encode(message.instantiate_permission, writer.uint32(34).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryCodeInfoResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryCodeInfoResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.code_id = longToString(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.creator = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.checksum = reader.bytes();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.instantiate_permission = AccessConfig.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryCodeInfoResponse {
+    return {
+      code_id: isSet(object.code_id) ? globalThis.String(object.code_id) : "0",
+      creator: isSet(object.creator) ? globalThis.String(object.creator) : "",
+      checksum: isSet(object.checksum) ? bytesFromBase64(object.checksum) : new Uint8Array(0),
+      instantiate_permission: isSet(object.instantiate_permission)
+        ? AccessConfig.fromJSON(object.instantiate_permission)
+        : undefined,
+    };
+  },
+
+  toJSON(message: QueryCodeInfoResponse): unknown {
+    const obj: any = {};
+    if (message.code_id !== undefined) {
+      obj.code_id = message.code_id;
+    }
+    if (message.creator !== undefined) {
+      obj.creator = message.creator;
+    }
+    if (message.checksum !== undefined) {
+      obj.checksum = base64FromBytes(message.checksum);
+    }
+    if (message.instantiate_permission !== undefined) {
+      obj.instantiate_permission = AccessConfig.toJSON(message.instantiate_permission);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<QueryCodeInfoResponse>): QueryCodeInfoResponse {
+    return QueryCodeInfoResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<QueryCodeInfoResponse>): QueryCodeInfoResponse {
+    const message = createBaseQueryCodeInfoResponse();
+    message.code_id = object.code_id ?? "0";
+    message.creator = object.creator ?? "";
+    message.checksum = object.checksum ?? new Uint8Array(0);
+    message.instantiate_permission =
+      (object.instantiate_permission !== undefined && object.instantiate_permission !== null)
+        ? AccessConfig.fromPartial(object.instantiate_permission)
+        : undefined;
+    return message;
+  },
+};
+
 function createBaseCodeInfoResponse(): CodeInfoResponse {
   return { code_id: "0", creator: "", data_hash: new Uint8Array(0), instantiate_permission: undefined };
 }
@@ -2126,10 +2310,12 @@ export interface Query {
     request: DeepPartial<QuerySmartContractStateRequest>,
     metadata?: grpc.Metadata,
   ): Promise<QuerySmartContractStateResponse>;
-  /** Code gets the binary code and metadata for a singe wasm code */
+  /** Code gets the binary code and metadata for a single wasm code */
   Code(request: DeepPartial<QueryCodeRequest>, metadata?: grpc.Metadata): Promise<QueryCodeResponse>;
   /** Codes gets the metadata for all stored wasm codes */
   Codes(request: DeepPartial<QueryCodesRequest>, metadata?: grpc.Metadata): Promise<QueryCodesResponse>;
+  /** CodeInfo gets the metadata for a single wasm code */
+  CodeInfo(request: DeepPartial<QueryCodeInfoRequest>, metadata?: grpc.Metadata): Promise<QueryCodeInfoResponse>;
   /** PinnedCodes gets the pinned code ids */
   PinnedCodes(
     request: DeepPartial<QueryPinnedCodesRequest>,
@@ -2162,6 +2348,7 @@ export class QueryClientImpl implements Query {
     this.SmartContractState = this.SmartContractState.bind(this);
     this.Code = this.Code.bind(this);
     this.Codes = this.Codes.bind(this);
+    this.CodeInfo = this.CodeInfo.bind(this);
     this.PinnedCodes = this.PinnedCodes.bind(this);
     this.Params = this.Params.bind(this);
     this.ContractsByCreator = this.ContractsByCreator.bind(this);
@@ -2216,6 +2403,10 @@ export class QueryClientImpl implements Query {
 
   Codes(request: DeepPartial<QueryCodesRequest>, metadata?: grpc.Metadata): Promise<QueryCodesResponse> {
     return this.rpc.unary(QueryCodesDesc, QueryCodesRequest.fromPartial(request), metadata);
+  }
+
+  CodeInfo(request: DeepPartial<QueryCodeInfoRequest>, metadata?: grpc.Metadata): Promise<QueryCodeInfoResponse> {
+    return this.rpc.unary(QueryCodeInfoDesc, QueryCodeInfoRequest.fromPartial(request), metadata);
   }
 
   PinnedCodes(
@@ -2420,6 +2611,29 @@ export const QueryCodesDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = QueryCodesResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryCodeInfoDesc: UnaryMethodDefinitionish = {
+  methodName: "CodeInfo",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryCodeInfoRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = QueryCodeInfoResponse.decode(data);
       return {
         ...value,
         toObject() {

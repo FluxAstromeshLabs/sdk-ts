@@ -7,6 +7,7 @@
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
 import { Coin } from "../../../../cosmos/base/v1beta1/coin";
+import { Packet, PacketId } from "../../../core/channel/v1/channel";
 import { Params } from "../v1/transfer";
 import { Denom } from "./token";
 
@@ -22,10 +23,21 @@ export interface GenesisState {
    * by the transfer module
    */
   total_escrowed: Coin[];
+  /**
+   * forwarded_packets contains the forwarded packets stored as part of the
+   * packet forwarding lifecycle
+   */
+  forwarded_packets: ForwardedPacket[];
+}
+
+/** ForwardedPacket defines the genesis type necessary to retrieve and store forwarded packets. */
+export interface ForwardedPacket {
+  forward_key: PacketId | undefined;
+  packet: Packet | undefined;
 }
 
 function createBaseGenesisState(): GenesisState {
-  return { port_id: "", denoms: [], params: undefined, total_escrowed: [] };
+  return { port_id: "", denoms: [], params: undefined, total_escrowed: [], forwarded_packets: [] };
 }
 
 export const GenesisState = {
@@ -43,6 +55,9 @@ export const GenesisState = {
     }
     for (const v of message.total_escrowed) {
       Coin.encode(v!, writer.uint32(34).fork()).ldelim();
+    }
+    for (const v of message.forwarded_packets) {
+      ForwardedPacket.encode(v!, writer.uint32(42).fork()).ldelim();
     }
     return writer;
   },
@@ -82,6 +97,13 @@ export const GenesisState = {
 
           message.total_escrowed.push(Coin.decode(reader, reader.uint32()));
           continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.forwarded_packets.push(ForwardedPacket.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -98,6 +120,9 @@ export const GenesisState = {
       params: isSet(object.params) ? Params.fromJSON(object.params) : undefined,
       total_escrowed: globalThis.Array.isArray(object?.total_escrowed)
         ? object.total_escrowed.map((e: any) => Coin.fromJSON(e))
+        : [],
+      forwarded_packets: globalThis.Array.isArray(object?.forwarded_packets)
+        ? object.forwarded_packets.map((e: any) => ForwardedPacket.fromJSON(e))
         : [],
     };
   },
@@ -116,6 +141,9 @@ export const GenesisState = {
     if (message.total_escrowed?.length) {
       obj.total_escrowed = message.total_escrowed.map((e) => Coin.toJSON(e));
     }
+    if (message.forwarded_packets?.length) {
+      obj.forwarded_packets = message.forwarded_packets.map((e) => ForwardedPacket.toJSON(e));
+    }
     return obj;
   },
 
@@ -130,6 +158,87 @@ export const GenesisState = {
       ? Params.fromPartial(object.params)
       : undefined;
     message.total_escrowed = object.total_escrowed?.map((e) => Coin.fromPartial(e)) || [];
+    message.forwarded_packets = object.forwarded_packets?.map((e) => ForwardedPacket.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseForwardedPacket(): ForwardedPacket {
+  return { forward_key: undefined, packet: undefined };
+}
+
+export const ForwardedPacket = {
+  $type: "ibc.applications.transfer.v2.ForwardedPacket" as const,
+
+  encode(message: ForwardedPacket, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.forward_key !== undefined) {
+      PacketId.encode(message.forward_key, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.packet !== undefined) {
+      Packet.encode(message.packet, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ForwardedPacket {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseForwardedPacket();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.forward_key = PacketId.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.packet = Packet.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ForwardedPacket {
+    return {
+      forward_key: isSet(object.forward_key) ? PacketId.fromJSON(object.forward_key) : undefined,
+      packet: isSet(object.packet) ? Packet.fromJSON(object.packet) : undefined,
+    };
+  },
+
+  toJSON(message: ForwardedPacket): unknown {
+    const obj: any = {};
+    if (message.forward_key !== undefined) {
+      obj.forward_key = PacketId.toJSON(message.forward_key);
+    }
+    if (message.packet !== undefined) {
+      obj.packet = Packet.toJSON(message.packet);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ForwardedPacket>): ForwardedPacket {
+    return ForwardedPacket.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ForwardedPacket>): ForwardedPacket {
+    const message = createBaseForwardedPacket();
+    message.forward_key = (object.forward_key !== undefined && object.forward_key !== null)
+      ? PacketId.fromPartial(object.forward_key)
+      : undefined;
+    message.packet = (object.packet !== undefined && object.packet !== null)
+      ? Packet.fromPartial(object.packet)
+      : undefined;
     return message;
   },
 };

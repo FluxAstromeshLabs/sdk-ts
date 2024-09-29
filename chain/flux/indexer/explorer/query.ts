@@ -13,9 +13,12 @@ import { Observable } from "rxjs";
 import { share } from "rxjs/operators";
 import { PageRequest, PageResponse } from "../../../cosmos/base/query/v1beta1/pagination";
 import { BoolValue } from "../../../google/protobuf/wrappers";
+import { TokenMetadata } from "../../astromesh/v1beta1/event";
 import { Plane, planeFromJSON, planeToJSON } from "../../astromesh/v1beta1/tx";
 import { ContractInfo } from "../../evm/v1beta1/evm";
+import { StrategyTriggerEvent } from "../../strategy/v1beta1/event";
 import { Strategy, StrategyType, strategyTypeFromJSON, strategyTypeToJSON } from "../../strategy/v1beta1/strategy";
+import { AccountLink } from "../../svm/v1beta1/svm";
 
 export interface ListEvmContractsRequest {
   /** owner of the contract to filter */
@@ -40,7 +43,7 @@ export interface BalanceInfo {
   amount: string;
   updated_height: string;
   updated_time: string;
-  decimals: number;
+  denom_metadata: TokenMetadata | undefined;
 }
 
 export interface BalancesResponse {
@@ -142,6 +145,96 @@ export interface StreamBalanceResponse {
   height: string;
   deleted: string;
   balances: BalanceInfo[];
+}
+
+export interface ListStrategyTriggerByIdRequest {
+  /** Use pagination to limit the output item list */
+  pagination:
+    | PageRequest
+    | undefined;
+  /** Strategy ID to filter */
+  id: string;
+  /** Start time to filter */
+  from_time: string;
+  /** End time to filter */
+  to_time: string;
+}
+
+export interface ListStrategyTriggerByIdResponse {
+  /** pagination response shows which page the strategy trigger list is at */
+  pagination: PageResponse | undefined;
+  triggers: StrategyTriggerEvent[];
+}
+
+export interface StreamStrategyTriggerRequest {
+  id: string[];
+}
+
+export interface StreamStrategyTriggerResponse {
+  height: string;
+  deleted: string;
+  triggers: StrategyTriggerEvent[];
+}
+
+export interface StreamStrategiesRequest {
+  /** owner of the strategy, required by this query */
+  owner: string;
+  /** strategy type, could be generic strategies, intent solver or cron bot */
+  type:
+    | TypeFilter
+    | undefined;
+  /** tags to filter */
+  tags: string[];
+}
+
+export interface StreamStrategiesResponse {
+  height: string;
+  deleted: string;
+  strategies: Strategy[];
+}
+
+export interface ListTokenMetadataRequest {
+  pagination: PageRequest | undefined;
+}
+
+export interface ListTokenMetadataResponse {
+  pagination: PageResponse | undefined;
+  metadata: TokenMetadata[];
+}
+
+export interface StreamTokenMetadataRequest {
+}
+
+export interface StreamTokenMetadataResponse {
+  height: string;
+  deleted: string;
+  metadata: TokenMetadata[];
+}
+
+export interface ListSvmAccountLinksRequest {
+  /** optional */
+  cosmos_addr: string;
+  /** optional */
+  svm_addr: string;
+  pagination: PageRequest | undefined;
+}
+
+export interface ListSvmAccountLinksResponse {
+  pagination: PageResponse | undefined;
+  account_links: AccountLink[];
+}
+
+export interface StreamSvmAccountLinkRequest {
+  /** Optional input: Cosmos address */
+  cosmos_address: string;
+  /** Optional input: SVM address */
+  svm_address: string;
+}
+
+export interface StreamSvmAccountLinkResponse {
+  height: string;
+  deleted: string;
+  account_link: AccountLink[];
 }
 
 function createBaseListEvmContractsRequest(): ListEvmContractsRequest {
@@ -381,7 +474,15 @@ export const BalancesRequest = {
 };
 
 function createBaseBalanceInfo(): BalanceInfo {
-  return { acc: "", plane: 0, denom: "", amount: "", updated_height: "0", updated_time: "0", decimals: 0 };
+  return {
+    acc: "",
+    plane: 0,
+    denom: "",
+    amount: "",
+    updated_height: "0",
+    updated_time: "0",
+    denom_metadata: undefined,
+  };
 }
 
 export const BalanceInfo = {
@@ -406,8 +507,8 @@ export const BalanceInfo = {
     if (message.updated_time !== "0") {
       writer.uint32(48).uint64(message.updated_time);
     }
-    if (message.decimals !== 0) {
-      writer.uint32(56).uint32(message.decimals);
+    if (message.denom_metadata !== undefined) {
+      TokenMetadata.encode(message.denom_metadata, writer.uint32(58).fork()).ldelim();
     }
     return writer;
   },
@@ -462,11 +563,11 @@ export const BalanceInfo = {
           message.updated_time = longToString(reader.uint64() as Long);
           continue;
         case 7:
-          if (tag !== 56) {
+          if (tag !== 58) {
             break;
           }
 
-          message.decimals = reader.uint32();
+          message.denom_metadata = TokenMetadata.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -485,7 +586,7 @@ export const BalanceInfo = {
       amount: isSet(object.amount) ? globalThis.String(object.amount) : "",
       updated_height: isSet(object.updated_height) ? globalThis.String(object.updated_height) : "0",
       updated_time: isSet(object.updated_time) ? globalThis.String(object.updated_time) : "0",
-      decimals: isSet(object.decimals) ? globalThis.Number(object.decimals) : 0,
+      denom_metadata: isSet(object.denom_metadata) ? TokenMetadata.fromJSON(object.denom_metadata) : undefined,
     };
   },
 
@@ -509,8 +610,8 @@ export const BalanceInfo = {
     if (message.updated_time !== undefined) {
       obj.updated_time = message.updated_time;
     }
-    if (message.decimals !== undefined) {
-      obj.decimals = Math.round(message.decimals);
+    if (message.denom_metadata !== undefined) {
+      obj.denom_metadata = TokenMetadata.toJSON(message.denom_metadata);
     }
     return obj;
   },
@@ -526,7 +627,9 @@ export const BalanceInfo = {
     message.amount = object.amount ?? "";
     message.updated_height = object.updated_height ?? "0";
     message.updated_time = object.updated_time ?? "0";
-    message.decimals = object.decimals ?? 0;
+    message.denom_metadata = (object.denom_metadata !== undefined && object.denom_metadata !== null)
+      ? TokenMetadata.fromPartial(object.denom_metadata)
+      : undefined;
     return message;
   },
 };
@@ -1463,6 +1566,1153 @@ export const StreamBalanceResponse = {
   },
 };
 
+function createBaseListStrategyTriggerByIdRequest(): ListStrategyTriggerByIdRequest {
+  return { pagination: undefined, id: "", from_time: "0", to_time: "0" };
+}
+
+export const ListStrategyTriggerByIdRequest = {
+  $type: "flux.indexer.explorer.ListStrategyTriggerByIdRequest" as const,
+
+  encode(message: ListStrategyTriggerByIdRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.id !== "") {
+      writer.uint32(18).string(message.id);
+    }
+    if (message.from_time !== "0") {
+      writer.uint32(24).int64(message.from_time);
+    }
+    if (message.to_time !== "0") {
+      writer.uint32(32).int64(message.to_time);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListStrategyTriggerByIdRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListStrategyTriggerByIdRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.from_time = longToString(reader.int64() as Long);
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.to_time = longToString(reader.int64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListStrategyTriggerByIdRequest {
+    return {
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      from_time: isSet(object.from_time) ? globalThis.String(object.from_time) : "0",
+      to_time: isSet(object.to_time) ? globalThis.String(object.to_time) : "0",
+    };
+  },
+
+  toJSON(message: ListStrategyTriggerByIdRequest): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageRequest.toJSON(message.pagination);
+    }
+    if (message.id !== undefined) {
+      obj.id = message.id;
+    }
+    if (message.from_time !== undefined) {
+      obj.from_time = message.from_time;
+    }
+    if (message.to_time !== undefined) {
+      obj.to_time = message.to_time;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListStrategyTriggerByIdRequest>): ListStrategyTriggerByIdRequest {
+    return ListStrategyTriggerByIdRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListStrategyTriggerByIdRequest>): ListStrategyTriggerByIdRequest {
+    const message = createBaseListStrategyTriggerByIdRequest();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
+    message.id = object.id ?? "";
+    message.from_time = object.from_time ?? "0";
+    message.to_time = object.to_time ?? "0";
+    return message;
+  },
+};
+
+function createBaseListStrategyTriggerByIdResponse(): ListStrategyTriggerByIdResponse {
+  return { pagination: undefined, triggers: [] };
+}
+
+export const ListStrategyTriggerByIdResponse = {
+  $type: "flux.indexer.explorer.ListStrategyTriggerByIdResponse" as const,
+
+  encode(message: ListStrategyTriggerByIdResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    for (const v of message.triggers) {
+      StrategyTriggerEvent.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListStrategyTriggerByIdResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListStrategyTriggerByIdResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.triggers.push(StrategyTriggerEvent.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListStrategyTriggerByIdResponse {
+    return {
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+      triggers: globalThis.Array.isArray(object?.triggers)
+        ? object.triggers.map((e: any) => StrategyTriggerEvent.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: ListStrategyTriggerByIdResponse): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageResponse.toJSON(message.pagination);
+    }
+    if (message.triggers?.length) {
+      obj.triggers = message.triggers.map((e) => StrategyTriggerEvent.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListStrategyTriggerByIdResponse>): ListStrategyTriggerByIdResponse {
+    return ListStrategyTriggerByIdResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListStrategyTriggerByIdResponse>): ListStrategyTriggerByIdResponse {
+    const message = createBaseListStrategyTriggerByIdResponse();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
+    message.triggers = object.triggers?.map((e) => StrategyTriggerEvent.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseStreamStrategyTriggerRequest(): StreamStrategyTriggerRequest {
+  return { id: [] };
+}
+
+export const StreamStrategyTriggerRequest = {
+  $type: "flux.indexer.explorer.StreamStrategyTriggerRequest" as const,
+
+  encode(message: StreamStrategyTriggerRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.id) {
+      writer.uint32(10).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamStrategyTriggerRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamStrategyTriggerRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id.push(reader.string());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamStrategyTriggerRequest {
+    return { id: globalThis.Array.isArray(object?.id) ? object.id.map((e: any) => globalThis.String(e)) : [] };
+  },
+
+  toJSON(message: StreamStrategyTriggerRequest): unknown {
+    const obj: any = {};
+    if (message.id?.length) {
+      obj.id = message.id;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamStrategyTriggerRequest>): StreamStrategyTriggerRequest {
+    return StreamStrategyTriggerRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamStrategyTriggerRequest>): StreamStrategyTriggerRequest {
+    const message = createBaseStreamStrategyTriggerRequest();
+    message.id = object.id?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseStreamStrategyTriggerResponse(): StreamStrategyTriggerResponse {
+  return { height: "0", deleted: "0", triggers: [] };
+}
+
+export const StreamStrategyTriggerResponse = {
+  $type: "flux.indexer.explorer.StreamStrategyTriggerResponse" as const,
+
+  encode(message: StreamStrategyTriggerResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.height !== "0") {
+      writer.uint32(8).uint64(message.height);
+    }
+    if (message.deleted !== "0") {
+      writer.uint32(16).uint64(message.deleted);
+    }
+    for (const v of message.triggers) {
+      StrategyTriggerEvent.encode(v!, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamStrategyTriggerResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamStrategyTriggerResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.height = longToString(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.deleted = longToString(reader.uint64() as Long);
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.triggers.push(StrategyTriggerEvent.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamStrategyTriggerResponse {
+    return {
+      height: isSet(object.height) ? globalThis.String(object.height) : "0",
+      deleted: isSet(object.deleted) ? globalThis.String(object.deleted) : "0",
+      triggers: globalThis.Array.isArray(object?.triggers)
+        ? object.triggers.map((e: any) => StrategyTriggerEvent.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: StreamStrategyTriggerResponse): unknown {
+    const obj: any = {};
+    if (message.height !== undefined) {
+      obj.height = message.height;
+    }
+    if (message.deleted !== undefined) {
+      obj.deleted = message.deleted;
+    }
+    if (message.triggers?.length) {
+      obj.triggers = message.triggers.map((e) => StrategyTriggerEvent.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamStrategyTriggerResponse>): StreamStrategyTriggerResponse {
+    return StreamStrategyTriggerResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamStrategyTriggerResponse>): StreamStrategyTriggerResponse {
+    const message = createBaseStreamStrategyTriggerResponse();
+    message.height = object.height ?? "0";
+    message.deleted = object.deleted ?? "0";
+    message.triggers = object.triggers?.map((e) => StrategyTriggerEvent.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseStreamStrategiesRequest(): StreamStrategiesRequest {
+  return { owner: "", type: undefined, tags: [] };
+}
+
+export const StreamStrategiesRequest = {
+  $type: "flux.indexer.explorer.StreamStrategiesRequest" as const,
+
+  encode(message: StreamStrategiesRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.owner !== "") {
+      writer.uint32(10).string(message.owner);
+    }
+    if (message.type !== undefined) {
+      TypeFilter.encode(message.type, writer.uint32(18).fork()).ldelim();
+    }
+    for (const v of message.tags) {
+      writer.uint32(26).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamStrategiesRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamStrategiesRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.owner = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.type = TypeFilter.decode(reader, reader.uint32());
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.tags.push(reader.string());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamStrategiesRequest {
+    return {
+      owner: isSet(object.owner) ? globalThis.String(object.owner) : "",
+      type: isSet(object.type) ? TypeFilter.fromJSON(object.type) : undefined,
+      tags: globalThis.Array.isArray(object?.tags) ? object.tags.map((e: any) => globalThis.String(e)) : [],
+    };
+  },
+
+  toJSON(message: StreamStrategiesRequest): unknown {
+    const obj: any = {};
+    if (message.owner !== undefined) {
+      obj.owner = message.owner;
+    }
+    if (message.type !== undefined) {
+      obj.type = TypeFilter.toJSON(message.type);
+    }
+    if (message.tags?.length) {
+      obj.tags = message.tags;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamStrategiesRequest>): StreamStrategiesRequest {
+    return StreamStrategiesRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamStrategiesRequest>): StreamStrategiesRequest {
+    const message = createBaseStreamStrategiesRequest();
+    message.owner = object.owner ?? "";
+    message.type = (object.type !== undefined && object.type !== null)
+      ? TypeFilter.fromPartial(object.type)
+      : undefined;
+    message.tags = object.tags?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseStreamStrategiesResponse(): StreamStrategiesResponse {
+  return { height: "0", deleted: "0", strategies: [] };
+}
+
+export const StreamStrategiesResponse = {
+  $type: "flux.indexer.explorer.StreamStrategiesResponse" as const,
+
+  encode(message: StreamStrategiesResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.height !== "0") {
+      writer.uint32(8).uint64(message.height);
+    }
+    if (message.deleted !== "0") {
+      writer.uint32(16).uint64(message.deleted);
+    }
+    for (const v of message.strategies) {
+      Strategy.encode(v!, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamStrategiesResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamStrategiesResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.height = longToString(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.deleted = longToString(reader.uint64() as Long);
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.strategies.push(Strategy.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamStrategiesResponse {
+    return {
+      height: isSet(object.height) ? globalThis.String(object.height) : "0",
+      deleted: isSet(object.deleted) ? globalThis.String(object.deleted) : "0",
+      strategies: globalThis.Array.isArray(object?.strategies)
+        ? object.strategies.map((e: any) => Strategy.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: StreamStrategiesResponse): unknown {
+    const obj: any = {};
+    if (message.height !== undefined) {
+      obj.height = message.height;
+    }
+    if (message.deleted !== undefined) {
+      obj.deleted = message.deleted;
+    }
+    if (message.strategies?.length) {
+      obj.strategies = message.strategies.map((e) => Strategy.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamStrategiesResponse>): StreamStrategiesResponse {
+    return StreamStrategiesResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamStrategiesResponse>): StreamStrategiesResponse {
+    const message = createBaseStreamStrategiesResponse();
+    message.height = object.height ?? "0";
+    message.deleted = object.deleted ?? "0";
+    message.strategies = object.strategies?.map((e) => Strategy.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseListTokenMetadataRequest(): ListTokenMetadataRequest {
+  return { pagination: undefined };
+}
+
+export const ListTokenMetadataRequest = {
+  $type: "flux.indexer.explorer.ListTokenMetadataRequest" as const,
+
+  encode(message: ListTokenMetadataRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListTokenMetadataRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListTokenMetadataRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListTokenMetadataRequest {
+    return { pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined };
+  },
+
+  toJSON(message: ListTokenMetadataRequest): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageRequest.toJSON(message.pagination);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListTokenMetadataRequest>): ListTokenMetadataRequest {
+    return ListTokenMetadataRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListTokenMetadataRequest>): ListTokenMetadataRequest {
+    const message = createBaseListTokenMetadataRequest();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseListTokenMetadataResponse(): ListTokenMetadataResponse {
+  return { pagination: undefined, metadata: [] };
+}
+
+export const ListTokenMetadataResponse = {
+  $type: "flux.indexer.explorer.ListTokenMetadataResponse" as const,
+
+  encode(message: ListTokenMetadataResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    for (const v of message.metadata) {
+      TokenMetadata.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListTokenMetadataResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListTokenMetadataResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.metadata.push(TokenMetadata.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListTokenMetadataResponse {
+    return {
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+      metadata: globalThis.Array.isArray(object?.metadata)
+        ? object.metadata.map((e: any) => TokenMetadata.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: ListTokenMetadataResponse): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageResponse.toJSON(message.pagination);
+    }
+    if (message.metadata?.length) {
+      obj.metadata = message.metadata.map((e) => TokenMetadata.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListTokenMetadataResponse>): ListTokenMetadataResponse {
+    return ListTokenMetadataResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListTokenMetadataResponse>): ListTokenMetadataResponse {
+    const message = createBaseListTokenMetadataResponse();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
+    message.metadata = object.metadata?.map((e) => TokenMetadata.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseStreamTokenMetadataRequest(): StreamTokenMetadataRequest {
+  return {};
+}
+
+export const StreamTokenMetadataRequest = {
+  $type: "flux.indexer.explorer.StreamTokenMetadataRequest" as const,
+
+  encode(_: StreamTokenMetadataRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamTokenMetadataRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamTokenMetadataRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): StreamTokenMetadataRequest {
+    return {};
+  },
+
+  toJSON(_: StreamTokenMetadataRequest): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamTokenMetadataRequest>): StreamTokenMetadataRequest {
+    return StreamTokenMetadataRequest.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<StreamTokenMetadataRequest>): StreamTokenMetadataRequest {
+    const message = createBaseStreamTokenMetadataRequest();
+    return message;
+  },
+};
+
+function createBaseStreamTokenMetadataResponse(): StreamTokenMetadataResponse {
+  return { height: "0", deleted: "0", metadata: [] };
+}
+
+export const StreamTokenMetadataResponse = {
+  $type: "flux.indexer.explorer.StreamTokenMetadataResponse" as const,
+
+  encode(message: StreamTokenMetadataResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.height !== "0") {
+      writer.uint32(8).uint64(message.height);
+    }
+    if (message.deleted !== "0") {
+      writer.uint32(16).uint64(message.deleted);
+    }
+    for (const v of message.metadata) {
+      TokenMetadata.encode(v!, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamTokenMetadataResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamTokenMetadataResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.height = longToString(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.deleted = longToString(reader.uint64() as Long);
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.metadata.push(TokenMetadata.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamTokenMetadataResponse {
+    return {
+      height: isSet(object.height) ? globalThis.String(object.height) : "0",
+      deleted: isSet(object.deleted) ? globalThis.String(object.deleted) : "0",
+      metadata: globalThis.Array.isArray(object?.metadata)
+        ? object.metadata.map((e: any) => TokenMetadata.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: StreamTokenMetadataResponse): unknown {
+    const obj: any = {};
+    if (message.height !== undefined) {
+      obj.height = message.height;
+    }
+    if (message.deleted !== undefined) {
+      obj.deleted = message.deleted;
+    }
+    if (message.metadata?.length) {
+      obj.metadata = message.metadata.map((e) => TokenMetadata.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamTokenMetadataResponse>): StreamTokenMetadataResponse {
+    return StreamTokenMetadataResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamTokenMetadataResponse>): StreamTokenMetadataResponse {
+    const message = createBaseStreamTokenMetadataResponse();
+    message.height = object.height ?? "0";
+    message.deleted = object.deleted ?? "0";
+    message.metadata = object.metadata?.map((e) => TokenMetadata.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseListSvmAccountLinksRequest(): ListSvmAccountLinksRequest {
+  return { cosmos_addr: "", svm_addr: "", pagination: undefined };
+}
+
+export const ListSvmAccountLinksRequest = {
+  $type: "flux.indexer.explorer.ListSvmAccountLinksRequest" as const,
+
+  encode(message: ListSvmAccountLinksRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.cosmos_addr !== "") {
+      writer.uint32(10).string(message.cosmos_addr);
+    }
+    if (message.svm_addr !== "") {
+      writer.uint32(18).string(message.svm_addr);
+    }
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListSvmAccountLinksRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListSvmAccountLinksRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.cosmos_addr = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.svm_addr = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListSvmAccountLinksRequest {
+    return {
+      cosmos_addr: isSet(object.cosmos_addr) ? globalThis.String(object.cosmos_addr) : "",
+      svm_addr: isSet(object.svm_addr) ? globalThis.String(object.svm_addr) : "",
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
+    };
+  },
+
+  toJSON(message: ListSvmAccountLinksRequest): unknown {
+    const obj: any = {};
+    if (message.cosmos_addr !== undefined) {
+      obj.cosmos_addr = message.cosmos_addr;
+    }
+    if (message.svm_addr !== undefined) {
+      obj.svm_addr = message.svm_addr;
+    }
+    if (message.pagination !== undefined) {
+      obj.pagination = PageRequest.toJSON(message.pagination);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListSvmAccountLinksRequest>): ListSvmAccountLinksRequest {
+    return ListSvmAccountLinksRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListSvmAccountLinksRequest>): ListSvmAccountLinksRequest {
+    const message = createBaseListSvmAccountLinksRequest();
+    message.cosmos_addr = object.cosmos_addr ?? "";
+    message.svm_addr = object.svm_addr ?? "";
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseListSvmAccountLinksResponse(): ListSvmAccountLinksResponse {
+  return { pagination: undefined, account_links: [] };
+}
+
+export const ListSvmAccountLinksResponse = {
+  $type: "flux.indexer.explorer.ListSvmAccountLinksResponse" as const,
+
+  encode(message: ListSvmAccountLinksResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    for (const v of message.account_links) {
+      AccountLink.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListSvmAccountLinksResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListSvmAccountLinksResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.account_links.push(AccountLink.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListSvmAccountLinksResponse {
+    return {
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+      account_links: globalThis.Array.isArray(object?.account_links)
+        ? object.account_links.map((e: any) => AccountLink.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: ListSvmAccountLinksResponse): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageResponse.toJSON(message.pagination);
+    }
+    if (message.account_links?.length) {
+      obj.account_links = message.account_links.map((e) => AccountLink.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListSvmAccountLinksResponse>): ListSvmAccountLinksResponse {
+    return ListSvmAccountLinksResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListSvmAccountLinksResponse>): ListSvmAccountLinksResponse {
+    const message = createBaseListSvmAccountLinksResponse();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
+    message.account_links = object.account_links?.map((e) => AccountLink.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseStreamSvmAccountLinkRequest(): StreamSvmAccountLinkRequest {
+  return { cosmos_address: "", svm_address: "" };
+}
+
+export const StreamSvmAccountLinkRequest = {
+  $type: "flux.indexer.explorer.StreamSvmAccountLinkRequest" as const,
+
+  encode(message: StreamSvmAccountLinkRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.cosmos_address !== "") {
+      writer.uint32(10).string(message.cosmos_address);
+    }
+    if (message.svm_address !== "") {
+      writer.uint32(18).string(message.svm_address);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamSvmAccountLinkRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamSvmAccountLinkRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.cosmos_address = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.svm_address = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamSvmAccountLinkRequest {
+    return {
+      cosmos_address: isSet(object.cosmos_address) ? globalThis.String(object.cosmos_address) : "",
+      svm_address: isSet(object.svm_address) ? globalThis.String(object.svm_address) : "",
+    };
+  },
+
+  toJSON(message: StreamSvmAccountLinkRequest): unknown {
+    const obj: any = {};
+    if (message.cosmos_address !== undefined) {
+      obj.cosmos_address = message.cosmos_address;
+    }
+    if (message.svm_address !== undefined) {
+      obj.svm_address = message.svm_address;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamSvmAccountLinkRequest>): StreamSvmAccountLinkRequest {
+    return StreamSvmAccountLinkRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamSvmAccountLinkRequest>): StreamSvmAccountLinkRequest {
+    const message = createBaseStreamSvmAccountLinkRequest();
+    message.cosmos_address = object.cosmos_address ?? "";
+    message.svm_address = object.svm_address ?? "";
+    return message;
+  },
+};
+
+function createBaseStreamSvmAccountLinkResponse(): StreamSvmAccountLinkResponse {
+  return { height: "0", deleted: "0", account_link: [] };
+}
+
+export const StreamSvmAccountLinkResponse = {
+  $type: "flux.indexer.explorer.StreamSvmAccountLinkResponse" as const,
+
+  encode(message: StreamSvmAccountLinkResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.height !== "0") {
+      writer.uint32(8).uint64(message.height);
+    }
+    if (message.deleted !== "0") {
+      writer.uint32(16).uint64(message.deleted);
+    }
+    for (const v of message.account_link) {
+      AccountLink.encode(v!, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamSvmAccountLinkResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamSvmAccountLinkResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.height = longToString(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.deleted = longToString(reader.uint64() as Long);
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.account_link.push(AccountLink.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamSvmAccountLinkResponse {
+    return {
+      height: isSet(object.height) ? globalThis.String(object.height) : "0",
+      deleted: isSet(object.deleted) ? globalThis.String(object.deleted) : "0",
+      account_link: globalThis.Array.isArray(object?.account_link)
+        ? object.account_link.map((e: any) => AccountLink.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: StreamSvmAccountLinkResponse): unknown {
+    const obj: any = {};
+    if (message.height !== undefined) {
+      obj.height = message.height;
+    }
+    if (message.deleted !== undefined) {
+      obj.deleted = message.deleted;
+    }
+    if (message.account_link?.length) {
+      obj.account_link = message.account_link.map((e) => AccountLink.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamSvmAccountLinkResponse>): StreamSvmAccountLinkResponse {
+    return StreamSvmAccountLinkResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamSvmAccountLinkResponse>): StreamSvmAccountLinkResponse {
+    const message = createBaseStreamSvmAccountLinkResponse();
+    message.height = object.height ?? "0";
+    message.deleted = object.deleted ?? "0";
+    message.account_link = object.account_link?.map((e) => AccountLink.fromPartial(e)) || [];
+    return message;
+  },
+};
+
 export interface API {
   ListEvmContracts(
     request: DeepPartial<ListEvmContractsRequest>,
@@ -1478,7 +2728,35 @@ export interface API {
     metadata?: grpc.Metadata,
   ): Promise<ListStrategiesResponse>;
   GetMetrics(request: DeepPartial<GetMetricsRequest>, metadata?: grpc.Metadata): Promise<GetMetricsResponse>;
+  ListStrategyTriggersById(
+    request: DeepPartial<ListStrategyTriggerByIdRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ListStrategyTriggerByIdResponse>;
+  ListTokenMetadata(
+    request: DeepPartial<ListTokenMetadataRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ListTokenMetadataResponse>;
+  ListSvmAccountLinks(
+    request: DeepPartial<ListSvmAccountLinksRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ListSvmAccountLinksResponse>;
   StreamBalances(request: DeepPartial<BalancesRequest>, metadata?: grpc.Metadata): Observable<StreamBalanceResponse>;
+  StreamStrategyTriggers(
+    request: DeepPartial<StreamStrategyTriggerRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamStrategyTriggerResponse>;
+  StreamStrategies(
+    request: DeepPartial<StreamStrategiesRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamStrategiesResponse>;
+  StreamTokenMetadata(
+    request: DeepPartial<StreamTokenMetadataRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamTokenMetadataResponse>;
+  StreamSvmAccountLink(
+    request: DeepPartial<StreamSvmAccountLinkRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamSvmAccountLinkResponse>;
 }
 
 export class APIClientImpl implements API {
@@ -1491,7 +2769,14 @@ export class APIClientImpl implements API {
     this.ListStrategies = this.ListStrategies.bind(this);
     this.ListStrategiesByOwner = this.ListStrategiesByOwner.bind(this);
     this.GetMetrics = this.GetMetrics.bind(this);
+    this.ListStrategyTriggersById = this.ListStrategyTriggersById.bind(this);
+    this.ListTokenMetadata = this.ListTokenMetadata.bind(this);
+    this.ListSvmAccountLinks = this.ListSvmAccountLinks.bind(this);
     this.StreamBalances = this.StreamBalances.bind(this);
+    this.StreamStrategyTriggers = this.StreamStrategyTriggers.bind(this);
+    this.StreamStrategies = this.StreamStrategies.bind(this);
+    this.StreamTokenMetadata = this.StreamTokenMetadata.bind(this);
+    this.StreamSvmAccountLink = this.StreamSvmAccountLink.bind(this);
   }
 
   ListEvmContracts(
@@ -1523,8 +2808,61 @@ export class APIClientImpl implements API {
     return this.rpc.unary(APIGetMetricsDesc, GetMetricsRequest.fromPartial(request), metadata);
   }
 
+  ListStrategyTriggersById(
+    request: DeepPartial<ListStrategyTriggerByIdRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ListStrategyTriggerByIdResponse> {
+    return this.rpc.unary(
+      APIListStrategyTriggersByIdDesc,
+      ListStrategyTriggerByIdRequest.fromPartial(request),
+      metadata,
+    );
+  }
+
+  ListTokenMetadata(
+    request: DeepPartial<ListTokenMetadataRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ListTokenMetadataResponse> {
+    return this.rpc.unary(APIListTokenMetadataDesc, ListTokenMetadataRequest.fromPartial(request), metadata);
+  }
+
+  ListSvmAccountLinks(
+    request: DeepPartial<ListSvmAccountLinksRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ListSvmAccountLinksResponse> {
+    return this.rpc.unary(APIListSvmAccountLinksDesc, ListSvmAccountLinksRequest.fromPartial(request), metadata);
+  }
+
   StreamBalances(request: DeepPartial<BalancesRequest>, metadata?: grpc.Metadata): Observable<StreamBalanceResponse> {
     return this.rpc.invoke(APIStreamBalancesDesc, BalancesRequest.fromPartial(request), metadata);
+  }
+
+  StreamStrategyTriggers(
+    request: DeepPartial<StreamStrategyTriggerRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamStrategyTriggerResponse> {
+    return this.rpc.invoke(APIStreamStrategyTriggersDesc, StreamStrategyTriggerRequest.fromPartial(request), metadata);
+  }
+
+  StreamStrategies(
+    request: DeepPartial<StreamStrategiesRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamStrategiesResponse> {
+    return this.rpc.invoke(APIStreamStrategiesDesc, StreamStrategiesRequest.fromPartial(request), metadata);
+  }
+
+  StreamTokenMetadata(
+    request: DeepPartial<StreamTokenMetadataRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamTokenMetadataResponse> {
+    return this.rpc.invoke(APIStreamTokenMetadataDesc, StreamTokenMetadataRequest.fromPartial(request), metadata);
+  }
+
+  StreamSvmAccountLink(
+    request: DeepPartial<StreamSvmAccountLinkRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamSvmAccountLinkResponse> {
+    return this.rpc.invoke(APIStreamSvmAccountLinkDesc, StreamSvmAccountLinkRequest.fromPartial(request), metadata);
   }
 }
 
@@ -1645,6 +2983,75 @@ export const APIGetMetricsDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
+export const APIListStrategyTriggersByIdDesc: UnaryMethodDefinitionish = {
+  methodName: "ListStrategyTriggersById",
+  service: APIDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ListStrategyTriggerByIdRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ListStrategyTriggerByIdResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const APIListTokenMetadataDesc: UnaryMethodDefinitionish = {
+  methodName: "ListTokenMetadata",
+  service: APIDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ListTokenMetadataRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ListTokenMetadataResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const APIListSvmAccountLinksDesc: UnaryMethodDefinitionish = {
+  methodName: "ListSvmAccountLinks",
+  service: APIDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ListSvmAccountLinksRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ListSvmAccountLinksResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
 export const APIStreamBalancesDesc: UnaryMethodDefinitionish = {
   methodName: "StreamBalances",
   service: APIDesc,
@@ -1658,6 +3065,98 @@ export const APIStreamBalancesDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = StreamBalanceResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const APIStreamStrategyTriggersDesc: UnaryMethodDefinitionish = {
+  methodName: "StreamStrategyTriggers",
+  service: APIDesc,
+  requestStream: false,
+  responseStream: true,
+  requestType: {
+    serializeBinary() {
+      return StreamStrategyTriggerRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = StreamStrategyTriggerResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const APIStreamStrategiesDesc: UnaryMethodDefinitionish = {
+  methodName: "StreamStrategies",
+  service: APIDesc,
+  requestStream: false,
+  responseStream: true,
+  requestType: {
+    serializeBinary() {
+      return StreamStrategiesRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = StreamStrategiesResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const APIStreamTokenMetadataDesc: UnaryMethodDefinitionish = {
+  methodName: "StreamTokenMetadata",
+  service: APIDesc,
+  requestStream: false,
+  responseStream: true,
+  requestType: {
+    serializeBinary() {
+      return StreamTokenMetadataRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = StreamTokenMetadataResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const APIStreamSvmAccountLinkDesc: UnaryMethodDefinitionish = {
+  methodName: "StreamSvmAccountLink",
+  service: APIDesc,
+  requestStream: false,
+  responseStream: true,
+  requestType: {
+    serializeBinary() {
+      return StreamSvmAccountLinkRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = StreamSvmAccountLinkResponse.decode(data);
       return {
         ...value,
         toObject() {

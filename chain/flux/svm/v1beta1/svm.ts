@@ -9,8 +9,9 @@ import Long from "long";
 import _m0 from "protobufjs/minimal";
 
 export interface AccountLink {
-  from: Uint8Array;
-  to: Uint8Array;
+  cosmos_addr: Uint8Array;
+  svm_addr: Uint8Array;
+  height: string;
 }
 
 export interface Account {
@@ -37,18 +38,21 @@ export interface Instruction {
 }
 
 function createBaseAccountLink(): AccountLink {
-  return { from: new Uint8Array(0), to: new Uint8Array(0) };
+  return { cosmos_addr: new Uint8Array(0), svm_addr: new Uint8Array(0), height: "0" };
 }
 
 export const AccountLink = {
   $type: "flux.svm.v1beta1.AccountLink" as const,
 
   encode(message: AccountLink, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.from.length !== 0) {
-      writer.uint32(10).bytes(message.from);
+    if (message.cosmos_addr.length !== 0) {
+      writer.uint32(10).bytes(message.cosmos_addr);
     }
-    if (message.to.length !== 0) {
-      writer.uint32(18).bytes(message.to);
+    if (message.svm_addr.length !== 0) {
+      writer.uint32(18).bytes(message.svm_addr);
+    }
+    if (message.height !== "0") {
+      writer.uint32(24).int64(message.height);
     }
     return writer;
   },
@@ -65,14 +69,21 @@ export const AccountLink = {
             break;
           }
 
-          message.from = reader.bytes();
+          message.cosmos_addr = reader.bytes();
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.to = reader.bytes();
+          message.svm_addr = reader.bytes();
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.height = longToString(reader.int64() as Long);
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -85,18 +96,22 @@ export const AccountLink = {
 
   fromJSON(object: any): AccountLink {
     return {
-      from: isSet(object.from) ? bytesFromBase64(object.from) : new Uint8Array(0),
-      to: isSet(object.to) ? bytesFromBase64(object.to) : new Uint8Array(0),
+      cosmos_addr: isSet(object.cosmos_addr) ? bytesFromBase64(object.cosmos_addr) : new Uint8Array(0),
+      svm_addr: isSet(object.svm_addr) ? bytesFromBase64(object.svm_addr) : new Uint8Array(0),
+      height: isSet(object.height) ? globalThis.String(object.height) : "0",
     };
   },
 
   toJSON(message: AccountLink): unknown {
     const obj: any = {};
-    if (message.from !== undefined) {
-      obj.from = base64FromBytes(message.from);
+    if (message.cosmos_addr !== undefined) {
+      obj.cosmos_addr = base64FromBytes(message.cosmos_addr);
     }
-    if (message.to !== undefined) {
-      obj.to = base64FromBytes(message.to);
+    if (message.svm_addr !== undefined) {
+      obj.svm_addr = base64FromBytes(message.svm_addr);
+    }
+    if (message.height !== undefined) {
+      obj.height = message.height;
     }
     return obj;
   },
@@ -106,8 +121,9 @@ export const AccountLink = {
   },
   fromPartial(object: DeepPartial<AccountLink>): AccountLink {
     const message = createBaseAccountLink();
-    message.from = object.from ?? new Uint8Array(0);
-    message.to = object.to ?? new Uint8Array(0);
+    message.cosmos_addr = object.cosmos_addr ?? new Uint8Array(0);
+    message.svm_addr = object.svm_addr ?? new Uint8Array(0);
+    message.height = object.height ?? "0";
     return message;
   },
 };

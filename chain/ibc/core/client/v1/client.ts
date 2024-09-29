@@ -55,6 +55,9 @@ export interface ClientConsensusStates {
  * breaking changes In these cases, the RevisionNumber is incremented so that
  * height continues to be monitonically increasing even as the RevisionHeight
  * gets reset
+ *
+ * Please note that json tags for generated Go code are overridden to explicitly exclude the omitempty jsontag.
+ * This enforces the Go json marshaller to always emit zero values for both revision_number and revision_height.
  */
 export interface Height {
   /** the revision that the client is currently on */

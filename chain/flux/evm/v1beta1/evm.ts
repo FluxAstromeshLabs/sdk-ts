@@ -11,6 +11,7 @@ import _m0 from "protobufjs/minimal";
 export interface Account {
   address: string;
   balance: Uint8Array;
+  nonce: string;
 }
 
 export interface Code {
@@ -38,8 +39,14 @@ export interface ContractInfo {
   number: string;
 }
 
+export interface Params {
+  evm_block_gas_limit: string;
+  evm_gas_price: string;
+  evm_base_fee: string;
+}
+
 function createBaseAccount(): Account {
-  return { address: "", balance: new Uint8Array(0) };
+  return { address: "", balance: new Uint8Array(0), nonce: "0" };
 }
 
 export const Account = {
@@ -51,6 +58,9 @@ export const Account = {
     }
     if (message.balance.length !== 0) {
       writer.uint32(18).bytes(message.balance);
+    }
+    if (message.nonce !== "0") {
+      writer.uint32(24).uint64(message.nonce);
     }
     return writer;
   },
@@ -76,6 +86,13 @@ export const Account = {
 
           message.balance = reader.bytes();
           continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.nonce = longToString(reader.uint64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -89,6 +106,7 @@ export const Account = {
     return {
       address: isSet(object.address) ? globalThis.String(object.address) : "",
       balance: isSet(object.balance) ? bytesFromBase64(object.balance) : new Uint8Array(0),
+      nonce: isSet(object.nonce) ? globalThis.String(object.nonce) : "0",
     };
   },
 
@@ -100,6 +118,9 @@ export const Account = {
     if (message.balance !== undefined) {
       obj.balance = base64FromBytes(message.balance);
     }
+    if (message.nonce !== undefined) {
+      obj.nonce = message.nonce;
+    }
     return obj;
   },
 
@@ -110,6 +131,7 @@ export const Account = {
     const message = createBaseAccount();
     message.address = object.address ?? "";
     message.balance = object.balance ?? new Uint8Array(0);
+    message.nonce = object.nonce ?? "0";
     return message;
   },
 };
@@ -497,6 +519,97 @@ export const ContractInfo = {
     message.calldata = object.calldata ?? new Uint8Array(0);
     message.value = object.value ?? new Uint8Array(0);
     message.number = object.number ?? "0";
+    return message;
+  },
+};
+
+function createBaseParams(): Params {
+  return { evm_block_gas_limit: "0", evm_gas_price: "0", evm_base_fee: "0" };
+}
+
+export const Params = {
+  $type: "flux.evm.v1beta1.Params" as const,
+
+  encode(message: Params, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.evm_block_gas_limit !== "0") {
+      writer.uint32(8).int64(message.evm_block_gas_limit);
+    }
+    if (message.evm_gas_price !== "0") {
+      writer.uint32(16).uint64(message.evm_gas_price);
+    }
+    if (message.evm_base_fee !== "0") {
+      writer.uint32(24).uint64(message.evm_base_fee);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Params {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseParams();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.evm_block_gas_limit = longToString(reader.int64() as Long);
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.evm_gas_price = longToString(reader.uint64() as Long);
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.evm_base_fee = longToString(reader.uint64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Params {
+    return {
+      evm_block_gas_limit: isSet(object.evm_block_gas_limit) ? globalThis.String(object.evm_block_gas_limit) : "0",
+      evm_gas_price: isSet(object.evm_gas_price) ? globalThis.String(object.evm_gas_price) : "0",
+      evm_base_fee: isSet(object.evm_base_fee) ? globalThis.String(object.evm_base_fee) : "0",
+    };
+  },
+
+  toJSON(message: Params): unknown {
+    const obj: any = {};
+    if (message.evm_block_gas_limit !== undefined) {
+      obj.evm_block_gas_limit = message.evm_block_gas_limit;
+    }
+    if (message.evm_gas_price !== undefined) {
+      obj.evm_gas_price = message.evm_gas_price;
+    }
+    if (message.evm_base_fee !== undefined) {
+      obj.evm_base_fee = message.evm_base_fee;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Params>): Params {
+    return Params.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Params>): Params {
+    const message = createBaseParams();
+    message.evm_block_gas_limit = object.evm_block_gas_limit ?? "0";
+    message.evm_gas_price = object.evm_gas_price ?? "0";
+    message.evm_base_fee = object.evm_base_fee ?? "0";
     return message;
   },
 };
