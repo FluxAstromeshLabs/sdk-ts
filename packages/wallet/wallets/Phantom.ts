@@ -20,4 +20,14 @@ export default class Phantom {
     const provider = await this.connect()
     return provider.publicKey?.toString() || ''
   }
+  async signPersonal(message: Uint8Array): Promise<Uint8Array> {
+    const provider = await this.connect()
+
+    if (provider.signMessage) {
+      const signedMessage = await provider.signMessage(message)
+      return signedMessage
+    } else {
+      throw new Error('signMessage is not supported by this provider')
+    }
+  }
 }

@@ -23,8 +23,8 @@ export const getFluxAddress = (ethAddress: string): string => {
  * @param cosmosAddressBuffer string
  * @returns string
  */
-export const getSvmAddress = (cosmosAddressBuffer: Buffer): PublicKey => {
-  return new PublicKey(keccak256(cosmosAddressBuffer))
+export const getSvmAddress = (cosmosAddressBuffer: Buffer | Uint8Array | string): PublicKey => {
+  return new PublicKey(cosmosAddressBuffer)
 }
 
 /**
