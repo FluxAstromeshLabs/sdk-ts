@@ -7,10 +7,10 @@
   transition: border-color 0.3s ease;
 }
 .base-text-field .prepend-icon {
-  @apply mr-1;
+  @apply ml-1;
 }
 .base-text-field .append-icon {
-  @apply ml-1;
+  @apply mr-1;
 }
 .base-text-field .input input {
   @apply bg-transparent outline-none flex-1 min-w-[0px] px-4 py-2 h-full;
