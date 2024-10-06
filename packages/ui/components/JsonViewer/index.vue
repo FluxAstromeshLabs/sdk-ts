@@ -2,7 +2,7 @@
   <div
     class="w-full overflow-x-auto transition-all duration-300"
     :class="{
-      'ml-4': !isChildren
+      space: !isChildren
     }"
   >
     <div class="flex items-center">
@@ -26,14 +26,14 @@
       v-if="collapsedRoot"
       v-for="(value, key) in data"
       :key="key"
-      class="w-fit ml-4"
+      class="w-fit space"
       :class="{
         wrapper: !isChildren
       }"
     >
       <div
         :class="{
-          'ml-4': !isChildren
+          space: !isChildren
         }"
       >
         <div class="flex">
@@ -62,13 +62,13 @@
         <div v-show="!collapsed[key]" class="wrapper">
           <BaseJsonViewer v-if="isObject(value) || isArray(value)" :data="value" isChildren />
         </div>
-        <span v-if="isObject(value) && !collapsed[key]" class="ml-4">}</span>
-        <span v-if="isArray(value) && !collapsed[key]" class="ml-4">]</span>
+        <span v-if="isObject(value) && !collapsed[key]" class="space">}</span>
+        <span v-if="isArray(value) && !collapsed[key]" class="space">]</span>
       </div>
     </div>
 
-    <span v-if="collapsedRoot && !isChildren && isArray(data)" class="ml-4">]</span>
-    <span v-if="collapsedRoot && !isChildren && isObject(data)" class="ml-4">}</span>
+    <span v-if="collapsedRoot && !isChildren && isArray(data)" class="space">]</span>
+    <span v-if="collapsedRoot && !isChildren && isObject(data)" class="space">}</span>
   </div>
 </template>
 
@@ -101,16 +101,16 @@ const isArray = (value: any): boolean => {
 </script>
 
 <style scoped>
+.space {
+  margin-left: 16px;
+}
 .wrapper {
-  @apply ml-4 border-neutral-400 border-l border-dotted;
+  @apply space border-neutral-400 border-l border-dotted;
 }
 .arrow-icon {
   @apply cursor-pointer ml-[-10px] transition-all duration-300;
   &.active {
     transform: rotate(-90deg);
   }
-}
-.ml-16 {
-  margin-left: 20px;
 }
 </style>
