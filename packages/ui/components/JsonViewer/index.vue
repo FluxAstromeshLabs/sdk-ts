@@ -1,6 +1,6 @@
 <template>
-  <div class="ml-4 w-full overflow-x-auto transition-all duration-300">
-    <div v-for="(value, key) in data" :key="key" class="w-fit">
+  <div class="w-full overflow-x-auto transition-all duration-300">
+    <div v-for="(value, key) in data" :key="key" class="w-fit ml-4">
       <div class="flex">
         <div
           v-if="isArray(value) || isObject(value)"
