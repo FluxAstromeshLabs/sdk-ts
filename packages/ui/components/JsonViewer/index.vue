@@ -11,7 +11,7 @@
         @click="toggleRoot"
         class="arrow-icon"
         :class="{
-          active: collapsedRoot
+          active: !collapsedRoot
         }"
       >
         <BaseIcons name="AngleDown" />
