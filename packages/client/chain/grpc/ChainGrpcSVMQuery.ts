@@ -28,4 +28,13 @@ export class ChainGrpcSVMQuery extends BaseGrpc {
     const response: svmQuery.AccountResponse = await this.retry(() => this.client.Account(request))
     return response
   }
+  async getAccountLink(address: string): Promise<svmQuery.AccountLinkResponse> {
+    try {
+      let request = svmQuery.AccountLinkRequest.create({ address })
+      let response = await this.retry(() => this.client.AccountLink(request))
+      return response as svmQuery.AccountLinkResponse
+    } catch (e) {
+      throw e
+    }
+  }
 }

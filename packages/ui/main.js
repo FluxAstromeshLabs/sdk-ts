@@ -24,6 +24,7 @@ import BaseProgressLinear from './components/ProgressLinear.vue'
 import BaseSwitch from './components/Switch/index.vue'
 import BaseProgressCircular from './components/ProgressCircular.vue'
 import Autocomplete from './components/Autocomplete/index.vue'
+import JsonViewer from './components/JsonViewer/index.vue'
 export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.component('BaseButton', BaseButton)
   nuxtApp.vueApp.component('BaseTextField', BaseTextField)
@@ -49,4 +50,5 @@ export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.component('BasePagination', BasePagination)
   nuxtApp.vueApp.component('BaseSwitch', BaseSwitch)
   nuxtApp.vueApp.component('BaseAutocomplete', Autocomplete)
+  nuxtApp.vueApp.component('BaseJsonViewer', JsonViewer)
 })
