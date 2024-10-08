@@ -4,6 +4,7 @@ import { bech32 } from 'bech32';
 import { NodeHttpTransport } from '@improbable-eng/grpc-web-node-http-transport';
 import * as svmtx from '../../../../chain/flux/svm/v1beta1/tx';
 import * as svmservice from '../../../../chain/flux/svm/v1beta1/query';
+import * as chaintypes from '../../../../chain/flux/types/v1beta1/tx_ext'
 import * as txtypes from '../../../../chain/cosmos/tx/v1beta1/tx';
 import * as txservice from '../../../../chain/cosmos/tx/v1beta1/service';
 import * as authservice from '../../../../chain/cosmos/auth/v1beta1/query';
@@ -17,6 +18,9 @@ import * as web3 from '@solana/web3.js';
 import * as anytypes from '../../../../chain/google/protobuf/any'
 import * as signingtypes from '../../../../chain/cosmos/tx/signing/v1beta1/signing'
 import { toFluxSvmTransaction } from '../../../../packages';
+import { getEIP712SignBytes } from '../../../../eip712/eip712';
+import * as codectypemap from '../../../../chain/codec_type_map.json'
+import { getMessage } from 'eip-712';
 
 const defaultLamportsPerByteYear = 1000000000 * 365 / 100 / (1024 * 1024)
 const defaultExemptionThreshold = 2.0
@@ -60,7 +64,10 @@ async function linkSvmAccount(
 
   if (!accountLink) {
     const keypair = new Ed25519Keypair(Buffer.from(svmKeypair.secretKey.buffer.slice(0, 32)), svmKeypair.publicKey.toBuffer());
-    const linkSig = await Ed25519.createSignature(wallet.getAddress(), keypair);
+    const linkSig = await Ed25519.createSignature(
+      new Uint8Array(Buffer.from(bech32.encode('lux', bech32.toWords(wallet.getAddress())))),
+      keypair
+    );
 
     const msg = svmtx.MsgLinkSVMAccount.create({
       sender: getWalletAddr(wallet),
@@ -139,13 +146,20 @@ async function broadcastMsgsSync(
   msgs: any[],
   wallets: ethwallet.Wallet[]
 ) {
-  let msgAnys = [];
+  let msgAnys = []
+  let msgJsons = []
   for (let i = 0; i < msgs.length; i++) {
     const msgAny = {
       type_url: `/${msgTypes[i].$type}`,
       value: msgTypes[i].encode(msgs[i]).finish(),
     };
     msgAnys.push(msgAny);
+
+    const msgJSON = {
+      type: codectypemap[`/${msgTypes[i].$type}`],
+      value: msgTypes[i].toJSON(msgs[i])
+    }
+    msgJsons.push(msgJSON)
   }
 
   const txBody: txtypes.TxBody = {
@@ -155,6 +169,17 @@ async function broadcastMsgsSync(
     extension_options: [],
     non_critical_extension_options: [],
   };
+
+  const extOpts: chaintypes.ExtensionOptionsWeb3Tx = {
+    typedDataChainID: '1',
+    feePayer: '',
+    feePayerSig: Uint8Array.from([])
+  }
+  const extOptsAny: anytypes.Any = {
+    type_url: '/' + chaintypes.ExtensionOptionsWeb3Tx.$type,
+    value: chaintypes.ExtensionOptionsWeb3Tx.encode(extOpts).finish()
+  }
+  txBody.extension_options = [extOptsAny]
 
   let signerInfos = [];
   for (let i = 0; i < wallets.length; i++) {
@@ -169,7 +194,7 @@ async function broadcastMsgsSync(
       public_key: senderPubkeyAny,
       mode_info: {
         single: {
-          mode: signingtypes.SignMode.SIGN_MODE_DIRECT,
+          mode: signingtypes.SignMode.SIGN_MODE_LEGACY_AMINO_JSON,
         },
       },
       sequence: senderAccSeqs[i].toString(),
@@ -218,10 +243,14 @@ async function broadcastMsgsSync(
       account_number: senderAccNums[i].toString(),
     };
 
-    const signBytes = txtypes.SignDoc.encode(signDoc).finish();
-    const msgHash = Buffer.from(keccak256(signBytes));
+    // const signBytes = txtypes.SignDoc.encode(signDoc).finish();
+    let eip712SignDoc = getEIP712SignBytes(signDoc, msgJsons, '')
+    console.log('EIP712 sign doc:', JSON.stringify(eip712SignDoc, null, '  '))
+    const msgHash = Buffer.from(getMessage(eip712SignDoc, true, { verifyDomain: false }))
+    console.log('msg hash:', msgHash.toString('hex'))
+
     const senderSign = ethutil.ecsign(msgHash, Buffer.from(wallets[i].getPrivateKey()));
-    const senderCosmosSig = Uint8Array.from(Buffer.concat([senderSign.r, senderSign.s]));
+    const senderCosmosSig = Uint8Array.from(Buffer.concat([senderSign.r, senderSign.s, Buffer.from([0])]));
     sigs.push(senderCosmosSig);
   }
 
@@ -291,6 +320,7 @@ function getRentExemptLamportAmount(dataLen: number): number {
   const ownerSvmKeypair = web3.Keypair.generate();
   const ownerPubkey = await linkSvmAccount(txClient, authClient, svmClient, ownerCosmosWallet, ownerSvmKeypair, new BigNumber(1000000000000));
 
+  return
   console.log('=== Linking program keypair to Cosmos address ===');
   const programSvmKeypair = web3.Keypair.generate();
   const programPubkey = await linkSvmAccount(txClient, authClient, svmClient, programCosmosWallet, programSvmKeypair, new BigNumber(0));

@@ -87,6 +87,14 @@ function getPrimitiveEthType(some: any): string {
   return type
 }
 
+function trimPrefix(s: string, prefix: string) {
+  if (s.startsWith(prefix)) {
+    return s.slice(prefix.length)
+  }
+
+  return s
+}
+
 function walkNestedJSON(rootTypes: Eip712Types, jsonObj: any, parentKey: string = ''): void {
   // iterate json object
   for (const key in jsonObj) {
@@ -102,7 +110,13 @@ function walkNestedJSON(rootTypes: Eip712Types, jsonObj: any, parentKey: string 
         continue
       }
 
-      const childKey = 'Type' + key.charAt(0).toUpperCase() + key.slice(1)
+      let childKey = ''
+      if (parentKey == 'MsgsPlaceHolder' || parentKey == 'Type0' || parentKey == 'TypeValue') {
+        childKey = 'Type' + key.charAt(0).toUpperCase() + key.slice(1)
+      } else {
+        childKey = 'Type' + trimPrefix(parentKey, 'Type') + key.charAt(0).toUpperCase() + key.slice(1)
+      }
+      
       rootTypes[childKey] = []
       rootTypes[parentKey].push({
         name: key,
@@ -114,7 +128,13 @@ function walkNestedJSON(rootTypes: Eip712Types, jsonObj: any, parentKey: string 
 
     // handle object field
     if (!Array.isArray(value) && typeof value === 'object') {
-      const childKey = 'Type' + key.charAt(0).toUpperCase() + key.slice(1)
+      let childKey = ''
+      if (parentKey == 'MsgsPlaceHolder' || parentKey == 'Type0' || parentKey == 'TypeValue') {
+        childKey = 'Type' + key.charAt(0).toUpperCase() + key.slice(1)
+      } else {
+        childKey = 'Type' + trimPrefix(parentKey, 'Type') + key.charAt(0).toUpperCase() + key.slice(1)
+      }
+
       rootTypes[childKey] = []
       rootTypes[parentKey].push({
         name: key,
