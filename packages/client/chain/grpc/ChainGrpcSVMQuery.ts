@@ -16,11 +16,11 @@ export class ChainGrpcSVMQuery extends BaseGrpc {
       address
     })
     const response: svmQuery.AccountsByOwnerResponse = await this.retry(() =>
-      this.client.Account(request)
+      this.client.AccountsByOwner(request)
     )
     return response
   }
-  //Account
+
   async account({ address }: { address: string }): Promise<svmQuery.AccountResponse> {
     const request = svmQuery.AccountRequest.create({
       address
