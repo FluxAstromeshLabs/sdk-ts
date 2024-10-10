@@ -8,7 +8,7 @@
 import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { FISQueryRequest } from "../../astromesh/v1beta1/query";
-import { FISInstruction } from "../../astromesh/v1beta1/tx";
+import { FISInstruction, Plane, planeFromJSON, planeToJSON } from "../../astromesh/v1beta1/tx";
 
 export enum StrategyType {
   STRATEGY = 0,
@@ -162,6 +162,11 @@ export interface StrategyMetadata {
   cron_input: string;
   /** timestamp interval (s) to trigger cron bots */
   cron_interval: string;
+  /**
+   * declares interacted dapps so that app owner can verify and we know which
+   * bot is serving what dapp
+   */
+  supported_apps: SupportedApp[];
 }
 
 export interface StrategyInput {
@@ -175,6 +180,13 @@ export interface FISInput {
 
 export interface StrategyOutput {
   instructions: FISInstruction[];
+}
+
+export interface SupportedApp {
+  name: string;
+  contract_address: string;
+  plane: Plane;
+  verified: boolean;
 }
 
 function createBasePermissionConfig(): PermissionConfig {
@@ -1064,6 +1076,7 @@ function createBaseStrategyMetadata(): StrategyMetadata {
     cron_gas_price: "",
     cron_input: "",
     cron_interval: "0",
+    supported_apps: [],
   };
 }
 
@@ -1103,6 +1116,9 @@ export const StrategyMetadata = {
     }
     if (message.cron_interval !== "0") {
       writer.uint32(88).uint64(message.cron_interval);
+    }
+    for (const v of message.supported_apps) {
+      SupportedApp.encode(v!, writer.uint32(98).fork()).ldelim();
     }
     return writer;
   },
@@ -1191,6 +1207,13 @@ export const StrategyMetadata = {
 
           message.cron_interval = longToString(reader.uint64() as Long);
           continue;
+        case 12:
+          if (tag !== 98) {
+            break;
+          }
+
+          message.supported_apps.push(SupportedApp.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1215,6 +1238,9 @@ export const StrategyMetadata = {
       cron_gas_price: isSet(object.cron_gas_price) ? globalThis.String(object.cron_gas_price) : "",
       cron_input: isSet(object.cron_input) ? globalThis.String(object.cron_input) : "",
       cron_interval: isSet(object.cron_interval) ? globalThis.String(object.cron_interval) : "0",
+      supported_apps: globalThis.Array.isArray(object?.supported_apps)
+        ? object.supported_apps.map((e: any) => SupportedApp.fromJSON(e))
+        : [],
     };
   },
 
@@ -1253,6 +1279,9 @@ export const StrategyMetadata = {
     if (message.cron_interval !== undefined) {
       obj.cron_interval = message.cron_interval;
     }
+    if (message.supported_apps?.length) {
+      obj.supported_apps = message.supported_apps.map((e) => SupportedApp.toJSON(e));
+    }
     return obj;
   },
 
@@ -1272,6 +1301,7 @@ export const StrategyMetadata = {
     message.cron_gas_price = object.cron_gas_price ?? "";
     message.cron_input = object.cron_input ?? "";
     message.cron_interval = object.cron_interval ?? "0";
+    message.supported_apps = object.supported_apps?.map((e) => SupportedApp.fromPartial(e)) || [];
     return message;
   },
 };
@@ -1472,6 +1502,112 @@ export const StrategyOutput = {
   fromPartial(object: DeepPartial<StrategyOutput>): StrategyOutput {
     const message = createBaseStrategyOutput();
     message.instructions = object.instructions?.map((e) => FISInstruction.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseSupportedApp(): SupportedApp {
+  return { name: "", contract_address: "", plane: 0, verified: false };
+}
+
+export const SupportedApp = {
+  $type: "flux.strategy.v1beta1.SupportedApp" as const,
+
+  encode(message: SupportedApp, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.contract_address !== "") {
+      writer.uint32(18).string(message.contract_address);
+    }
+    if (message.plane !== 0) {
+      writer.uint32(24).int32(message.plane);
+    }
+    if (message.verified !== false) {
+      writer.uint32(32).bool(message.verified);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): SupportedApp {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSupportedApp();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.contract_address = reader.string();
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.plane = reader.int32() as any;
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.verified = reader.bool();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SupportedApp {
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      contract_address: isSet(object.contract_address) ? globalThis.String(object.contract_address) : "",
+      plane: isSet(object.plane) ? planeFromJSON(object.plane) : 0,
+      verified: isSet(object.verified) ? globalThis.Boolean(object.verified) : false,
+    };
+  },
+
+  toJSON(message: SupportedApp): unknown {
+    const obj: any = {};
+    if (message.name !== undefined) {
+      obj.name = message.name;
+    }
+    if (message.contract_address !== undefined) {
+      obj.contract_address = message.contract_address;
+    }
+    if (message.plane !== undefined) {
+      obj.plane = planeToJSON(message.plane);
+    }
+    if (message.verified !== undefined) {
+      obj.verified = message.verified;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<SupportedApp>): SupportedApp {
+    return SupportedApp.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<SupportedApp>): SupportedApp {
+    const message = createBaseSupportedApp();
+    message.name = object.name ?? "";
+    message.contract_address = object.contract_address ?? "";
+    message.plane = object.plane ?? 0;
+    message.verified = object.verified ?? false;
     return message;
   },
 };

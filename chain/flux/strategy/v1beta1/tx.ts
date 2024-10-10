@@ -9,7 +9,7 @@ import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
 import _m0 from "protobufjs/minimal";
 import { FISQueryRequest } from "../../astromesh/v1beta1/query";
-import { FISInstruction, FISInstructionResponse } from "../../astromesh/v1beta1/tx";
+import { FISInstruction, FISInstructionResponse, Plane, planeFromJSON, planeToJSON } from "../../astromesh/v1beta1/tx";
 import { PermissionConfig, StrategyMetadata } from "./strategy";
 
 export enum Config {
@@ -92,6 +92,30 @@ export interface StrategyResponse {
 
 export interface MsgTriggerStrategiesResponse {
   strategy_trigger_responses: StrategyResponse[];
+}
+
+export interface MsgVerifyStrategy {
+  /** The address of the sender who is verifying the Nexus Bot */
+  sender: string;
+  /** The contract address of the dApp or entity being verified */
+  contract_address: string;
+  /** Contract plane */
+  plane: Plane;
+  /** Strategy ID */
+  strategy_id: string;
+}
+
+export interface MsgVerifyStrategyResponse {
+}
+
+export interface MsgSetVerifier {
+  sender: string;
+  contract: string;
+  plane: Plane;
+  new_verifier: string;
+}
+
+export interface MsgSetVerifierResponse {
 }
 
 function createBaseMsgConfigStrategy(): MsgConfigStrategy {
@@ -585,12 +609,316 @@ export const MsgTriggerStrategiesResponse = {
   },
 };
 
+function createBaseMsgVerifyStrategy(): MsgVerifyStrategy {
+  return { sender: "", contract_address: "", plane: 0, strategy_id: "" };
+}
+
+export const MsgVerifyStrategy = {
+  $type: "flux.strategy.v1beta1.MsgVerifyStrategy" as const,
+
+  encode(message: MsgVerifyStrategy, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.sender !== "") {
+      writer.uint32(10).string(message.sender);
+    }
+    if (message.contract_address !== "") {
+      writer.uint32(18).string(message.contract_address);
+    }
+    if (message.plane !== 0) {
+      writer.uint32(24).int32(message.plane);
+    }
+    if (message.strategy_id !== "") {
+      writer.uint32(34).string(message.strategy_id);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgVerifyStrategy {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgVerifyStrategy();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.sender = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.contract_address = reader.string();
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.plane = reader.int32() as any;
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.strategy_id = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgVerifyStrategy {
+    return {
+      sender: isSet(object.sender) ? globalThis.String(object.sender) : "",
+      contract_address: isSet(object.contract_address) ? globalThis.String(object.contract_address) : "",
+      plane: isSet(object.plane) ? planeFromJSON(object.plane) : 0,
+      strategy_id: isSet(object.strategy_id) ? globalThis.String(object.strategy_id) : "",
+    };
+  },
+
+  toJSON(message: MsgVerifyStrategy): unknown {
+    const obj: any = {};
+    if (message.sender !== undefined) {
+      obj.sender = message.sender;
+    }
+    if (message.contract_address !== undefined) {
+      obj.contract_address = message.contract_address;
+    }
+    if (message.plane !== undefined) {
+      obj.plane = planeToJSON(message.plane);
+    }
+    if (message.strategy_id !== undefined) {
+      obj.strategy_id = message.strategy_id;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<MsgVerifyStrategy>): MsgVerifyStrategy {
+    return MsgVerifyStrategy.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<MsgVerifyStrategy>): MsgVerifyStrategy {
+    const message = createBaseMsgVerifyStrategy();
+    message.sender = object.sender ?? "";
+    message.contract_address = object.contract_address ?? "";
+    message.plane = object.plane ?? 0;
+    message.strategy_id = object.strategy_id ?? "";
+    return message;
+  },
+};
+
+function createBaseMsgVerifyStrategyResponse(): MsgVerifyStrategyResponse {
+  return {};
+}
+
+export const MsgVerifyStrategyResponse = {
+  $type: "flux.strategy.v1beta1.MsgVerifyStrategyResponse" as const,
+
+  encode(_: MsgVerifyStrategyResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgVerifyStrategyResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgVerifyStrategyResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgVerifyStrategyResponse {
+    return {};
+  },
+
+  toJSON(_: MsgVerifyStrategyResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<MsgVerifyStrategyResponse>): MsgVerifyStrategyResponse {
+    return MsgVerifyStrategyResponse.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<MsgVerifyStrategyResponse>): MsgVerifyStrategyResponse {
+    const message = createBaseMsgVerifyStrategyResponse();
+    return message;
+  },
+};
+
+function createBaseMsgSetVerifier(): MsgSetVerifier {
+  return { sender: "", contract: "", plane: 0, new_verifier: "" };
+}
+
+export const MsgSetVerifier = {
+  $type: "flux.strategy.v1beta1.MsgSetVerifier" as const,
+
+  encode(message: MsgSetVerifier, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.sender !== "") {
+      writer.uint32(10).string(message.sender);
+    }
+    if (message.contract !== "") {
+      writer.uint32(18).string(message.contract);
+    }
+    if (message.plane !== 0) {
+      writer.uint32(24).int32(message.plane);
+    }
+    if (message.new_verifier !== "") {
+      writer.uint32(34).string(message.new_verifier);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgSetVerifier {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgSetVerifier();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.sender = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.contract = reader.string();
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.plane = reader.int32() as any;
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.new_verifier = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgSetVerifier {
+    return {
+      sender: isSet(object.sender) ? globalThis.String(object.sender) : "",
+      contract: isSet(object.contract) ? globalThis.String(object.contract) : "",
+      plane: isSet(object.plane) ? planeFromJSON(object.plane) : 0,
+      new_verifier: isSet(object.new_verifier) ? globalThis.String(object.new_verifier) : "",
+    };
+  },
+
+  toJSON(message: MsgSetVerifier): unknown {
+    const obj: any = {};
+    if (message.sender !== undefined) {
+      obj.sender = message.sender;
+    }
+    if (message.contract !== undefined) {
+      obj.contract = message.contract;
+    }
+    if (message.plane !== undefined) {
+      obj.plane = planeToJSON(message.plane);
+    }
+    if (message.new_verifier !== undefined) {
+      obj.new_verifier = message.new_verifier;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<MsgSetVerifier>): MsgSetVerifier {
+    return MsgSetVerifier.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<MsgSetVerifier>): MsgSetVerifier {
+    const message = createBaseMsgSetVerifier();
+    message.sender = object.sender ?? "";
+    message.contract = object.contract ?? "";
+    message.plane = object.plane ?? 0;
+    message.new_verifier = object.new_verifier ?? "";
+    return message;
+  },
+};
+
+function createBaseMsgSetVerifierResponse(): MsgSetVerifierResponse {
+  return {};
+}
+
+export const MsgSetVerifierResponse = {
+  $type: "flux.strategy.v1beta1.MsgSetVerifierResponse" as const,
+
+  encode(_: MsgSetVerifierResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgSetVerifierResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgSetVerifierResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgSetVerifierResponse {
+    return {};
+  },
+
+  toJSON(_: MsgSetVerifierResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<MsgSetVerifierResponse>): MsgSetVerifierResponse {
+    return MsgSetVerifierResponse.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<MsgSetVerifierResponse>): MsgSetVerifierResponse {
+    const message = createBaseMsgSetVerifierResponse();
+    return message;
+  },
+};
+
 export interface Msg {
   ConfigStrategy(request: DeepPartial<MsgConfigStrategy>, metadata?: grpc.Metadata): Promise<MsgConfigStrategyResponse>;
   TriggerStrategies(
     request: DeepPartial<MsgTriggerStrategies>,
     metadata?: grpc.Metadata,
   ): Promise<MsgTriggerStrategiesResponse>;
+  VerifyStrategy(request: DeepPartial<MsgVerifyStrategy>, metadata?: grpc.Metadata): Promise<MsgVerifyStrategyResponse>;
+  SetVerifier(request: DeepPartial<MsgSetVerifier>, metadata?: grpc.Metadata): Promise<MsgSetVerifierResponse>;
 }
 
 export class MsgClientImpl implements Msg {
@@ -600,6 +928,8 @@ export class MsgClientImpl implements Msg {
     this.rpc = rpc;
     this.ConfigStrategy = this.ConfigStrategy.bind(this);
     this.TriggerStrategies = this.TriggerStrategies.bind(this);
+    this.VerifyStrategy = this.VerifyStrategy.bind(this);
+    this.SetVerifier = this.SetVerifier.bind(this);
   }
 
   ConfigStrategy(
@@ -614,6 +944,17 @@ export class MsgClientImpl implements Msg {
     metadata?: grpc.Metadata,
   ): Promise<MsgTriggerStrategiesResponse> {
     return this.rpc.unary(MsgTriggerStrategiesDesc, MsgTriggerStrategies.fromPartial(request), metadata);
+  }
+
+  VerifyStrategy(
+    request: DeepPartial<MsgVerifyStrategy>,
+    metadata?: grpc.Metadata,
+  ): Promise<MsgVerifyStrategyResponse> {
+    return this.rpc.unary(MsgVerifyStrategyDesc, MsgVerifyStrategy.fromPartial(request), metadata);
+  }
+
+  SetVerifier(request: DeepPartial<MsgSetVerifier>, metadata?: grpc.Metadata): Promise<MsgSetVerifierResponse> {
+    return this.rpc.unary(MsgSetVerifierDesc, MsgSetVerifier.fromPartial(request), metadata);
   }
 }
 
@@ -655,6 +996,52 @@ export const MsgTriggerStrategiesDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = MsgTriggerStrategiesResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const MsgVerifyStrategyDesc: UnaryMethodDefinitionish = {
+  methodName: "VerifyStrategy",
+  service: MsgDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return MsgVerifyStrategy.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = MsgVerifyStrategyResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const MsgSetVerifierDesc: UnaryMethodDefinitionish = {
+  methodName: "SetVerifier",
+  service: MsgDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return MsgSetVerifier.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = MsgSetVerifierResponse.decode(data);
       return {
         ...value,
         toObject() {
