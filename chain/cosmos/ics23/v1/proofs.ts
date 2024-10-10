@@ -334,6 +334,7 @@ export interface InnerSpec {
   child_order: number[];
   child_size: number;
   min_prefix_length: number;
+  /** the max prefix length must be less than the minimum prefix length + child size */
   max_prefix_length: number;
   /** empty child is the prehash image that is used when one child is nil (eg. 20 bytes of 0) */
   empty_child: Uint8Array;
