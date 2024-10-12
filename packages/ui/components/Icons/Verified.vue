@@ -5,7 +5,7 @@
     focusable="false"
     aria-hidden="true"
     viewBox="0 0 24 24"
-    fill="currentColor"
+    fill="#60a5fa"
   >
     <rect x="5" y="5" width="14" height="14" fill="white"></rect>
     <path
