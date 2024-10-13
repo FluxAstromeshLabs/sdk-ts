@@ -13,6 +13,8 @@ import * as ethcrypto from 'eth-crypto'
 import { ChainGrpcClient } from '../../../../packages/client/chain/ChainGrpcClient'
 import { getEIP712SignBytes } from '../../../../eip712/eip712'
 import {
+  BigNumber,
+  ChainGrpcSVMQuery,
   ChainGrpcTxService,
   getSvmAddressFromLux,
   simulate,
@@ -24,6 +26,10 @@ import * as astromeshquery from '../../../../chain/flux/astromesh/v1beta1/query'
 import * as astromeshtypes from '../../../../chain/flux/astromesh/v1beta1/tx'
 import * as web3 from '@solana/web3.js'
 import * as txservice from '../../../../chain/cosmos/tx/v1beta1/service'
+import keccak256 from 'keccak256'
+import * as svmservice from '../../../../chain/flux/svm/v1beta1/query';
+import { Ed25519, Ed25519Keypair } from '@cosmjs/crypto'
+import { Coin } from '../../../../chain/cosmos/base/v1beta1/coin'
 
 async function broadcastMsg(
   txClient: ChainGrpcTxService,
@@ -61,14 +67,14 @@ async function broadcastMsg(
         public_key: senderPubkeyAny,
         mode_info: {
           single: {
-            mode: signingtypes.SignMode.SIGN_MODE_LEGACY_AMINO_JSON
+            mode: signingtypes.SignMode.SIGN_MODE_DIRECT, // TODO: Revert to SignMode legacy json once EIP712 issues fixed
           }
         },
         sequence: senderAccSeq.toString()
       }
     ],
     fee: {
-      amount: [{ denom: 'lux', amount: '100000000000000' }],
+      amount: [{ denom: 'lux', amount: (new BigNumber(gasLimit)).multipliedBy(500_000_000).toString() }],
       gas_limit: gasLimit.toString(),
       payer: '',
       granter: ''
@@ -84,26 +90,14 @@ async function broadcastMsg(
     account_number: senderAccNum.toString()
   }
 
-  let eip712SignDoc = getEIP712SignBytes(signDoc, [msgJSON], '')
-  const msgHash = Buffer.from(getMessage(eip712SignDoc, true, { verifyDomain: false }))
-
+  const signBytes = txtypes.SignDoc.encode(signDoc).finish()
+  const msgHash = Buffer.from(keccak256(Buffer.from(signBytes)))
   const senderSign = ethutil.ecsign(msgHash, Buffer.from(senderPrivKey.key))
   const senderCosmosSig = Uint8Array.from(
     Buffer.concat([senderSign.r, senderSign.s, Buffer.from([0])])
   )
 
   // broadcast tx
-  const extOpts: chaintypes.ExtensionOptionsWeb3Tx = {
-    typedDataChainID: '1',
-    feePayer: '',
-    feePayerSig: Uint8Array.from([])
-  }
-  const extOptsAny: anytypes.Any = {
-    type_url: '/' + chaintypes.ExtensionOptionsWeb3Tx.$type,
-    value: chaintypes.ExtensionOptionsWeb3Tx.encode(extOpts).finish()
-  }
-  txBody.extension_options = [extOptsAny]
-
   const txRaw: txtypes.TxRaw = {
     body_bytes: txtypes.TxBody.encode(txBody).finish(),
     auth_info_bytes: txtypes.AuthInfo.encode(authInfo).finish(),
@@ -114,6 +108,17 @@ async function broadcastMsg(
     txtypes.TxRaw.encode(txRaw).finish(),
     txservice.BroadcastMode.BROADCAST_MODE_SYNC
   )
+}
+
+async function getSvmAccountLink(svmClient: ChainGrpcSVMQuery, cosmosAddr: string): Promise<svmservice.AccountLinkResponse | undefined> {
+  try {
+    return await svmClient.getAccountLink(cosmosAddr);
+  } catch (e: any) {
+    if (e.toString().includes("account link not found")) {
+      return undefined;
+    }
+    throw e;
+  }
 }
 
 const main = async () => {
@@ -139,57 +144,37 @@ const main = async () => {
   }
 
   const senderAddr = bech32.encode('lux', bech32.toWords(wallet.getAddress()))
-  // fetch account num, seq
   const senderInfo = await authClient.getAccount(senderAddr)
   let senderAccNum = parseInt(senderInfo.info!.account_number!)
   let senderAccSeq = parseInt(senderInfo.info!.sequence!)
 
-  console.log('sender addr:', senderAddr)
-  let senderSvmAccount = getSvmAddressFromLux(senderAddr)
-  let needCreateAccount = false
-  try {
-    console.log(`checking if ${senderSvmAccount.toBase58()} is created or not...`)
-    let res = await svmClient.account({ address: senderSvmAccount.toString() })
-    console.log('sender svm account created!')
-  } catch (e: any) {
-    if (!e.toString().includes('Account not existed')) {
-      throw e
-    }
-    needCreateAccount = true
-  }
+  let accountLink = await getSvmAccountLink(svmClient, senderAddr);
+  if (!accountLink) {
+    const senderSvmKeypair = web3.Keypair.generate();
+    let keypair = new Ed25519Keypair(Buffer.from(senderSvmKeypair.secretKey.buffer.slice(0, 32)), senderSvmKeypair.publicKey.toBuffer());
+    let linkSig = await Ed25519.createSignature(wallet.getAddress(), keypair);
 
-  // create account
-  if (needCreateAccount) {
-    console.log('creating sender svm account...')
+    let msg = svmtx.MsgLinkSVMAccount.create({
+      sender: senderAddr,
+      svm_pubkey: senderSvmKeypair.publicKey.toBuffer(),
+      svm_signature: linkSig,
+      amount: Coin.create({
+        denom: 'lux',
+        amount: '1000000000000', // Example amount
+      }),
+    });
 
-    let ix = web3.SystemProgram.createAccount({
-      fromPubkey: senderSvmAccount,
-      newAccountPubkey: senderSvmAccount,
-      lamports: 0,
-      space: 0,
-      programId: web3.SystemProgram.programId
-    })
-
-    let initAccountsTx = new web3.Transaction().add(ix)
-    initAccountsTx.feePayer = senderSvmAccount
-
-    const msgCreateAcc: svmtx.MsgTransaction = toFluxSvmTransaction(
-      senderAddr,
-      initAccountsTx,
-      1000000
-    )
-
-    await broadcastMsg(
+    let linkRes = await broadcastMsg(
       txClient,
       senderPubkeyAny,
       senderAccNum,
       senderAccSeq,
-      1000000,
-      svmtx.MsgTransaction,
-      msgCreateAcc,
+      1000_000,
+      astromeshtypes.MsgAstroTransfer,
+      msg,
       senderPrivKey
     )
-
+    console.log('link account:', linkRes)
     senderAccSeq++
   }
 
@@ -207,7 +192,7 @@ const main = async () => {
     }
   })
 
-  let transferSvmRes = await broadcastMsg(
+  let transferRes = await broadcastMsg(
     txClient,
     senderPubkeyAny,
     senderAccNum,
@@ -217,12 +202,12 @@ const main = async () => {
     transferEvmMsg,
     senderPrivKey
   )
-  console.log('transfer EVM tx broadcast result:', transferSvmRes)
+  console.log('transfer EVM tx broadcast result:', transferRes)
   senderAccSeq++
 
   const msg: strategytypes.MsgTriggerStrategies = {
     sender: senderAddr,
-    ids: ['DA79495F21D95821DEF3D3293F9967CF97C2470AE80E683D3998E4C90759665C'], // Update strategy ID here
+    ids: ['C034A7B709C7656B453E4638026B4C112A2674DE88CFB8CAD9A6874B931B0326'], // Update strategy ID here
     inputs: [
       Uint8Array.from(
         Buffer.from(
@@ -230,7 +215,18 @@ const main = async () => {
         )
       )
     ],
-    queries: []
+    queries: [
+      {
+        instructions: [{
+          plane: Plane.COSMOS,
+          action: astromeshquery.QueryAction.COSMOS_QUERY,
+          address: new Uint8Array(),
+          input: [
+            new Uint8Array(Buffer.from(`/flux/svm/v1beta1/account_link/cosmos/${senderAddr}`)),
+          ]
+        }]
+      }
+    ]
   }
 
   const msgAny: anytypes.Any = {
