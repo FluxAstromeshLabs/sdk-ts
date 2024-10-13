@@ -15,8 +15,10 @@ import * as codectypemap from '../../../../chain/codec_type_map.json'
 import * as ethcrypto from 'eth-crypto'
 import { ChainGrpcClient } from '../../../../packages/client/chain/ChainGrpcClient'
 import { getEIP712SignBytes } from '../../../../eip712/eip712'
-import { simulate } from '../../../../packages'
+import { BigNumber, simulate } from '../../../../packages'
 import { StrategyType } from '../../../../chain/flux/strategy/v1beta1/strategy'
+import { Plane } from '../../../../chain/flux/astromesh/v1beta1/tx'
+import keccak256 from 'keccak256'
 
 const main = async () => {
   const chainGrpcClient = new ChainGrpcClient('http://localhost:10337')
@@ -57,7 +59,7 @@ const main = async () => {
     metadata: {
       name: 'Amm wizard',
       description:
-        'Abstracting out swaps and unleashing arbitrage opportunities. It supports basic swaps as well as arbitrage across pools of the same pair',
+        'Versatile solver designed to simplify swap and arbitrage operations across all Automated Market Makers (AMMs) in all Planes including Uniswap on EVM, Astroport on WasmVM and Raydium on SVM.\n\ndex_name options: wasm astroport, evm uniswap, svm raydium\npair options: btc-usdt, eth-usdt, sol-usdt',
       logo: '',
       website: 'https://www.astromesh.xyz',
       type: StrategyType.INTENT_SOLVER,
@@ -66,7 +68,27 @@ const main = async () => {
       cron_gas_price: '',
       cron_input: '',
       cron_interval: '0',
-      aggregated_query_keys: []
+      aggregated_query_keys: [],
+      supported_apps: [
+        {
+          name: 'Uniswap',
+          contract_address: 'e2f81b30e1d47dffdbb6ab41ec5f0572705b026d',
+          plane: Plane.EVM,
+          verified: false,
+        },
+        {
+          name: 'Astroport',
+          contract_address: 'lux14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9sm3tpfk',
+          plane: Plane.WASM,
+          verified: false,
+        },
+        {
+          name: 'Raydium',
+          contract_address: '6W19gt519Ruyw3s4BiKtQXvxETzPbptjgfgB5gMgrfAf',
+          plane: Plane.SVM,
+          verified: false,
+        },
+      ],
     }
   }
 
@@ -98,14 +120,14 @@ const main = async () => {
         public_key: senderPubkeyAny,
         mode_info: {
           single: {
-            mode: signingtypes.SignMode.SIGN_MODE_LEGACY_AMINO_JSON
+            mode: signingtypes.SignMode.SIGN_MODE_DIRECT,
           }
         },
         sequence: senderAccSeq
       }
     ],
     fee: {
-      amount: [{ denom: 'lux', amount: '100000000000000' }],
+      amount: [{ denom: 'lux', amount: (new BigNumber(gasLimit)).multipliedBy(500_000_000).toString() }],
       gas_limit: gasLimit.toString(),
       payer: '',
       granter: ''
@@ -121,26 +143,14 @@ const main = async () => {
     account_number: senderAccNum
   }
 
-  let eip712SignDoc = getEIP712SignBytes(signDoc, [msgJSON], '')
-  const msgHash = Buffer.from(getMessage(eip712SignDoc, true, { verifyDomain: false }))
-
+  const signBytes = txtypes.SignDoc.encode(signDoc).finish()
+  const msgHash = Buffer.from(keccak256(Buffer.from(signBytes)))
   const senderSign = ethutil.ecsign(msgHash, Buffer.from(senderPrivKey.key))
   const senderCosmosSig = Uint8Array.from(
     Buffer.concat([senderSign.r, senderSign.s, Buffer.from([0])])
   )
 
   // broadcast tx
-  const extOpts: chaintypes.ExtensionOptionsWeb3Tx = {
-    typedDataChainID: '1',
-    feePayer: '',
-    feePayerSig: Uint8Array.from([])
-  }
-  const extOptsAny: anytypes.Any = {
-    type_url: '/' + chaintypes.ExtensionOptionsWeb3Tx.$type,
-    value: chaintypes.ExtensionOptionsWeb3Tx.encode(extOpts).finish()
-  }
-  txBody.extension_options = [extOptsAny]
-
   const txRaw: txtypes.TxRaw = {
     body_bytes: txtypes.TxBody.encode(txBody).finish(),
     auth_info_bytes: txtypes.AuthInfo.encode(authInfo).finish(),
