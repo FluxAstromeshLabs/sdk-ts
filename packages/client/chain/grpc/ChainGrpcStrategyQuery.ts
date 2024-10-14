@@ -22,4 +22,12 @@ export class ChainGrpcStrategyQuery extends BaseGrpc {
     )
     return response
   }
+  async getStrategyVerifier(
+    request: chainFluxStrategyV1beta1Query.GetStrategyVerifierRequest
+  ): Promise<chainFluxStrategyV1beta1Query.GetStrategyVerifierResponse> {
+    const response: chainFluxStrategyV1beta1Query.GetStrategyVerifierResponse = await this.retry(
+      () => this.client.GetStrategyVerifier(request)
+    )
+    return response
+  }
 }
