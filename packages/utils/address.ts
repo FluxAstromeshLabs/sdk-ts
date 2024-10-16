@@ -71,7 +71,7 @@ export const validateEVMAddress = (address: string): boolean => {
   try {
     Address.fromString(address.toString()).toBuffer()
     return true
-  } catch (e) {
+  } catch {
     return false
   }
 }
@@ -79,7 +79,7 @@ export const validateSVMAddress = (address: string): boolean => {
   try {
     new PublicKey(address)
     return true
-  } catch (e) {
+  } catch {
     return false
   }
 }
@@ -87,8 +87,7 @@ export const validateWASMAddress = (address: string): boolean => {
   try {
     bech32.fromWords(bech32.decode(address).words)
     return true
-  } catch (e) {
-    console.log(e)
+  } catch {
     return false
   }
 }
