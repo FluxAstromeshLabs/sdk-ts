@@ -63,3 +63,32 @@ export const getFluxAddressFromHex = (hex: string): string => {
   }
   return bech32.encode('lux', bech32.toWords(Buffer.from(hex, 'hex')))
 }
+
+export const validateEVMAddress = (address: string): boolean => {
+  if (!address.startsWith('0x') || address.length !== 42) {
+    return false
+  }
+  try {
+    Address.fromString(address.toString()).toBuffer()
+    return true
+  } catch (e) {
+    return false
+  }
+}
+export const validateSVMAddress = (address: string): boolean => {
+  try {
+    new PublicKey(address)
+    return true
+  } catch (e) {
+    return false
+  }
+}
+export const validateWASMAddress = (address: string): boolean => {
+  try {
+    bech32.fromWords(bech32.decode(address).words)
+    return true
+  } catch (e) {
+    console.log(e)
+    return false
+  }
+}
