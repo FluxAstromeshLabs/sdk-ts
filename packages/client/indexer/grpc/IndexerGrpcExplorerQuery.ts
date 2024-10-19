@@ -86,4 +86,24 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
     )
     return response
   }
+
+  async listStrategyTriggersById(
+    request: Partial<explorerQuery.ListStrategyTriggerByIdRequest>
+  ): Promise<explorerQuery.ListStrategyTriggerByIdResponse> {
+    const response: explorerQuery.ListStrategyTriggerByIdResponse = await this.retry(() =>
+      this.client.ListStrategyTriggersById(request)
+    )
+    return response
+  }
+  async streamStrategyTriggers(
+    id: string[],
+    callback: (value: explorerQuery.StreamStrategyTriggerResponse) => void,
+    onEndCallback?: (err: any) => void,
+    onStatusCallback?: () => void
+  ): Promise<Subscription> {
+    const stream = this.client.StreamStrategyTriggers({
+      id
+    })
+    return stream.subscribe(callback, onEndCallback, onStatusCallback)
+  }
 }

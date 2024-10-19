@@ -9,7 +9,7 @@ export const localhostEndpoints: NetworkEndpoints = {
 export const devnetEndpoints: NetworkEndpoints = {
   name: 'Devnet',
   id: Network.Devnet,
-  lcd: 'https://devnet.lcd.fluxnft.space',
-  tm: 'https://devnet.tm.fluxnft.space',
-  api: 'http://devnet.api.fluxnft.space'
+  lcd: 'https://devnet.lcd.astromesh.xyz ',
+  tm: 'https://devnet.tm.astromesh.xyz',
+  api: 'https://devnet.api.astromesh.xyz'
 }

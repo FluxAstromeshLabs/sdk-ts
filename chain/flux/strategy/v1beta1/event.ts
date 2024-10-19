@@ -36,6 +36,7 @@ export interface StrategyTriggerEvent {
   fee: string;
   height: string;
   time: string;
+  success: boolean;
 }
 
 function createBaseStrategyUpdateEvent(): StrategyUpdateEvent {
@@ -217,6 +218,7 @@ function createBaseStrategyTriggerEvent(): StrategyTriggerEvent {
     fee: "",
     height: "0",
     time: "0",
+    success: false,
   };
 }
 
@@ -253,6 +255,9 @@ export const StrategyTriggerEvent = {
     }
     if (message.time !== "0") {
       writer.uint32(80).int64(message.time);
+    }
+    if (message.success !== false) {
+      writer.uint32(88).bool(message.success);
     }
     return writer;
   },
@@ -334,6 +339,13 @@ export const StrategyTriggerEvent = {
 
           message.time = longToString(reader.int64() as Long);
           continue;
+        case 11:
+          if (tag !== 88) {
+            break;
+          }
+
+          message.success = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -357,6 +369,7 @@ export const StrategyTriggerEvent = {
       fee: isSet(object.fee) ? globalThis.String(object.fee) : "",
       height: isSet(object.height) ? globalThis.String(object.height) : "0",
       time: isSet(object.time) ? globalThis.String(object.time) : "0",
+      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
     };
   },
 
@@ -392,6 +405,9 @@ export const StrategyTriggerEvent = {
     if (message.time !== undefined) {
       obj.time = message.time;
     }
+    if (message.success !== undefined) {
+      obj.success = message.success;
+    }
     return obj;
   },
 
@@ -410,6 +426,7 @@ export const StrategyTriggerEvent = {
     message.fee = object.fee ?? "";
     message.height = object.height ?? "0";
     message.time = object.time ?? "0";
+    message.success = object.success ?? false;
     return message;
   },
 };

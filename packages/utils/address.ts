@@ -23,8 +23,8 @@ export const getFluxAddress = (ethAddress: string): string => {
  * @param cosmosAddressBuffer string
  * @returns string
  */
-export const getSvmAddress = (cosmosAddressBuffer: Buffer): PublicKey => {
-  return new PublicKey(keccak256(cosmosAddressBuffer))
+export const getSvmAddress = (cosmosAddressBuffer: Buffer | Uint8Array | string): PublicKey => {
+  return new PublicKey(cosmosAddressBuffer)
 }
 
 /**
@@ -62,4 +62,32 @@ export const getFluxAddressFromHex = (hex: string): string => {
     return hex
   }
   return bech32.encode('lux', bech32.toWords(Buffer.from(hex, 'hex')))
+}
+
+export const validateEVMAddress = (address: string): boolean => {
+  if (!address.startsWith('0x') || address.length !== 42) {
+    return false
+  }
+  try {
+    Address.fromString(address.toString()).toBuffer()
+    return true
+  } catch {
+    return false
+  }
+}
+export const validateSVMAddress = (address: string): boolean => {
+  try {
+    new PublicKey(address)
+    return true
+  } catch {
+    return false
+  }
+}
+export const validateWASMAddress = (address: string): boolean => {
+  try {
+    bech32.fromWords(bech32.decode(address).words)
+    return true
+  } catch {
+    return false
+  }
 }

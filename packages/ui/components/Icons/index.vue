@@ -39,7 +39,7 @@ const dynamicComponent = defineAsyncComponent<Record<string, unknown>>(() => {
     try {
       return comps[`./${name}.vue`]().then((component: any) => resolve(component.default))
     } catch (e) {
-      console.log({ e, name })
+      return comps[`./Default.vue`]().then((component: any) => resolve(component.default))
     }
   })
 })

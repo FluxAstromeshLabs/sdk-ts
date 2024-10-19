@@ -3,9 +3,11 @@ import { ref, reactive, computed, onBeforeMount, onBeforeUpdate } from 'vue'
 
 export default {
   props: {
+    //page value
     modelValue: {
       type: Number
     },
+    //total number of pages
     pageCount: {
       type: Number,
       required: true
@@ -21,6 +23,7 @@ export default {
       type: Function,
       default: () => {}
     },
+    //number of pages to display
     pageRange: {
       type: Number,
       default: 3

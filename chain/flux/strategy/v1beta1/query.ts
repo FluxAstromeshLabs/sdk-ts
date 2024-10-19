@@ -8,6 +8,7 @@
 import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
 import _m0 from "protobufjs/minimal";
+import { Plane, planeFromJSON, planeToJSON } from "../../astromesh/v1beta1/tx";
 import { Strategy, StrategyType, strategyTypeFromJSON, strategyTypeToJSON } from "./strategy";
 
 export interface GetStrategyByIdRequest {
@@ -31,6 +32,15 @@ export interface ListStrategiesByTypeRequest {
 
 export interface ListStrategiesResponse {
   strategies: Strategy[];
+}
+
+export interface GetStrategyVerifierRequest {
+  plane: Plane;
+  contract_address: string;
+}
+
+export interface GetStrategyVerifierResponse {
+  verifier: string;
 }
 
 function createBaseGetStrategyByIdRequest(): GetStrategyByIdRequest {
@@ -379,6 +389,141 @@ export const ListStrategiesResponse = {
   },
 };
 
+function createBaseGetStrategyVerifierRequest(): GetStrategyVerifierRequest {
+  return { plane: 0, contract_address: "" };
+}
+
+export const GetStrategyVerifierRequest = {
+  $type: "flux.strategy.v1beta1.GetStrategyVerifierRequest" as const,
+
+  encode(message: GetStrategyVerifierRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.plane !== 0) {
+      writer.uint32(8).int32(message.plane);
+    }
+    if (message.contract_address !== "") {
+      writer.uint32(18).string(message.contract_address);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetStrategyVerifierRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetStrategyVerifierRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.plane = reader.int32() as any;
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.contract_address = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetStrategyVerifierRequest {
+    return {
+      plane: isSet(object.plane) ? planeFromJSON(object.plane) : 0,
+      contract_address: isSet(object.contract_address) ? globalThis.String(object.contract_address) : "",
+    };
+  },
+
+  toJSON(message: GetStrategyVerifierRequest): unknown {
+    const obj: any = {};
+    if (message.plane !== undefined) {
+      obj.plane = planeToJSON(message.plane);
+    }
+    if (message.contract_address !== undefined) {
+      obj.contract_address = message.contract_address;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GetStrategyVerifierRequest>): GetStrategyVerifierRequest {
+    return GetStrategyVerifierRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GetStrategyVerifierRequest>): GetStrategyVerifierRequest {
+    const message = createBaseGetStrategyVerifierRequest();
+    message.plane = object.plane ?? 0;
+    message.contract_address = object.contract_address ?? "";
+    return message;
+  },
+};
+
+function createBaseGetStrategyVerifierResponse(): GetStrategyVerifierResponse {
+  return { verifier: "" };
+}
+
+export const GetStrategyVerifierResponse = {
+  $type: "flux.strategy.v1beta1.GetStrategyVerifierResponse" as const,
+
+  encode(message: GetStrategyVerifierResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.verifier !== "") {
+      writer.uint32(10).string(message.verifier);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetStrategyVerifierResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetStrategyVerifierResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.verifier = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetStrategyVerifierResponse {
+    return { verifier: isSet(object.verifier) ? globalThis.String(object.verifier) : "" };
+  },
+
+  toJSON(message: GetStrategyVerifierResponse): unknown {
+    const obj: any = {};
+    if (message.verifier !== undefined) {
+      obj.verifier = message.verifier;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GetStrategyVerifierResponse>): GetStrategyVerifierResponse {
+    return GetStrategyVerifierResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GetStrategyVerifierResponse>): GetStrategyVerifierResponse {
+    const message = createBaseGetStrategyVerifierResponse();
+    message.verifier = object.verifier ?? "";
+    return message;
+  },
+};
+
 export interface Query {
   GetStrategyById(
     request: DeepPartial<GetStrategyByIdRequest>,
@@ -396,6 +541,10 @@ export interface Query {
     request: DeepPartial<ListStrategiesByTypeRequest>,
     metadata?: grpc.Metadata,
   ): Promise<ListStrategiesResponse>;
+  GetStrategyVerifier(
+    request: DeepPartial<GetStrategyVerifierRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetStrategyVerifierResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -407,6 +556,7 @@ export class QueryClientImpl implements Query {
     this.ListStrategies = this.ListStrategies.bind(this);
     this.ListStrategiesByOwner = this.ListStrategiesByOwner.bind(this);
     this.ListStrategiesByType = this.ListStrategiesByType.bind(this);
+    this.GetStrategyVerifier = this.GetStrategyVerifier.bind(this);
   }
 
   GetStrategyById(
@@ -435,6 +585,13 @@ export class QueryClientImpl implements Query {
     metadata?: grpc.Metadata,
   ): Promise<ListStrategiesResponse> {
     return this.rpc.unary(QueryListStrategiesByTypeDesc, ListStrategiesByTypeRequest.fromPartial(request), metadata);
+  }
+
+  GetStrategyVerifier(
+    request: DeepPartial<GetStrategyVerifierRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetStrategyVerifierResponse> {
+    return this.rpc.unary(QueryGetStrategyVerifierDesc, GetStrategyVerifierRequest.fromPartial(request), metadata);
   }
 }
 
@@ -522,6 +679,29 @@ export const QueryListStrategiesByTypeDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = ListStrategiesResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryGetStrategyVerifierDesc: UnaryMethodDefinitionish = {
+  methodName: "GetStrategyVerifier",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetStrategyVerifierRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetStrategyVerifierResponse.decode(data);
       return {
         ...value,
         toObject() {

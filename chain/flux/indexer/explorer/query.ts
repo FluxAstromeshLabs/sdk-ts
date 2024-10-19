@@ -56,6 +56,12 @@ export interface TypeFilter {
   value: StrategyType;
 }
 
+export interface SupportedAppFilter {
+  plane: Plane;
+  contract_address: string;
+  verified: boolean | undefined;
+}
+
 /**
  * ListStrategiesRequest is a query type to list out existing on-chain strategies
  * with some filters For unused fields, just leave them empty
@@ -74,6 +80,8 @@ export interface ListStrategiesRequest {
     | undefined;
   /** tags to filter */
   tags: string[];
+  /** filter by supported app (filter single app for now) */
+  supported_app: SupportedAppFilter | undefined;
 }
 
 export interface ListStrategiesResponse {
@@ -106,6 +114,8 @@ export interface ListStrategiesByOwnerRequest {
     | undefined;
   /** tags to filter */
   tags: string[];
+  /** filter by supported app (filter single app for now) */
+  supported_app: SupportedAppFilter | undefined;
 }
 
 export interface Pool {
@@ -158,6 +168,8 @@ export interface ListStrategyTriggerByIdRequest {
   from_time: string;
   /** End time to filter */
   to_time: string;
+  /** Filter only succeeded/failed triggers */
+  success: boolean | undefined;
 }
 
 export interface ListStrategyTriggerByIdResponse {
@@ -185,6 +197,8 @@ export interface StreamStrategiesRequest {
     | undefined;
   /** tags to filter */
   tags: string[];
+  /** filter by supported app (filter single app for now) */
+  supported_app: SupportedAppFilter | undefined;
 }
 
 export interface StreamStrategiesResponse {
@@ -773,8 +787,99 @@ export const TypeFilter = {
   },
 };
 
+function createBaseSupportedAppFilter(): SupportedAppFilter {
+  return { plane: 0, contract_address: "", verified: undefined };
+}
+
+export const SupportedAppFilter = {
+  $type: "flux.indexer.explorer.SupportedAppFilter" as const,
+
+  encode(message: SupportedAppFilter, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.plane !== 0) {
+      writer.uint32(8).int32(message.plane);
+    }
+    if (message.contract_address !== "") {
+      writer.uint32(18).string(message.contract_address);
+    }
+    if (message.verified !== undefined) {
+      BoolValue.encode({ value: message.verified! }, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): SupportedAppFilter {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSupportedAppFilter();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.plane = reader.int32() as any;
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.contract_address = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.verified = BoolValue.decode(reader, reader.uint32()).value;
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SupportedAppFilter {
+    return {
+      plane: isSet(object.plane) ? planeFromJSON(object.plane) : 0,
+      contract_address: isSet(object.contract_address) ? globalThis.String(object.contract_address) : "",
+      verified: isSet(object.verified) ? Boolean(object.verified) : undefined,
+    };
+  },
+
+  toJSON(message: SupportedAppFilter): unknown {
+    const obj: any = {};
+    if (message.plane !== undefined) {
+      obj.plane = planeToJSON(message.plane);
+    }
+    if (message.contract_address !== undefined) {
+      obj.contract_address = message.contract_address;
+    }
+    if (message.verified !== undefined) {
+      obj.verified = message.verified;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<SupportedAppFilter>): SupportedAppFilter {
+    return SupportedAppFilter.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<SupportedAppFilter>): SupportedAppFilter {
+    const message = createBaseSupportedAppFilter();
+    message.plane = object.plane ?? 0;
+    message.contract_address = object.contract_address ?? "";
+    message.verified = object.verified ?? undefined;
+    return message;
+  },
+};
+
 function createBaseListStrategiesRequest(): ListStrategiesRequest {
-  return { pagination: undefined, type: undefined, id: "", enabled: undefined, tags: [] };
+  return { pagination: undefined, type: undefined, id: "", enabled: undefined, tags: [], supported_app: undefined };
 }
 
 export const ListStrategiesRequest = {
@@ -795,6 +900,9 @@ export const ListStrategiesRequest = {
     }
     for (const v of message.tags) {
       writer.uint32(42).string(v!);
+    }
+    if (message.supported_app !== undefined) {
+      SupportedAppFilter.encode(message.supported_app, writer.uint32(50).fork()).ldelim();
     }
     return writer;
   },
@@ -841,6 +949,13 @@ export const ListStrategiesRequest = {
 
           message.tags.push(reader.string());
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.supported_app = SupportedAppFilter.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -857,6 +972,7 @@ export const ListStrategiesRequest = {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
       enabled: isSet(object.enabled) ? Boolean(object.enabled) : undefined,
       tags: globalThis.Array.isArray(object?.tags) ? object.tags.map((e: any) => globalThis.String(e)) : [],
+      supported_app: isSet(object.supported_app) ? SupportedAppFilter.fromJSON(object.supported_app) : undefined,
     };
   },
 
@@ -877,6 +993,9 @@ export const ListStrategiesRequest = {
     if (message.tags?.length) {
       obj.tags = message.tags;
     }
+    if (message.supported_app !== undefined) {
+      obj.supported_app = SupportedAppFilter.toJSON(message.supported_app);
+    }
     return obj;
   },
 
@@ -894,6 +1013,9 @@ export const ListStrategiesRequest = {
     message.id = object.id ?? "";
     message.enabled = object.enabled ?? undefined;
     message.tags = object.tags?.map((e) => e) || [];
+    message.supported_app = (object.supported_app !== undefined && object.supported_app !== null)
+      ? SupportedAppFilter.fromPartial(object.supported_app)
+      : undefined;
     return message;
   },
 };
@@ -979,7 +1101,7 @@ export const ListStrategiesResponse = {
 };
 
 function createBaseListStrategiesByOwnerRequest(): ListStrategiesByOwnerRequest {
-  return { pagination: undefined, owner: "", type: undefined, enabled: undefined, tags: [] };
+  return { pagination: undefined, owner: "", type: undefined, enabled: undefined, tags: [], supported_app: undefined };
 }
 
 export const ListStrategiesByOwnerRequest = {
@@ -1000,6 +1122,9 @@ export const ListStrategiesByOwnerRequest = {
     }
     for (const v of message.tags) {
       writer.uint32(42).string(v!);
+    }
+    if (message.supported_app !== undefined) {
+      SupportedAppFilter.encode(message.supported_app, writer.uint32(50).fork()).ldelim();
     }
     return writer;
   },
@@ -1046,6 +1171,13 @@ export const ListStrategiesByOwnerRequest = {
 
           message.tags.push(reader.string());
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.supported_app = SupportedAppFilter.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1062,6 +1194,7 @@ export const ListStrategiesByOwnerRequest = {
       type: isSet(object.type) ? TypeFilter.fromJSON(object.type) : undefined,
       enabled: isSet(object.enabled) ? Boolean(object.enabled) : undefined,
       tags: globalThis.Array.isArray(object?.tags) ? object.tags.map((e: any) => globalThis.String(e)) : [],
+      supported_app: isSet(object.supported_app) ? SupportedAppFilter.fromJSON(object.supported_app) : undefined,
     };
   },
 
@@ -1082,6 +1215,9 @@ export const ListStrategiesByOwnerRequest = {
     if (message.tags?.length) {
       obj.tags = message.tags;
     }
+    if (message.supported_app !== undefined) {
+      obj.supported_app = SupportedAppFilter.toJSON(message.supported_app);
+    }
     return obj;
   },
 
@@ -1099,6 +1235,9 @@ export const ListStrategiesByOwnerRequest = {
       : undefined;
     message.enabled = object.enabled ?? undefined;
     message.tags = object.tags?.map((e) => e) || [];
+    message.supported_app = (object.supported_app !== undefined && object.supported_app !== null)
+      ? SupportedAppFilter.fromPartial(object.supported_app)
+      : undefined;
     return message;
   },
 };
@@ -1567,7 +1706,7 @@ export const StreamBalanceResponse = {
 };
 
 function createBaseListStrategyTriggerByIdRequest(): ListStrategyTriggerByIdRequest {
-  return { pagination: undefined, id: "", from_time: "0", to_time: "0" };
+  return { pagination: undefined, id: "", from_time: "0", to_time: "0", success: undefined };
 }
 
 export const ListStrategyTriggerByIdRequest = {
@@ -1585,6 +1724,9 @@ export const ListStrategyTriggerByIdRequest = {
     }
     if (message.to_time !== "0") {
       writer.uint32(32).int64(message.to_time);
+    }
+    if (message.success !== undefined) {
+      BoolValue.encode({ value: message.success! }, writer.uint32(42).fork()).ldelim();
     }
     return writer;
   },
@@ -1624,6 +1766,13 @@ export const ListStrategyTriggerByIdRequest = {
 
           message.to_time = longToString(reader.int64() as Long);
           continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.success = BoolValue.decode(reader, reader.uint32()).value;
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1639,6 +1788,7 @@ export const ListStrategyTriggerByIdRequest = {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
       from_time: isSet(object.from_time) ? globalThis.String(object.from_time) : "0",
       to_time: isSet(object.to_time) ? globalThis.String(object.to_time) : "0",
+      success: isSet(object.success) ? Boolean(object.success) : undefined,
     };
   },
 
@@ -1656,6 +1806,9 @@ export const ListStrategyTriggerByIdRequest = {
     if (message.to_time !== undefined) {
       obj.to_time = message.to_time;
     }
+    if (message.success !== undefined) {
+      obj.success = message.success;
+    }
     return obj;
   },
 
@@ -1670,6 +1823,7 @@ export const ListStrategyTriggerByIdRequest = {
     message.id = object.id ?? "";
     message.from_time = object.from_time ?? "0";
     message.to_time = object.to_time ?? "0";
+    message.success = object.success ?? undefined;
     return message;
   },
 };
@@ -1907,7 +2061,7 @@ export const StreamStrategyTriggerResponse = {
 };
 
 function createBaseStreamStrategiesRequest(): StreamStrategiesRequest {
-  return { owner: "", type: undefined, tags: [] };
+  return { owner: "", type: undefined, tags: [], supported_app: undefined };
 }
 
 export const StreamStrategiesRequest = {
@@ -1922,6 +2076,9 @@ export const StreamStrategiesRequest = {
     }
     for (const v of message.tags) {
       writer.uint32(26).string(v!);
+    }
+    if (message.supported_app !== undefined) {
+      SupportedAppFilter.encode(message.supported_app, writer.uint32(50).fork()).ldelim();
     }
     return writer;
   },
@@ -1954,6 +2111,13 @@ export const StreamStrategiesRequest = {
 
           message.tags.push(reader.string());
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.supported_app = SupportedAppFilter.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1968,6 +2132,7 @@ export const StreamStrategiesRequest = {
       owner: isSet(object.owner) ? globalThis.String(object.owner) : "",
       type: isSet(object.type) ? TypeFilter.fromJSON(object.type) : undefined,
       tags: globalThis.Array.isArray(object?.tags) ? object.tags.map((e: any) => globalThis.String(e)) : [],
+      supported_app: isSet(object.supported_app) ? SupportedAppFilter.fromJSON(object.supported_app) : undefined,
     };
   },
 
@@ -1982,6 +2147,9 @@ export const StreamStrategiesRequest = {
     if (message.tags?.length) {
       obj.tags = message.tags;
     }
+    if (message.supported_app !== undefined) {
+      obj.supported_app = SupportedAppFilter.toJSON(message.supported_app);
+    }
     return obj;
   },
 
@@ -1995,6 +2163,9 @@ export const StreamStrategiesRequest = {
       ? TypeFilter.fromPartial(object.type)
       : undefined;
     message.tags = object.tags?.map((e) => e) || [];
+    message.supported_app = (object.supported_app !== undefined && object.supported_app !== null)
+      ? SupportedAppFilter.fromPartial(object.supported_app)
+      : undefined;
     return message;
   },
 };

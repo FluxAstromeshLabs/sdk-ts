@@ -1,3 +1,4 @@
+import { Window as KeplrWindow } from '@keplr-wallet/types'
 export enum Wallet {
   Keplr = 'keplr',
   Metamask = 'metamask',
@@ -5,9 +6,5 @@ export enum Wallet {
 }
 
 declare global {
-  interface Window {
-    keplr: any
-    ethereum?: any
-    providers: any
-  }
+  interface Window extends KeplrWindow {}
 }
