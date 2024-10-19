@@ -8,6 +8,7 @@ import * as txtypes from '../../../chain/cosmos/tx/v1beta1/tx'
 import * as ethsecp256k1 from '../../../chain/cosmos/crypto/ethsecp256k1/keys'
 import * as signingtypes from '../../../chain/cosmos/tx/signing/v1beta1/signing'
 import * as ethcrypto from 'eth-crypto'
+import * as codectypemap from '../../../chain/codec_type_map.json'
 import { ChainGrpcClient } from '../../../packages/client/chain/ChainGrpcClient'
 import { getEIP712SignBytes } from '../../../eip712/eip712'
 import { simulate } from '../../../packages'
@@ -93,7 +94,7 @@ export class BaseExample {
         value: msgWrapper.encode(msg).finish()
       },
       msgJSON: {
-        type: `/${msgWrapper.$type}`,
+        type: codectypemap[`/${msgWrapper.$type}`],
         value: msgWrapper.toJSON(msg)
       }
     }
@@ -200,6 +201,7 @@ export class BaseExample {
     const authInfo = this.createAuthInfo(pubkeyAny, gasLimit.toString(), accSeq)
     const senderCosmosSig = this.signaturesMsg(txBody, authInfo, accNum, msgJSON, privKey)
     const res = await this.broadcastTx(txBody, authInfo, senderCosmosSig)
+    console.log('res', res)
     return res
   }
 }
