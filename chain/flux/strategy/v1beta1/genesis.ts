@@ -6,18 +6,210 @@
 
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
+import { Plane, planeFromJSON, planeToJSON } from "../../astromesh/v1beta1/tx";
+import { Strategy } from "./strategy";
 
-export interface GenesisState {
+export interface Verifier {
+  plane: Plane;
+  contract_address: string;
+  verifier: string;
 }
 
+export interface StrategyCode {
+  checksum: Uint8Array;
+  code_bytes: Uint8Array;
+}
+
+export interface GenesisState {
+  strategies: Strategy[];
+  strategy_codes: StrategyCode[];
+  verifers: Verifier[];
+}
+
+function createBaseVerifier(): Verifier {
+  return { plane: 0, contract_address: "", verifier: "" };
+}
+
+export const Verifier = {
+  $type: "flux.strategy.v1beta1.Verifier" as const,
+
+  encode(message: Verifier, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.plane !== 0) {
+      writer.uint32(8).int32(message.plane);
+    }
+    if (message.contract_address !== "") {
+      writer.uint32(18).string(message.contract_address);
+    }
+    if (message.verifier !== "") {
+      writer.uint32(26).string(message.verifier);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Verifier {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseVerifier();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.plane = reader.int32() as any;
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.contract_address = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.verifier = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Verifier {
+    return {
+      plane: isSet(object.plane) ? planeFromJSON(object.plane) : 0,
+      contract_address: isSet(object.contract_address) ? globalThis.String(object.contract_address) : "",
+      verifier: isSet(object.verifier) ? globalThis.String(object.verifier) : "",
+    };
+  },
+
+  toJSON(message: Verifier): unknown {
+    const obj: any = {};
+    if (message.plane !== undefined) {
+      obj.plane = planeToJSON(message.plane);
+    }
+    if (message.contract_address !== undefined) {
+      obj.contract_address = message.contract_address;
+    }
+    if (message.verifier !== undefined) {
+      obj.verifier = message.verifier;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Verifier>): Verifier {
+    return Verifier.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Verifier>): Verifier {
+    const message = createBaseVerifier();
+    message.plane = object.plane ?? 0;
+    message.contract_address = object.contract_address ?? "";
+    message.verifier = object.verifier ?? "";
+    return message;
+  },
+};
+
+function createBaseStrategyCode(): StrategyCode {
+  return { checksum: new Uint8Array(0), code_bytes: new Uint8Array(0) };
+}
+
+export const StrategyCode = {
+  $type: "flux.strategy.v1beta1.StrategyCode" as const,
+
+  encode(message: StrategyCode, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.checksum.length !== 0) {
+      writer.uint32(10).bytes(message.checksum);
+    }
+    if (message.code_bytes.length !== 0) {
+      writer.uint32(18).bytes(message.code_bytes);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StrategyCode {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStrategyCode();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.checksum = reader.bytes();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.code_bytes = reader.bytes();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StrategyCode {
+    return {
+      checksum: isSet(object.checksum) ? bytesFromBase64(object.checksum) : new Uint8Array(0),
+      code_bytes: isSet(object.code_bytes) ? bytesFromBase64(object.code_bytes) : new Uint8Array(0),
+    };
+  },
+
+  toJSON(message: StrategyCode): unknown {
+    const obj: any = {};
+    if (message.checksum !== undefined) {
+      obj.checksum = base64FromBytes(message.checksum);
+    }
+    if (message.code_bytes !== undefined) {
+      obj.code_bytes = base64FromBytes(message.code_bytes);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StrategyCode>): StrategyCode {
+    return StrategyCode.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StrategyCode>): StrategyCode {
+    const message = createBaseStrategyCode();
+    message.checksum = object.checksum ?? new Uint8Array(0);
+    message.code_bytes = object.code_bytes ?? new Uint8Array(0);
+    return message;
+  },
+};
+
 function createBaseGenesisState(): GenesisState {
-  return {};
+  return { strategies: [], strategy_codes: [], verifers: [] };
 }
 
 export const GenesisState = {
   $type: "flux.strategy.v1beta1.GenesisState" as const,
 
-  encode(_: GenesisState, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: GenesisState, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.strategies) {
+      Strategy.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    for (const v of message.strategy_codes) {
+      StrategyCode.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    for (const v of message.verifers) {
+      Verifier.encode(v!, writer.uint32(26).fork()).ldelim();
+    }
     return writer;
   },
 
@@ -28,6 +220,27 @@ export const GenesisState = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.strategies.push(Strategy.decode(reader, reader.uint32()));
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.strategy_codes.push(StrategyCode.decode(reader, reader.uint32()));
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.verifers.push(Verifier.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -37,23 +250,68 @@ export const GenesisState = {
     return message;
   },
 
-  fromJSON(_: any): GenesisState {
-    return {};
+  fromJSON(object: any): GenesisState {
+    return {
+      strategies: globalThis.Array.isArray(object?.strategies)
+        ? object.strategies.map((e: any) => Strategy.fromJSON(e))
+        : [],
+      strategy_codes: globalThis.Array.isArray(object?.strategy_codes)
+        ? object.strategy_codes.map((e: any) => StrategyCode.fromJSON(e))
+        : [],
+      verifers: globalThis.Array.isArray(object?.verifers) ? object.verifers.map((e: any) => Verifier.fromJSON(e)) : [],
+    };
   },
 
-  toJSON(_: GenesisState): unknown {
+  toJSON(message: GenesisState): unknown {
     const obj: any = {};
+    if (message.strategies?.length) {
+      obj.strategies = message.strategies.map((e) => Strategy.toJSON(e));
+    }
+    if (message.strategy_codes?.length) {
+      obj.strategy_codes = message.strategy_codes.map((e) => StrategyCode.toJSON(e));
+    }
+    if (message.verifers?.length) {
+      obj.verifers = message.verifers.map((e) => Verifier.toJSON(e));
+    }
     return obj;
   },
 
   create(base?: DeepPartial<GenesisState>): GenesisState {
     return GenesisState.fromPartial(base ?? {});
   },
-  fromPartial(_: DeepPartial<GenesisState>): GenesisState {
+  fromPartial(object: DeepPartial<GenesisState>): GenesisState {
     const message = createBaseGenesisState();
+    message.strategies = object.strategies?.map((e) => Strategy.fromPartial(e)) || [];
+    message.strategy_codes = object.strategy_codes?.map((e) => StrategyCode.fromPartial(e)) || [];
+    message.verifers = object.verifers?.map((e) => Verifier.fromPartial(e)) || [];
     return message;
   },
 };
+
+function bytesFromBase64(b64: string): Uint8Array {
+  if ((globalThis as any).Buffer) {
+    return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
+  } else {
+    const bin = globalThis.atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; ++i) {
+      arr[i] = bin.charCodeAt(i);
+    }
+    return arr;
+  }
+}
+
+function base64FromBytes(arr: Uint8Array): string {
+  if ((globalThis as any).Buffer) {
+    return globalThis.Buffer.from(arr).toString("base64");
+  } else {
+    const bin: string[] = [];
+    arr.forEach((byte) => {
+      bin.push(globalThis.String.fromCharCode(byte));
+    });
+    return globalThis.btoa(bin.join(""));
+  }
+}
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
@@ -62,3 +320,7 @@ type DeepPartial<T> = T extends Builtin ? T
   : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
+}
