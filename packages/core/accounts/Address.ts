@@ -1,5 +1,6 @@
 import { bech32 } from 'bech32'
 import { Address as EthereumUtilsAddress } from 'ethereumjs-util'
+import * as ethwallet from '@ethereumjs/wallet'
 import { BECH32_ADDR_ACC_PREFIX, BECH32_ADDR_VAL_PREFIX } from '../../utils/constants'
 
 /**
@@ -8,8 +9,8 @@ import { BECH32_ADDR_ACC_PREFIX, BECH32_ADDR_VAL_PREFIX } from '../../utils/cons
 export class Address {
   public bech32Address: string
 
-  constructor(bech32Address: string) {
-    this.bech32Address = bech32Address
+  constructor(bech32Address?: string) {
+    this.bech32Address = bech32Address ? bech32Address : this.generate()
   }
 
   compare(address: Address): boolean {
@@ -19,7 +20,12 @@ export class Address {
   get address(): string {
     return this.bech32Address
   }
-
+  generate(): string {
+    const wallet = ethwallet.Wallet.generate()
+    const addressBuffer = wallet.getAddress()
+    const bech32Address = bech32.encode(BECH32_ADDR_ACC_PREFIX, bech32.toWords(addressBuffer))
+    return bech32Address
+  }
   /**
    * Create an address instance from a bech32-encoded address and a prefix
    * @param {string} bech32 bech32-encoded address
