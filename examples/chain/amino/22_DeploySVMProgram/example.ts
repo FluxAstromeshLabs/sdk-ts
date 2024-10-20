@@ -102,16 +102,6 @@ async function broadcastMsgsSync(
     msgAnys.push(msgAny)
   }
 
-  let msgJsons = []
-  for (let i = 0; i < msgs.length; i++) {
-    const msgJSON = {
-      type: codectypemap[`/${msgTypes[i].$type}`],
-      value: msgTypes[i].toJSON(msgs[i])
-    }
-
-    msgJsons.push(msgJSON)
-  }
-
   const txBody: txtypes.TxBody = {
     messages: msgAnys,
     memo: '',
@@ -232,10 +222,12 @@ async function linkSvmAccount(
   try {
     accountLink = await getSvmAccountLink(svmClient, cosmosAddress)
   } catch (e: any) {
+    console.log('linkSvmAccount error', e)
     if (!e.toString().includes('account link not found')) {
       throw e
     }
   }
+  console.log('xxxx')
 
   // fetch sender acc info
   const senderInfo = await authClient.AccountInfo({ address: getWalletAddr(wallet) })
@@ -246,7 +238,7 @@ async function linkSvmAccount(
       Buffer.from(svmKeypair.secretKey.buffer.slice(0, 32)),
       svmKeypair.publicKey.toBuffer()
     )
-    let linkSig = await Ed25519.createSignature(wallet.getAddress(), keypair)
+    let linkSig = await Ed25519.createSignature(Buffer.from(getWalletAddr(wallet)), keypair)
 
     let msg = svmtx.MsgLinkSVMAccount.create({
       sender: getWalletAddr(wallet),
@@ -272,7 +264,7 @@ async function linkSvmAccount(
   return new web3.PublicKey(accountLink.link.svm_addr)
 }
 
-;async () => {
+;(async () => {
   const cc = new txservice.GrpcWebImpl('http://localhost:10337', {
     transport: NodeHttpTransport()
   })
@@ -576,4 +568,4 @@ async function linkSvmAccount(
   console.log(
     `tx: ${uploadTxResult.tx_response.txhash} (height: ${uploadTxResult.tx_response.height}). Gas used / want: ${uploadTxResult.tx_response.gas_used}/${uploadTxResult.tx_response.gas_wanted}`
   )
-}
+})()
