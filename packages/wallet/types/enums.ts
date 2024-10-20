@@ -6,5 +6,7 @@ export enum Wallet {
 }
 
 declare global {
-  interface Window extends KeplrWindow {}
+  interface Window extends KeplrWindow {
+    providers?: any[]
+  }
 }
