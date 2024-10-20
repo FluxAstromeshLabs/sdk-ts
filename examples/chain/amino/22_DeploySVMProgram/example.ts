@@ -16,7 +16,7 @@ import {
   BigNumber
 } from '../../../../packages/utils'
 import { Coin } from '../../../../chain/cosmos/base/v1beta1/coin'
-import { Ed25519, Ed25519Keypair, keccak256 } from '@cosmjs/crypto'
+import { Ed25519, Ed25519Keypair } from '@cosmjs/crypto'
 
 const defaultLamportsPerByteYear = (1000000000 * 365) / 100 / (1024 * 1024)
 const defaultExemptionThreshold = 2.0
