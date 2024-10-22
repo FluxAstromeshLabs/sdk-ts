@@ -10,7 +10,7 @@ export const localhostEndpoints: NetworkEndpoints = {
 export const testnetEndpoints: NetworkEndpoints = {
   name: 'Testnet',
   id: Network.Testnet,
-  lcd: 'https://testnet.lcd.astromesh.xyz ',
+  lcd: 'https://testnet.lcd.astromesh.xyz',
   tm: 'https://testnet.tm.astromesh.xyz',
   api: 'https://testnet.api.astromesh.xyz'
 }
