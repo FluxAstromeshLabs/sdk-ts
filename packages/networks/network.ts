@@ -1,9 +1,9 @@
 import { Network, NetworkEndpoints } from './types'
-import { localhostEndpoints, devnetEndpoints } from './endpoints'
-export const defaultNetwork: Network = Network.Devnet
+import { localhostEndpoints, testnetEndpoints } from './endpoints'
+export const defaultNetwork: Network = Network.Testnet
 export const networkEndpoints: Record<Network, NetworkEndpoints> = {
   [Network.Localhost]: localhostEndpoints,
-  [Network.Devnet]: devnetEndpoints
+  [Network.Testnet]: testnetEndpoints
 }
 
 export const getNetworkEndpoint = (network: Network): NetworkEndpoints => {

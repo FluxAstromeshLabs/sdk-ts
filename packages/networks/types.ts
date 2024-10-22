@@ -1,6 +1,6 @@
 export enum Network {
   Localhost = 'localhost',
-  Devnet = 'devnet'
+  Testnet = 'testnet'
 }
 
 export type NetworkEndpoints = {
