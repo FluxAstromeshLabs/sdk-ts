@@ -16,8 +16,8 @@ export default class KeplrWallet {
     }
     //todo: add the rest endpoint
     await window.keplr.experimentalSuggestChain({
-      rpc: networkEndpoints.devnet.tm,
-      rest: networkEndpoints.devnet.lcd,
+      rpc: networkEndpoints.testnet.tm,
+      rest: networkEndpoints.testnet.lcd,
       chainId: ChainId.Testnet,
       chainName: 'Flux',
       stakeCurrency: { coinDenom: 'lux', coinMinimalDenom: 'lux', coinDecimals: 18 },
