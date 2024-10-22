@@ -6,7 +6,6 @@ export const localhostEndpoints: NetworkEndpoints = {
   tm: 'https://tm.localhost',
   api: 'https://api.localhost'
 }
-
 export const testnetEndpoints: NetworkEndpoints = {
   name: 'Testnet',
   id: Network.Testnet,
