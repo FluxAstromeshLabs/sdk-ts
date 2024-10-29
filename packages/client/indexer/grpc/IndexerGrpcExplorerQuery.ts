@@ -106,4 +106,14 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
     })
     return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
+
+  async streamStrategies(
+    request: explorerQuery.StreamStrategiesRequest,
+    callback: (value: explorerQuery.StreamStrategiesResponse) => void,
+    onEndCallback?: (err: any) => void,
+    onStatusCallback?: () => void
+  ): Promise<Subscription> {
+    const stream = this.client.StreamStrategies(request)
+    return stream.subscribe(callback, onEndCallback, onStatusCallback)
+  }
 }
