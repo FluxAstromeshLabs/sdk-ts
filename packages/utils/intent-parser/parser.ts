@@ -71,7 +71,6 @@ export function compileTriggerMsg(
       inputs.push(Buffer.from(replacedBytes, 'latin1'))
     }
 
-    console.log('query inputs', inputs)
     fisQuery.instructions.push(
       FISQueryInstruction.create({
         plane: planeFromJSON(ix.plane.toString()),
