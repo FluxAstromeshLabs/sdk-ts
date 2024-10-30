@@ -3,7 +3,7 @@ import {
   FISQueryRequest,
   queryActionFromJSON
 } from '../../../chain/flux/astromesh/v1beta1/query'
-import { Plane, planeFromJSON } from '../../../chain/flux/astromesh/v1beta1/tx'
+import { planeFromJSON } from '../../../chain/flux/astromesh/v1beta1/tx'
 import { MsgTriggerStrategies } from '../../../chain/flux/strategy/v1beta1/tx'
 import * as Handlebars from 'handlebars'
 import * as web3 from '@solana/web3.js'
@@ -51,8 +51,7 @@ export function compileTriggerMsg(
     for (let i = 0; i < ix.input.length; i++) {
       // parse accounts input for SVM for now
       // we can propagate to other planes when it's needed
-      console.log('input:', ix.input[i])
-      if (ix.plane == Plane.SVM) {
+      if (ix.plane == "SVM") {
         let input = Buffer.from(ix.input[i], 'base64').toString('latin1')
         // only consider template, other stays unchanged
         if (input.startsWith("{{") && input.endsWith("}}")) {
@@ -62,9 +61,8 @@ export function compileTriggerMsg(
             ...defaultConst,
           });
           inputs.push(new web3.PublicKey(result).toBytes())
+          continue
         }
-
-        continue
       }
 
       // do normal parsing to get it backward compatible for now
@@ -73,6 +71,7 @@ export function compileTriggerMsg(
       inputs.push(Buffer.from(replacedBytes, 'latin1'))
     }
 
+    console.log('query inputs', inputs)
     fisQuery.instructions.push(
       FISQueryInstruction.create({
         plane: planeFromJSON(ix.plane.toString()),
