@@ -3,21 +3,28 @@ import {
   FISQueryRequest,
   queryActionFromJSON
 } from '../../../chain/flux/astromesh/v1beta1/query'
-import { Plane, planeFromJSON, planeToJSON } from '../../../chain/flux/astromesh/v1beta1/tx'
-import {
-  Schema,
-  SchemaFISQuery,
-  SchemaPrompt,
-  StrategyMetadata
-} from '../../../chain/flux/strategy/v1beta1/strategy'
+import { planeFromJSON } from '../../../chain/flux/astromesh/v1beta1/tx'
 import { MsgTriggerStrategies } from '../../../chain/flux/strategy/v1beta1/tx'
-function replaceTypedPlaceholders(template: string, values: any) {
-  return template.replace(/\${(\w+:\w+)}/g, (_: any, key: string) => values[key] || '')
-}
+import * as Handlebars from 'handlebars'
+import * as web3 from '@solana/web3.js'
 
 function replacePlaceholders(template: string, values: any) {
   return template.replace(/\${(\w+)}/g, (_: any, key: string) => values[key] || '')
 }
+
+Handlebars.registerHelper('decodeBase58', function(base58EncodedString) {
+  return new web3.PublicKey(base58EncodedString).toBytes()
+})
+
+Handlebars.registerHelper('pda', function(...args) {
+  let programId = new web3.PublicKey(args[args.length - 2])
+  let seeds: Uint8Array[] = []
+  for(let i = 0; i<args.length - 2; i++) {
+      seeds.push(args[i])
+  }
+  let pdaResult = web3.PublicKey.findProgramAddressSync(seeds, programId)
+  return pdaResult[0]
+});
 
 /*
   Pending Todo: input address by plane?
@@ -42,6 +49,23 @@ export function compileTriggerMsg(
     // replace vars within queries
     let inputs = []
     for (let i = 0; i < ix.input.length; i++) {
+      // parse accounts input for SVM for now
+      // we can propagate to other planes when it's needed
+      if (ix.plane == "SVM") {
+        let input = Buffer.from(ix.input[i], 'base64').toString('latin1')
+        // only consider template, other stays unchanged
+        if (input.startsWith("{{") && input.endsWith("}}")) {
+          let templateSource = Handlebars.compile(input);
+          const result = templateSource({
+            ...userInput,
+            ...defaultConst,
+          });
+          inputs.push(new web3.PublicKey(result).toBytes())
+          continue
+        }
+      }
+
+      // do normal parsing to get it backward compatible for now
       let input = Buffer.from(ix.input[i], 'base64')
       let replacedBytes = replacePlaceholders(input.toString('latin1'), knownVars)
       inputs.push(Buffer.from(replacedBytes, 'latin1'))
