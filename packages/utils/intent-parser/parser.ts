@@ -53,6 +53,7 @@ export function compileTriggerMsg(
       // we can propagate to other planes when it's needed
       if (ix.plane == Plane.SVM) {
         let input = Buffer.from(ix.input[i], 'base64').toString('latin1')
+        console.log('input:', input)
         // only consider template, other stays unchanged
         if (input.startsWith("{{") && input.endsWith("}}")) {
           let templateSource = Handlebars.compile(input);
