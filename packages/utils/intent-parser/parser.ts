@@ -12,19 +12,20 @@ function replacePlaceholders(template: string, values: any) {
   return template.replace(/\${(\w+)}/g, (_: any, key: string) => values[key] || '')
 }
 
-Handlebars.registerHelper('decodeBase58', function(base58EncodedString) {
+Handlebars.registerHelper('decodeBase58', function (base58EncodedString) {
+  if (!base58EncodedString) throw new Error('Invalid SVM address')
   return new web3.PublicKey(base58EncodedString).toBytes()
 })
 
-Handlebars.registerHelper('pda', function(...args) {
+Handlebars.registerHelper('pda', function (...args) {
   let programId = new web3.PublicKey(args[args.length - 2])
   let seeds: Uint8Array[] = []
-  for(let i = 0; i<args.length - 2; i++) {
-      seeds.push(args[i])
+  for (let i = 0; i < args.length - 2; i++) {
+    seeds.push(args[i])
   }
   let pdaResult = web3.PublicKey.findProgramAddressSync(seeds, programId)
   return pdaResult[0]
-});
+})
 
 /*
   Pending Todo: input address by plane?
@@ -51,15 +52,16 @@ export function compileTriggerMsg(
     for (let i = 0; i < ix.input.length; i++) {
       // parse accounts input for SVM for now
       // we can propagate to other planes when it's needed
-      if (ix.plane == "SVM") {
+      if (ix.plane == 'SVM') {
         let input = Buffer.from(ix.input[i], 'base64').toString('latin1')
         // only consider template, other stays unchanged
-        if (input.startsWith("{{") && input.endsWith("}}")) {
-          let templateSource = Handlebars.compile(input);
+        if (input.startsWith('{{') && input.endsWith('}}')) {
+          let templateSource = Handlebars.compile(input)
           const result = templateSource({
             ...userInput,
-            ...defaultConst,
-          });
+            ...defaultConst
+          })
+
           inputs.push(new web3.PublicKey(result).toBytes())
           continue
         }
@@ -94,7 +96,6 @@ export function compileTriggerMsg(
   let strategyInput = {
     [action]: { ...filteredInput }
   }
-  console.log('strategyInput', strategyInput)
   return MsgTriggerStrategies.create({
     sender: luxSender,
     ids: [intentId],
