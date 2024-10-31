@@ -13,7 +13,7 @@ function replacePlaceholders(template: string, values: any) {
 }
 
 Handlebars.registerHelper('decodeBase58', function (base58EncodedString) {
-  if (!base58EncodedString) throw new Error('Invalid SVM address')
+  if (!base58EncodedString) throw new Error('Please link your SVM account first')
   return new web3.PublicKey(base58EncodedString).toBytes()
 })
 
