@@ -251,6 +251,61 @@ export interface StreamSvmAccountLinkResponse {
   account_link: AccountLink[];
 }
 
+/** Request and response messages for ListDriftOrders */
+export interface ListDriftOrdersRequest {
+  /** Optional filter by market name */
+  market_name: string;
+}
+
+export interface ListDriftOrdersResponse {
+  orders: DriftOrder[];
+}
+
+/** Request and response messages for ListFillableDriftJITOrders */
+export interface ListFillableDriftJITOrdersRequest {
+  market_name: string;
+  worst_price: string;
+  direction: string;
+  quantity: string;
+}
+
+export interface ListFillableDriftJITOrdersResponse {
+  fillable_orders: DriftOrder[];
+}
+
+/** Order structure with auction_start_price and auction_end_price */
+export interface DriftOrder {
+  subaccount_address: string;
+  owner_address: string;
+  price: string;
+  quantity: string;
+  market_name: string;
+  order_id: number;
+  auction_start_price: string;
+  auction_end_price: string;
+  slot: string;
+  auction_duration: number;
+  expired_at: string;
+}
+
+export interface StreamDriftOrdersRequest {
+  /** Optional filter by market name */
+  market_name: string;
+  /** Optional filter for specific price */
+  price: string;
+  /** Optional filter, e.g., "buy" or "sell" */
+  direction: string;
+}
+
+export interface StreamDriftOrdersResponse {
+  /** Block height at which the order was created or updated */
+  height: string;
+  /** Indicator if the order is deleted (1 for true, 0 for false) */
+  deleted: string;
+  /** The DriftOrder object */
+  order: DriftOrder | undefined;
+}
+
 function createBaseListEvmContractsRequest(): ListEvmContractsRequest {
   return { address: "", pagination: undefined };
 }
@@ -2884,6 +2939,702 @@ export const StreamSvmAccountLinkResponse = {
   },
 };
 
+function createBaseListDriftOrdersRequest(): ListDriftOrdersRequest {
+  return { market_name: "" };
+}
+
+export const ListDriftOrdersRequest = {
+  $type: "flux.indexer.explorer.ListDriftOrdersRequest" as const,
+
+  encode(message: ListDriftOrdersRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.market_name !== "") {
+      writer.uint32(10).string(message.market_name);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListDriftOrdersRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListDriftOrdersRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.market_name = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListDriftOrdersRequest {
+    return { market_name: isSet(object.market_name) ? globalThis.String(object.market_name) : "" };
+  },
+
+  toJSON(message: ListDriftOrdersRequest): unknown {
+    const obj: any = {};
+    if (message.market_name !== undefined) {
+      obj.market_name = message.market_name;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListDriftOrdersRequest>): ListDriftOrdersRequest {
+    return ListDriftOrdersRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListDriftOrdersRequest>): ListDriftOrdersRequest {
+    const message = createBaseListDriftOrdersRequest();
+    message.market_name = object.market_name ?? "";
+    return message;
+  },
+};
+
+function createBaseListDriftOrdersResponse(): ListDriftOrdersResponse {
+  return { orders: [] };
+}
+
+export const ListDriftOrdersResponse = {
+  $type: "flux.indexer.explorer.ListDriftOrdersResponse" as const,
+
+  encode(message: ListDriftOrdersResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.orders) {
+      DriftOrder.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListDriftOrdersResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListDriftOrdersResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.orders.push(DriftOrder.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListDriftOrdersResponse {
+    return {
+      orders: globalThis.Array.isArray(object?.orders) ? object.orders.map((e: any) => DriftOrder.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: ListDriftOrdersResponse): unknown {
+    const obj: any = {};
+    if (message.orders?.length) {
+      obj.orders = message.orders.map((e) => DriftOrder.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListDriftOrdersResponse>): ListDriftOrdersResponse {
+    return ListDriftOrdersResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListDriftOrdersResponse>): ListDriftOrdersResponse {
+    const message = createBaseListDriftOrdersResponse();
+    message.orders = object.orders?.map((e) => DriftOrder.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseListFillableDriftJITOrdersRequest(): ListFillableDriftJITOrdersRequest {
+  return { market_name: "", worst_price: "0", direction: "", quantity: "0" };
+}
+
+export const ListFillableDriftJITOrdersRequest = {
+  $type: "flux.indexer.explorer.ListFillableDriftJITOrdersRequest" as const,
+
+  encode(message: ListFillableDriftJITOrdersRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.market_name !== "") {
+      writer.uint32(10).string(message.market_name);
+    }
+    if (message.worst_price !== "0") {
+      writer.uint32(16).uint64(message.worst_price);
+    }
+    if (message.direction !== "") {
+      writer.uint32(26).string(message.direction);
+    }
+    if (message.quantity !== "0") {
+      writer.uint32(32).uint64(message.quantity);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListFillableDriftJITOrdersRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListFillableDriftJITOrdersRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.market_name = reader.string();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.worst_price = longToString(reader.uint64() as Long);
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.direction = reader.string();
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.quantity = longToString(reader.uint64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListFillableDriftJITOrdersRequest {
+    return {
+      market_name: isSet(object.market_name) ? globalThis.String(object.market_name) : "",
+      worst_price: isSet(object.worst_price) ? globalThis.String(object.worst_price) : "0",
+      direction: isSet(object.direction) ? globalThis.String(object.direction) : "",
+      quantity: isSet(object.quantity) ? globalThis.String(object.quantity) : "0",
+    };
+  },
+
+  toJSON(message: ListFillableDriftJITOrdersRequest): unknown {
+    const obj: any = {};
+    if (message.market_name !== undefined) {
+      obj.market_name = message.market_name;
+    }
+    if (message.worst_price !== undefined) {
+      obj.worst_price = message.worst_price;
+    }
+    if (message.direction !== undefined) {
+      obj.direction = message.direction;
+    }
+    if (message.quantity !== undefined) {
+      obj.quantity = message.quantity;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListFillableDriftJITOrdersRequest>): ListFillableDriftJITOrdersRequest {
+    return ListFillableDriftJITOrdersRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListFillableDriftJITOrdersRequest>): ListFillableDriftJITOrdersRequest {
+    const message = createBaseListFillableDriftJITOrdersRequest();
+    message.market_name = object.market_name ?? "";
+    message.worst_price = object.worst_price ?? "0";
+    message.direction = object.direction ?? "";
+    message.quantity = object.quantity ?? "0";
+    return message;
+  },
+};
+
+function createBaseListFillableDriftJITOrdersResponse(): ListFillableDriftJITOrdersResponse {
+  return { fillable_orders: [] };
+}
+
+export const ListFillableDriftJITOrdersResponse = {
+  $type: "flux.indexer.explorer.ListFillableDriftJITOrdersResponse" as const,
+
+  encode(message: ListFillableDriftJITOrdersResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.fillable_orders) {
+      DriftOrder.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListFillableDriftJITOrdersResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListFillableDriftJITOrdersResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.fillable_orders.push(DriftOrder.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListFillableDriftJITOrdersResponse {
+    return {
+      fillable_orders: globalThis.Array.isArray(object?.fillable_orders)
+        ? object.fillable_orders.map((e: any) => DriftOrder.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: ListFillableDriftJITOrdersResponse): unknown {
+    const obj: any = {};
+    if (message.fillable_orders?.length) {
+      obj.fillable_orders = message.fillable_orders.map((e) => DriftOrder.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListFillableDriftJITOrdersResponse>): ListFillableDriftJITOrdersResponse {
+    return ListFillableDriftJITOrdersResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListFillableDriftJITOrdersResponse>): ListFillableDriftJITOrdersResponse {
+    const message = createBaseListFillableDriftJITOrdersResponse();
+    message.fillable_orders = object.fillable_orders?.map((e) => DriftOrder.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseDriftOrder(): DriftOrder {
+  return {
+    subaccount_address: "",
+    owner_address: "",
+    price: "0",
+    quantity: "0",
+    market_name: "",
+    order_id: 0,
+    auction_start_price: "0",
+    auction_end_price: "0",
+    slot: "0",
+    auction_duration: 0,
+    expired_at: "0",
+  };
+}
+
+export const DriftOrder = {
+  $type: "flux.indexer.explorer.DriftOrder" as const,
+
+  encode(message: DriftOrder, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.subaccount_address !== "") {
+      writer.uint32(10).string(message.subaccount_address);
+    }
+    if (message.owner_address !== "") {
+      writer.uint32(18).string(message.owner_address);
+    }
+    if (message.price !== "0") {
+      writer.uint32(24).uint64(message.price);
+    }
+    if (message.quantity !== "0") {
+      writer.uint32(32).uint64(message.quantity);
+    }
+    if (message.market_name !== "") {
+      writer.uint32(42).string(message.market_name);
+    }
+    if (message.order_id !== 0) {
+      writer.uint32(48).uint32(message.order_id);
+    }
+    if (message.auction_start_price !== "0") {
+      writer.uint32(56).int64(message.auction_start_price);
+    }
+    if (message.auction_end_price !== "0") {
+      writer.uint32(64).int64(message.auction_end_price);
+    }
+    if (message.slot !== "0") {
+      writer.uint32(72).uint64(message.slot);
+    }
+    if (message.auction_duration !== 0) {
+      writer.uint32(80).uint32(message.auction_duration);
+    }
+    if (message.expired_at !== "0") {
+      writer.uint32(88).int64(message.expired_at);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): DriftOrder {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDriftOrder();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.subaccount_address = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.owner_address = reader.string();
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.price = longToString(reader.uint64() as Long);
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.quantity = longToString(reader.uint64() as Long);
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.market_name = reader.string();
+          continue;
+        case 6:
+          if (tag !== 48) {
+            break;
+          }
+
+          message.order_id = reader.uint32();
+          continue;
+        case 7:
+          if (tag !== 56) {
+            break;
+          }
+
+          message.auction_start_price = longToString(reader.int64() as Long);
+          continue;
+        case 8:
+          if (tag !== 64) {
+            break;
+          }
+
+          message.auction_end_price = longToString(reader.int64() as Long);
+          continue;
+        case 9:
+          if (tag !== 72) {
+            break;
+          }
+
+          message.slot = longToString(reader.uint64() as Long);
+          continue;
+        case 10:
+          if (tag !== 80) {
+            break;
+          }
+
+          message.auction_duration = reader.uint32();
+          continue;
+        case 11:
+          if (tag !== 88) {
+            break;
+          }
+
+          message.expired_at = longToString(reader.int64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DriftOrder {
+    return {
+      subaccount_address: isSet(object.subaccount_address) ? globalThis.String(object.subaccount_address) : "",
+      owner_address: isSet(object.owner_address) ? globalThis.String(object.owner_address) : "",
+      price: isSet(object.price) ? globalThis.String(object.price) : "0",
+      quantity: isSet(object.quantity) ? globalThis.String(object.quantity) : "0",
+      market_name: isSet(object.market_name) ? globalThis.String(object.market_name) : "",
+      order_id: isSet(object.order_id) ? globalThis.Number(object.order_id) : 0,
+      auction_start_price: isSet(object.auction_start_price) ? globalThis.String(object.auction_start_price) : "0",
+      auction_end_price: isSet(object.auction_end_price) ? globalThis.String(object.auction_end_price) : "0",
+      slot: isSet(object.slot) ? globalThis.String(object.slot) : "0",
+      auction_duration: isSet(object.auction_duration) ? globalThis.Number(object.auction_duration) : 0,
+      expired_at: isSet(object.expired_at) ? globalThis.String(object.expired_at) : "0",
+    };
+  },
+
+  toJSON(message: DriftOrder): unknown {
+    const obj: any = {};
+    if (message.subaccount_address !== undefined) {
+      obj.subaccount_address = message.subaccount_address;
+    }
+    if (message.owner_address !== undefined) {
+      obj.owner_address = message.owner_address;
+    }
+    if (message.price !== undefined) {
+      obj.price = message.price;
+    }
+    if (message.quantity !== undefined) {
+      obj.quantity = message.quantity;
+    }
+    if (message.market_name !== undefined) {
+      obj.market_name = message.market_name;
+    }
+    if (message.order_id !== undefined) {
+      obj.order_id = Math.round(message.order_id);
+    }
+    if (message.auction_start_price !== undefined) {
+      obj.auction_start_price = message.auction_start_price;
+    }
+    if (message.auction_end_price !== undefined) {
+      obj.auction_end_price = message.auction_end_price;
+    }
+    if (message.slot !== undefined) {
+      obj.slot = message.slot;
+    }
+    if (message.auction_duration !== undefined) {
+      obj.auction_duration = Math.round(message.auction_duration);
+    }
+    if (message.expired_at !== undefined) {
+      obj.expired_at = message.expired_at;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<DriftOrder>): DriftOrder {
+    return DriftOrder.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<DriftOrder>): DriftOrder {
+    const message = createBaseDriftOrder();
+    message.subaccount_address = object.subaccount_address ?? "";
+    message.owner_address = object.owner_address ?? "";
+    message.price = object.price ?? "0";
+    message.quantity = object.quantity ?? "0";
+    message.market_name = object.market_name ?? "";
+    message.order_id = object.order_id ?? 0;
+    message.auction_start_price = object.auction_start_price ?? "0";
+    message.auction_end_price = object.auction_end_price ?? "0";
+    message.slot = object.slot ?? "0";
+    message.auction_duration = object.auction_duration ?? 0;
+    message.expired_at = object.expired_at ?? "0";
+    return message;
+  },
+};
+
+function createBaseStreamDriftOrdersRequest(): StreamDriftOrdersRequest {
+  return { market_name: "", price: "0", direction: "" };
+}
+
+export const StreamDriftOrdersRequest = {
+  $type: "flux.indexer.explorer.StreamDriftOrdersRequest" as const,
+
+  encode(message: StreamDriftOrdersRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.market_name !== "") {
+      writer.uint32(10).string(message.market_name);
+    }
+    if (message.price !== "0") {
+      writer.uint32(16).uint64(message.price);
+    }
+    if (message.direction !== "") {
+      writer.uint32(26).string(message.direction);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamDriftOrdersRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamDriftOrdersRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.market_name = reader.string();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.price = longToString(reader.uint64() as Long);
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.direction = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamDriftOrdersRequest {
+    return {
+      market_name: isSet(object.market_name) ? globalThis.String(object.market_name) : "",
+      price: isSet(object.price) ? globalThis.String(object.price) : "0",
+      direction: isSet(object.direction) ? globalThis.String(object.direction) : "",
+    };
+  },
+
+  toJSON(message: StreamDriftOrdersRequest): unknown {
+    const obj: any = {};
+    if (message.market_name !== undefined) {
+      obj.market_name = message.market_name;
+    }
+    if (message.price !== undefined) {
+      obj.price = message.price;
+    }
+    if (message.direction !== undefined) {
+      obj.direction = message.direction;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamDriftOrdersRequest>): StreamDriftOrdersRequest {
+    return StreamDriftOrdersRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamDriftOrdersRequest>): StreamDriftOrdersRequest {
+    const message = createBaseStreamDriftOrdersRequest();
+    message.market_name = object.market_name ?? "";
+    message.price = object.price ?? "0";
+    message.direction = object.direction ?? "";
+    return message;
+  },
+};
+
+function createBaseStreamDriftOrdersResponse(): StreamDriftOrdersResponse {
+  return { height: "0", deleted: "0", order: undefined };
+}
+
+export const StreamDriftOrdersResponse = {
+  $type: "flux.indexer.explorer.StreamDriftOrdersResponse" as const,
+
+  encode(message: StreamDriftOrdersResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.height !== "0") {
+      writer.uint32(8).uint64(message.height);
+    }
+    if (message.deleted !== "0") {
+      writer.uint32(16).uint64(message.deleted);
+    }
+    if (message.order !== undefined) {
+      DriftOrder.encode(message.order, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamDriftOrdersResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamDriftOrdersResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.height = longToString(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.deleted = longToString(reader.uint64() as Long);
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.order = DriftOrder.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamDriftOrdersResponse {
+    return {
+      height: isSet(object.height) ? globalThis.String(object.height) : "0",
+      deleted: isSet(object.deleted) ? globalThis.String(object.deleted) : "0",
+      order: isSet(object.order) ? DriftOrder.fromJSON(object.order) : undefined,
+    };
+  },
+
+  toJSON(message: StreamDriftOrdersResponse): unknown {
+    const obj: any = {};
+    if (message.height !== undefined) {
+      obj.height = message.height;
+    }
+    if (message.deleted !== undefined) {
+      obj.deleted = message.deleted;
+    }
+    if (message.order !== undefined) {
+      obj.order = DriftOrder.toJSON(message.order);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamDriftOrdersResponse>): StreamDriftOrdersResponse {
+    return StreamDriftOrdersResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamDriftOrdersResponse>): StreamDriftOrdersResponse {
+    const message = createBaseStreamDriftOrdersResponse();
+    message.height = object.height ?? "0";
+    message.deleted = object.deleted ?? "0";
+    message.order = (object.order !== undefined && object.order !== null)
+      ? DriftOrder.fromPartial(object.order)
+      : undefined;
+    return message;
+  },
+};
+
 export interface API {
   ListEvmContracts(
     request: DeepPartial<ListEvmContractsRequest>,
@@ -2928,6 +3679,18 @@ export interface API {
     request: DeepPartial<StreamSvmAccountLinkRequest>,
     metadata?: grpc.Metadata,
   ): Observable<StreamSvmAccountLinkResponse>;
+  ListDriftOrders(
+    request: DeepPartial<ListDriftOrdersRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ListDriftOrdersResponse>;
+  ListFillableDriftJITOrders(
+    request: DeepPartial<ListFillableDriftJITOrdersRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ListFillableDriftJITOrdersResponse>;
+  StreamDriftOrders(
+    request: DeepPartial<StreamDriftOrdersRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamDriftOrdersResponse>;
 }
 
 export class APIClientImpl implements API {
@@ -2948,6 +3711,9 @@ export class APIClientImpl implements API {
     this.StreamStrategies = this.StreamStrategies.bind(this);
     this.StreamTokenMetadata = this.StreamTokenMetadata.bind(this);
     this.StreamSvmAccountLink = this.StreamSvmAccountLink.bind(this);
+    this.ListDriftOrders = this.ListDriftOrders.bind(this);
+    this.ListFillableDriftJITOrders = this.ListFillableDriftJITOrders.bind(this);
+    this.StreamDriftOrders = this.StreamDriftOrders.bind(this);
   }
 
   ListEvmContracts(
@@ -3034,6 +3800,31 @@ export class APIClientImpl implements API {
     metadata?: grpc.Metadata,
   ): Observable<StreamSvmAccountLinkResponse> {
     return this.rpc.invoke(APIStreamSvmAccountLinkDesc, StreamSvmAccountLinkRequest.fromPartial(request), metadata);
+  }
+
+  ListDriftOrders(
+    request: DeepPartial<ListDriftOrdersRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ListDriftOrdersResponse> {
+    return this.rpc.unary(APIListDriftOrdersDesc, ListDriftOrdersRequest.fromPartial(request), metadata);
+  }
+
+  ListFillableDriftJITOrders(
+    request: DeepPartial<ListFillableDriftJITOrdersRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ListFillableDriftJITOrdersResponse> {
+    return this.rpc.unary(
+      APIListFillableDriftJITOrdersDesc,
+      ListFillableDriftJITOrdersRequest.fromPartial(request),
+      metadata,
+    );
+  }
+
+  StreamDriftOrders(
+    request: DeepPartial<StreamDriftOrdersRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamDriftOrdersResponse> {
+    return this.rpc.invoke(APIStreamDriftOrdersDesc, StreamDriftOrdersRequest.fromPartial(request), metadata);
   }
 }
 
@@ -3328,6 +4119,75 @@ export const APIStreamSvmAccountLinkDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = StreamSvmAccountLinkResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const APIListDriftOrdersDesc: UnaryMethodDefinitionish = {
+  methodName: "ListDriftOrders",
+  service: APIDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ListDriftOrdersRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ListDriftOrdersResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const APIListFillableDriftJITOrdersDesc: UnaryMethodDefinitionish = {
+  methodName: "ListFillableDriftJITOrders",
+  service: APIDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ListFillableDriftJITOrdersRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ListFillableDriftJITOrdersResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const APIStreamDriftOrdersDesc: UnaryMethodDefinitionish = {
+  methodName: "StreamDriftOrders",
+  service: APIDesc,
+  requestStream: false,
+  responseStream: true,
+  requestType: {
+    serializeBinary() {
+      return StreamDriftOrdersRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = StreamDriftOrdersResponse.decode(data);
       return {
         ...value,
         toObject() {
