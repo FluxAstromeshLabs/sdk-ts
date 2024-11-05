@@ -311,7 +311,7 @@ export interface DriftOrder {
   subaccount_address: string;
   owner_address: string;
   price: string;
-  quantity: string;
+  total_quantity: string;
   market_name: string;
   order_id: number;
   auction_start_price: string;
@@ -320,6 +320,7 @@ export interface DriftOrder {
   auction_duration: number;
   expired_at: string;
   direction: OrderDirection;
+  fillable_quantity: string;
 }
 
 export interface StreamDriftOrdersRequest {
@@ -3267,7 +3268,7 @@ function createBaseDriftOrder(): DriftOrder {
     subaccount_address: "",
     owner_address: "",
     price: "0",
-    quantity: "0",
+    total_quantity: "0",
     market_name: "",
     order_id: 0,
     auction_start_price: "0",
@@ -3276,6 +3277,7 @@ function createBaseDriftOrder(): DriftOrder {
     auction_duration: 0,
     expired_at: "0",
     direction: 0,
+    fillable_quantity: "0",
   };
 }
 
@@ -3292,8 +3294,8 @@ export const DriftOrder = {
     if (message.price !== "0") {
       writer.uint32(24).uint64(message.price);
     }
-    if (message.quantity !== "0") {
-      writer.uint32(32).uint64(message.quantity);
+    if (message.total_quantity !== "0") {
+      writer.uint32(32).uint64(message.total_quantity);
     }
     if (message.market_name !== "") {
       writer.uint32(42).string(message.market_name);
@@ -3318,6 +3320,9 @@ export const DriftOrder = {
     }
     if (message.direction !== 0) {
       writer.uint32(96).int32(message.direction);
+    }
+    if (message.fillable_quantity !== "0") {
+      writer.uint32(104).uint64(message.fillable_quantity);
     }
     return writer;
   },
@@ -3355,7 +3360,7 @@ export const DriftOrder = {
             break;
           }
 
-          message.quantity = longToString(reader.uint64() as Long);
+          message.total_quantity = longToString(reader.uint64() as Long);
           continue;
         case 5:
           if (tag !== 42) {
@@ -3413,6 +3418,13 @@ export const DriftOrder = {
 
           message.direction = reader.int32() as any;
           continue;
+        case 13:
+          if (tag !== 104) {
+            break;
+          }
+
+          message.fillable_quantity = longToString(reader.uint64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3427,7 +3439,7 @@ export const DriftOrder = {
       subaccount_address: isSet(object.subaccount_address) ? globalThis.String(object.subaccount_address) : "",
       owner_address: isSet(object.owner_address) ? globalThis.String(object.owner_address) : "",
       price: isSet(object.price) ? globalThis.String(object.price) : "0",
-      quantity: isSet(object.quantity) ? globalThis.String(object.quantity) : "0",
+      total_quantity: isSet(object.total_quantity) ? globalThis.String(object.total_quantity) : "0",
       market_name: isSet(object.market_name) ? globalThis.String(object.market_name) : "",
       order_id: isSet(object.order_id) ? globalThis.Number(object.order_id) : 0,
       auction_start_price: isSet(object.auction_start_price) ? globalThis.String(object.auction_start_price) : "0",
@@ -3436,6 +3448,7 @@ export const DriftOrder = {
       auction_duration: isSet(object.auction_duration) ? globalThis.Number(object.auction_duration) : 0,
       expired_at: isSet(object.expired_at) ? globalThis.String(object.expired_at) : "0",
       direction: isSet(object.direction) ? orderDirectionFromJSON(object.direction) : 0,
+      fillable_quantity: isSet(object.fillable_quantity) ? globalThis.String(object.fillable_quantity) : "0",
     };
   },
 
@@ -3450,8 +3463,8 @@ export const DriftOrder = {
     if (message.price !== undefined) {
       obj.price = message.price;
     }
-    if (message.quantity !== undefined) {
-      obj.quantity = message.quantity;
+    if (message.total_quantity !== undefined) {
+      obj.total_quantity = message.total_quantity;
     }
     if (message.market_name !== undefined) {
       obj.market_name = message.market_name;
@@ -3477,6 +3490,9 @@ export const DriftOrder = {
     if (message.direction !== undefined) {
       obj.direction = orderDirectionToJSON(message.direction);
     }
+    if (message.fillable_quantity !== undefined) {
+      obj.fillable_quantity = message.fillable_quantity;
+    }
     return obj;
   },
 
@@ -3488,7 +3504,7 @@ export const DriftOrder = {
     message.subaccount_address = object.subaccount_address ?? "";
     message.owner_address = object.owner_address ?? "";
     message.price = object.price ?? "0";
-    message.quantity = object.quantity ?? "0";
+    message.total_quantity = object.total_quantity ?? "0";
     message.market_name = object.market_name ?? "";
     message.order_id = object.order_id ?? 0;
     message.auction_start_price = object.auction_start_price ?? "0";
@@ -3497,6 +3513,7 @@ export const DriftOrder = {
     message.auction_duration = object.auction_duration ?? 0;
     message.expired_at = object.expired_at ?? "0";
     message.direction = object.direction ?? 0;
+    message.fillable_quantity = object.fillable_quantity ?? "0";
     return message;
   },
 };
