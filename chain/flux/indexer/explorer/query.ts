@@ -20,6 +20,39 @@ import { StrategyTriggerEvent } from "../../strategy/v1beta1/event";
 import { Strategy, StrategyType, strategyTypeFromJSON, strategyTypeToJSON } from "../../strategy/v1beta1/strategy";
 import { AccountLink } from "../../svm/v1beta1/svm";
 
+export enum OrderDirection {
+  Long = 0,
+  Short = 1,
+  UNRECOGNIZED = -1,
+}
+
+export function orderDirectionFromJSON(object: any): OrderDirection {
+  switch (object) {
+    case 0:
+    case "Long":
+      return OrderDirection.Long;
+    case 1:
+    case "Short":
+      return OrderDirection.Short;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return OrderDirection.UNRECOGNIZED;
+  }
+}
+
+export function orderDirectionToJSON(object: OrderDirection): string {
+  switch (object) {
+    case OrderDirection.Long:
+      return "Long";
+    case OrderDirection.Short:
+      return "Short";
+    case OrderDirection.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export interface ListEvmContractsRequest {
   /** owner of the contract to filter */
   address: string;
@@ -286,6 +319,7 @@ export interface DriftOrder {
   slot: string;
   auction_duration: number;
   expired_at: string;
+  direction: OrderDirection;
 }
 
 export interface StreamDriftOrdersRequest {
@@ -3241,6 +3275,7 @@ function createBaseDriftOrder(): DriftOrder {
     slot: "0",
     auction_duration: 0,
     expired_at: "0",
+    direction: 0,
   };
 }
 
@@ -3280,6 +3315,9 @@ export const DriftOrder = {
     }
     if (message.expired_at !== "0") {
       writer.uint32(88).int64(message.expired_at);
+    }
+    if (message.direction !== 0) {
+      writer.uint32(96).int32(message.direction);
     }
     return writer;
   },
@@ -3368,6 +3406,13 @@ export const DriftOrder = {
 
           message.expired_at = longToString(reader.int64() as Long);
           continue;
+        case 12:
+          if (tag !== 96) {
+            break;
+          }
+
+          message.direction = reader.int32() as any;
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3390,6 +3435,7 @@ export const DriftOrder = {
       slot: isSet(object.slot) ? globalThis.String(object.slot) : "0",
       auction_duration: isSet(object.auction_duration) ? globalThis.Number(object.auction_duration) : 0,
       expired_at: isSet(object.expired_at) ? globalThis.String(object.expired_at) : "0",
+      direction: isSet(object.direction) ? orderDirectionFromJSON(object.direction) : 0,
     };
   },
 
@@ -3428,6 +3474,9 @@ export const DriftOrder = {
     if (message.expired_at !== undefined) {
       obj.expired_at = message.expired_at;
     }
+    if (message.direction !== undefined) {
+      obj.direction = orderDirectionToJSON(message.direction);
+    }
     return obj;
   },
 
@@ -3447,6 +3496,7 @@ export const DriftOrder = {
     message.slot = object.slot ?? "0";
     message.auction_duration = object.auction_duration ?? 0;
     message.expired_at = object.expired_at ?? "0";
+    message.direction = object.direction ?? 0;
     return message;
   },
 };
