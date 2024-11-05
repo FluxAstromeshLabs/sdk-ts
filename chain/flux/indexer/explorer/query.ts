@@ -298,7 +298,7 @@ export interface ListDriftOrdersResponse {
 export interface ListFillableDriftJITOrdersRequest {
   market_name: string;
   worst_price: string;
-  direction: string;
+  direction: OrderDirection;
   quantity: string;
 }
 
@@ -3095,7 +3095,7 @@ export const ListDriftOrdersResponse = {
 };
 
 function createBaseListFillableDriftJITOrdersRequest(): ListFillableDriftJITOrdersRequest {
-  return { market_name: "", worst_price: "0", direction: "", quantity: "0" };
+  return { market_name: "", worst_price: "0", direction: 0, quantity: "0" };
 }
 
 export const ListFillableDriftJITOrdersRequest = {
@@ -3108,8 +3108,8 @@ export const ListFillableDriftJITOrdersRequest = {
     if (message.worst_price !== "0") {
       writer.uint32(16).uint64(message.worst_price);
     }
-    if (message.direction !== "") {
-      writer.uint32(26).string(message.direction);
+    if (message.direction !== 0) {
+      writer.uint32(24).int32(message.direction);
     }
     if (message.quantity !== "0") {
       writer.uint32(32).uint64(message.quantity);
@@ -3139,11 +3139,11 @@ export const ListFillableDriftJITOrdersRequest = {
           message.worst_price = longToString(reader.uint64() as Long);
           continue;
         case 3:
-          if (tag !== 26) {
+          if (tag !== 24) {
             break;
           }
 
-          message.direction = reader.string();
+          message.direction = reader.int32() as any;
           continue;
         case 4:
           if (tag !== 32) {
@@ -3165,7 +3165,7 @@ export const ListFillableDriftJITOrdersRequest = {
     return {
       market_name: isSet(object.market_name) ? globalThis.String(object.market_name) : "",
       worst_price: isSet(object.worst_price) ? globalThis.String(object.worst_price) : "0",
-      direction: isSet(object.direction) ? globalThis.String(object.direction) : "",
+      direction: isSet(object.direction) ? orderDirectionFromJSON(object.direction) : 0,
       quantity: isSet(object.quantity) ? globalThis.String(object.quantity) : "0",
     };
   },
@@ -3179,7 +3179,7 @@ export const ListFillableDriftJITOrdersRequest = {
       obj.worst_price = message.worst_price;
     }
     if (message.direction !== undefined) {
-      obj.direction = message.direction;
+      obj.direction = orderDirectionToJSON(message.direction);
     }
     if (message.quantity !== undefined) {
       obj.quantity = message.quantity;
@@ -3194,7 +3194,7 @@ export const ListFillableDriftJITOrdersRequest = {
     const message = createBaseListFillableDriftJITOrdersRequest();
     message.market_name = object.market_name ?? "";
     message.worst_price = object.worst_price ?? "0";
-    message.direction = object.direction ?? "";
+    message.direction = object.direction ?? 0;
     message.quantity = object.quantity ?? "0";
     return message;
   },
