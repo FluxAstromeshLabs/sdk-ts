@@ -21,19 +21,19 @@ import { Strategy, StrategyType, strategyTypeFromJSON, strategyTypeToJSON } from
 import { AccountLink } from "../../svm/v1beta1/svm";
 
 export enum OrderDirection {
-  Long = 0,
-  Short = 1,
+  long = 0,
+  short = 1,
   UNRECOGNIZED = -1,
 }
 
 export function orderDirectionFromJSON(object: any): OrderDirection {
   switch (object) {
     case 0:
-    case "Long":
-      return OrderDirection.Long;
+    case "long":
+      return OrderDirection.long;
     case 1:
-    case "Short":
-      return OrderDirection.Short;
+    case "short":
+      return OrderDirection.short;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -43,10 +43,10 @@ export function orderDirectionFromJSON(object: any): OrderDirection {
 
 export function orderDirectionToJSON(object: OrderDirection): string {
   switch (object) {
-    case OrderDirection.Long:
-      return "Long";
-    case OrderDirection.Short:
-      return "Short";
+    case OrderDirection.long:
+      return "long";
+    case OrderDirection.short:
+      return "short";
     case OrderDirection.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
