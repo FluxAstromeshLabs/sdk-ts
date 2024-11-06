@@ -129,7 +129,6 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
   async listFillableDriftJITOrders(
     params: explorerQuery.ListFillableDriftJITOrdersRequest
   ): Promise<explorerQuery.ListFillableDriftJITOrdersResponse> {
-    console.log('params', params)
     const response: explorerQuery.ListFillableDriftJITOrdersResponse = await this.retry(() =>
       this.client.ListFillableDriftJITOrders(params)
     )
