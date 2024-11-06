@@ -300,6 +300,7 @@ export interface ListFillableDriftJITOrdersRequest {
   worst_price: string;
   direction: OrderDirection;
   quantity: string;
+  exclude_owner: string;
 }
 
 export interface ListFillableDriftJITOrdersResponse {
@@ -3095,7 +3096,7 @@ export const ListDriftOrdersResponse = {
 };
 
 function createBaseListFillableDriftJITOrdersRequest(): ListFillableDriftJITOrdersRequest {
-  return { market_name: "", worst_price: "0", direction: 0, quantity: "0" };
+  return { market_name: "", worst_price: "0", direction: 0, quantity: "0", exclude_owner: "" };
 }
 
 export const ListFillableDriftJITOrdersRequest = {
@@ -3113,6 +3114,9 @@ export const ListFillableDriftJITOrdersRequest = {
     }
     if (message.quantity !== "0") {
       writer.uint32(32).uint64(message.quantity);
+    }
+    if (message.exclude_owner !== "") {
+      writer.uint32(42).string(message.exclude_owner);
     }
     return writer;
   },
@@ -3152,6 +3156,13 @@ export const ListFillableDriftJITOrdersRequest = {
 
           message.quantity = longToString(reader.uint64() as Long);
           continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.exclude_owner = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3167,6 +3178,7 @@ export const ListFillableDriftJITOrdersRequest = {
       worst_price: isSet(object.worst_price) ? globalThis.String(object.worst_price) : "0",
       direction: isSet(object.direction) ? orderDirectionFromJSON(object.direction) : 0,
       quantity: isSet(object.quantity) ? globalThis.String(object.quantity) : "0",
+      exclude_owner: isSet(object.exclude_owner) ? globalThis.String(object.exclude_owner) : "",
     };
   },
 
@@ -3184,6 +3196,9 @@ export const ListFillableDriftJITOrdersRequest = {
     if (message.quantity !== undefined) {
       obj.quantity = message.quantity;
     }
+    if (message.exclude_owner !== undefined) {
+      obj.exclude_owner = message.exclude_owner;
+    }
     return obj;
   },
 
@@ -3196,6 +3211,7 @@ export const ListFillableDriftJITOrdersRequest = {
     message.worst_price = object.worst_price ?? "0";
     message.direction = object.direction ?? 0;
     message.quantity = object.quantity ?? "0";
+    message.exclude_owner = object.exclude_owner ?? "";
     return message;
   },
 };
