@@ -292,6 +292,8 @@ export interface ListDriftOrdersRequest {
 
 export interface ListDriftOrdersResponse {
   orders: DriftOrder[];
+  /** current block height */
+  height: string;
 }
 
 /** Request and response messages for ListFillableDriftJITOrders */
@@ -305,6 +307,8 @@ export interface ListFillableDriftJITOrdersRequest {
 
 export interface ListFillableDriftJITOrdersResponse {
   fillable_orders: DriftOrder[];
+  /** current block height */
+  height: string;
 }
 
 /** Order structure with auction_start_price and auction_end_price */
@@ -3036,7 +3040,7 @@ export const ListDriftOrdersRequest = {
 };
 
 function createBaseListDriftOrdersResponse(): ListDriftOrdersResponse {
-  return { orders: [] };
+  return { orders: [], height: "0" };
 }
 
 export const ListDriftOrdersResponse = {
@@ -3045,6 +3049,9 @@ export const ListDriftOrdersResponse = {
   encode(message: ListDriftOrdersResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.orders) {
       DriftOrder.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.height !== "0") {
+      writer.uint32(16).uint64(message.height);
     }
     return writer;
   },
@@ -3063,6 +3070,13 @@ export const ListDriftOrdersResponse = {
 
           message.orders.push(DriftOrder.decode(reader, reader.uint32()));
           continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.height = longToString(reader.uint64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3075,6 +3089,7 @@ export const ListDriftOrdersResponse = {
   fromJSON(object: any): ListDriftOrdersResponse {
     return {
       orders: globalThis.Array.isArray(object?.orders) ? object.orders.map((e: any) => DriftOrder.fromJSON(e)) : [],
+      height: isSet(object.height) ? globalThis.String(object.height) : "0",
     };
   },
 
@@ -3082,6 +3097,9 @@ export const ListDriftOrdersResponse = {
     const obj: any = {};
     if (message.orders?.length) {
       obj.orders = message.orders.map((e) => DriftOrder.toJSON(e));
+    }
+    if (message.height !== undefined) {
+      obj.height = message.height;
     }
     return obj;
   },
@@ -3092,6 +3110,7 @@ export const ListDriftOrdersResponse = {
   fromPartial(object: DeepPartial<ListDriftOrdersResponse>): ListDriftOrdersResponse {
     const message = createBaseListDriftOrdersResponse();
     message.orders = object.orders?.map((e) => DriftOrder.fromPartial(e)) || [];
+    message.height = object.height ?? "0";
     return message;
   },
 };
@@ -3218,7 +3237,7 @@ export const ListFillableDriftJITOrdersRequest = {
 };
 
 function createBaseListFillableDriftJITOrdersResponse(): ListFillableDriftJITOrdersResponse {
-  return { fillable_orders: [] };
+  return { fillable_orders: [], height: "0" };
 }
 
 export const ListFillableDriftJITOrdersResponse = {
@@ -3227,6 +3246,9 @@ export const ListFillableDriftJITOrdersResponse = {
   encode(message: ListFillableDriftJITOrdersResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.fillable_orders) {
       DriftOrder.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.height !== "0") {
+      writer.uint32(16).uint64(message.height);
     }
     return writer;
   },
@@ -3245,6 +3267,13 @@ export const ListFillableDriftJITOrdersResponse = {
 
           message.fillable_orders.push(DriftOrder.decode(reader, reader.uint32()));
           continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.height = longToString(reader.uint64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3259,6 +3288,7 @@ export const ListFillableDriftJITOrdersResponse = {
       fillable_orders: globalThis.Array.isArray(object?.fillable_orders)
         ? object.fillable_orders.map((e: any) => DriftOrder.fromJSON(e))
         : [],
+      height: isSet(object.height) ? globalThis.String(object.height) : "0",
     };
   },
 
@@ -3266,6 +3296,9 @@ export const ListFillableDriftJITOrdersResponse = {
     const obj: any = {};
     if (message.fillable_orders?.length) {
       obj.fillable_orders = message.fillable_orders.map((e) => DriftOrder.toJSON(e));
+    }
+    if (message.height !== undefined) {
+      obj.height = message.height;
     }
     return obj;
   },
@@ -3276,6 +3309,7 @@ export const ListFillableDriftJITOrdersResponse = {
   fromPartial(object: DeepPartial<ListFillableDriftJITOrdersResponse>): ListFillableDriftJITOrdersResponse {
     const message = createBaseListFillableDriftJITOrdersResponse();
     message.fillable_orders = object.fillable_orders?.map((e) => DriftOrder.fromPartial(e)) || [];
+    message.height = object.height ?? "0";
     return message;
   },
 };
