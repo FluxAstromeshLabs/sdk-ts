@@ -317,11 +317,12 @@ export interface DriftOrder {
   order_id: number;
   auction_start_price: string;
   auction_end_price: string;
-  slot: string;
+  created_height: string;
   auction_duration: number;
   expired_at: string;
   direction: OrderDirection;
   fillable_quantity: string;
+  updated_height: string;
 }
 
 export interface StreamDriftOrdersRequest {
@@ -3289,11 +3290,12 @@ function createBaseDriftOrder(): DriftOrder {
     order_id: 0,
     auction_start_price: "0",
     auction_end_price: "0",
-    slot: "0",
+    created_height: "0",
     auction_duration: 0,
     expired_at: "0",
     direction: 0,
     fillable_quantity: "0",
+    updated_height: "0",
   };
 }
 
@@ -3325,8 +3327,8 @@ export const DriftOrder = {
     if (message.auction_end_price !== "0") {
       writer.uint32(64).int64(message.auction_end_price);
     }
-    if (message.slot !== "0") {
-      writer.uint32(72).uint64(message.slot);
+    if (message.created_height !== "0") {
+      writer.uint32(72).uint64(message.created_height);
     }
     if (message.auction_duration !== 0) {
       writer.uint32(80).uint32(message.auction_duration);
@@ -3339,6 +3341,9 @@ export const DriftOrder = {
     }
     if (message.fillable_quantity !== "0") {
       writer.uint32(104).uint64(message.fillable_quantity);
+    }
+    if (message.updated_height !== "0") {
+      writer.uint32(112).uint64(message.updated_height);
     }
     return writer;
   },
@@ -3411,7 +3416,7 @@ export const DriftOrder = {
             break;
           }
 
-          message.slot = longToString(reader.uint64() as Long);
+          message.created_height = longToString(reader.uint64() as Long);
           continue;
         case 10:
           if (tag !== 80) {
@@ -3441,6 +3446,13 @@ export const DriftOrder = {
 
           message.fillable_quantity = longToString(reader.uint64() as Long);
           continue;
+        case 14:
+          if (tag !== 112) {
+            break;
+          }
+
+          message.updated_height = longToString(reader.uint64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3460,11 +3472,12 @@ export const DriftOrder = {
       order_id: isSet(object.order_id) ? globalThis.Number(object.order_id) : 0,
       auction_start_price: isSet(object.auction_start_price) ? globalThis.String(object.auction_start_price) : "0",
       auction_end_price: isSet(object.auction_end_price) ? globalThis.String(object.auction_end_price) : "0",
-      slot: isSet(object.slot) ? globalThis.String(object.slot) : "0",
+      created_height: isSet(object.created_height) ? globalThis.String(object.created_height) : "0",
       auction_duration: isSet(object.auction_duration) ? globalThis.Number(object.auction_duration) : 0,
       expired_at: isSet(object.expired_at) ? globalThis.String(object.expired_at) : "0",
       direction: isSet(object.direction) ? orderDirectionFromJSON(object.direction) : 0,
       fillable_quantity: isSet(object.fillable_quantity) ? globalThis.String(object.fillable_quantity) : "0",
+      updated_height: isSet(object.updated_height) ? globalThis.String(object.updated_height) : "0",
     };
   },
 
@@ -3494,8 +3507,8 @@ export const DriftOrder = {
     if (message.auction_end_price !== undefined) {
       obj.auction_end_price = message.auction_end_price;
     }
-    if (message.slot !== undefined) {
-      obj.slot = message.slot;
+    if (message.created_height !== undefined) {
+      obj.created_height = message.created_height;
     }
     if (message.auction_duration !== undefined) {
       obj.auction_duration = Math.round(message.auction_duration);
@@ -3508,6 +3521,9 @@ export const DriftOrder = {
     }
     if (message.fillable_quantity !== undefined) {
       obj.fillable_quantity = message.fillable_quantity;
+    }
+    if (message.updated_height !== undefined) {
+      obj.updated_height = message.updated_height;
     }
     return obj;
   },
@@ -3525,11 +3541,12 @@ export const DriftOrder = {
     message.order_id = object.order_id ?? 0;
     message.auction_start_price = object.auction_start_price ?? "0";
     message.auction_end_price = object.auction_end_price ?? "0";
-    message.slot = object.slot ?? "0";
+    message.created_height = object.created_height ?? "0";
     message.auction_duration = object.auction_duration ?? 0;
     message.expired_at = object.expired_at ?? "0";
     message.direction = object.direction ?? 0;
     message.fillable_quantity = object.fillable_quantity ?? "0";
+    message.updated_height = object.updated_height ?? "0";
     return message;
   },
 };
