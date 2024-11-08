@@ -116,4 +116,32 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
     const stream = this.client.StreamStrategies(request)
     return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
+
+  async listDriftOrders(market_name?: string): Promise<explorerQuery.ListDriftOrdersResponse> {
+    const response: explorerQuery.ListDriftOrdersResponse = await this.retry(() =>
+      this.client.ListDriftOrders({
+        market_name
+      })
+    )
+    return response
+  }
+
+  async listFillableDriftJITOrders(
+    params: explorerQuery.ListFillableDriftJITOrdersRequest
+  ): Promise<explorerQuery.ListFillableDriftJITOrdersResponse> {
+    const response: explorerQuery.ListFillableDriftJITOrdersResponse = await this.retry(() =>
+      this.client.ListFillableDriftJITOrders(params)
+    )
+    return response
+  }
+
+  async streamDriftOrders(
+    request: Partial<explorerQuery.StreamDriftOrdersRequest>,
+    callback: (value: explorerQuery.StreamDriftOrdersResponse) => void,
+    onEndCallback?: (err: any) => void,
+    onStatusCallback?: () => void
+  ): Promise<Subscription> {
+    const stream = this.client.StreamDriftOrders(request)
+    return stream.subscribe(callback, onEndCallback, onStatusCallback)
+  }
 }
