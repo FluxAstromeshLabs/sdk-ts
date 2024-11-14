@@ -12,7 +12,9 @@ import _m0 from "protobufjs/minimal";
 import { Observable } from "rxjs";
 import { share } from "rxjs/operators";
 import { Any } from "../../../google/protobuf/any";
-import { EventAttribute } from "../../../tendermint/abci/types";
+import { EventAttribute, ExecTxResult } from "../../../tendermint/abci/types";
+import { Block as Block1 } from "../../../tendermint/types/block";
+import { BlockID } from "../../../tendermint/types/types";
 
 /** WARNING: always append to bottom or you will mess up indexer logic */
 export enum Op {
@@ -57,6 +59,7 @@ export enum Op {
   WasmEventEmitted = 7000,
   /** NewTxs - tx */
   NewTxs = 8000,
+  NewBlock = 8001,
   /** OracleSimpleUpdate - oracle */
   OracleSimpleUpdate = 9000,
   UNRECOGNIZED = -1,
@@ -151,6 +154,9 @@ export function opFromJSON(object: any): Op {
     case 8000:
     case "NewTxs":
       return Op.NewTxs;
+    case 8001:
+    case "NewBlock":
+      return Op.NewBlock;
     case 9000:
     case "OracleSimpleUpdate":
       return Op.OracleSimpleUpdate;
@@ -221,6 +227,8 @@ export function opToJSON(object: Op): string {
       return "WasmEventEmitted";
     case Op.NewTxs:
       return "NewTxs";
+    case Op.NewBlock:
+      return "NewBlock";
     case Op.OracleSimpleUpdate:
       return "OracleSimpleUpdate";
     case Op.UNRECOGNIZED:
@@ -261,8 +269,19 @@ export interface SyncStatus {
 }
 
 export interface NewTxsEvent {
-  count: number;
+  op: Op;
   txs: Uint8Array[];
+  tx_results: ExecTxResult[];
+}
+
+export interface Block {
+  block_id: BlockID | undefined;
+  block: Block1 | undefined;
+}
+
+export interface NewBlockEvent {
+  op: Op;
+  block: Block | undefined;
 }
 
 export interface WasmEvent {
@@ -746,18 +765,21 @@ export const SyncStatus = {
 };
 
 function createBaseNewTxsEvent(): NewTxsEvent {
-  return { count: 0, txs: [] };
+  return { op: 0, txs: [], tx_results: [] };
 }
 
 export const NewTxsEvent = {
   $type: "flux.eventstream.v1beta1.NewTxsEvent" as const,
 
   encode(message: NewTxsEvent, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.count !== 0) {
-      writer.uint32(8).int32(message.count);
+    if (message.op !== 0) {
+      writer.uint32(8).int32(message.op);
     }
     for (const v of message.txs) {
       writer.uint32(18).bytes(v!);
+    }
+    for (const v of message.tx_results) {
+      ExecTxResult.encode(v!, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -774,7 +796,7 @@ export const NewTxsEvent = {
             break;
           }
 
-          message.count = reader.int32();
+          message.op = reader.int32() as any;
           continue;
         case 2:
           if (tag !== 18) {
@@ -782,6 +804,13 @@ export const NewTxsEvent = {
           }
 
           message.txs.push(reader.bytes());
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.tx_results.push(ExecTxResult.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -794,18 +823,24 @@ export const NewTxsEvent = {
 
   fromJSON(object: any): NewTxsEvent {
     return {
-      count: isSet(object.count) ? globalThis.Number(object.count) : 0,
+      op: isSet(object.op) ? opFromJSON(object.op) : 0,
       txs: globalThis.Array.isArray(object?.txs) ? object.txs.map((e: any) => bytesFromBase64(e)) : [],
+      tx_results: globalThis.Array.isArray(object?.tx_results)
+        ? object.tx_results.map((e: any) => ExecTxResult.fromJSON(e))
+        : [],
     };
   },
 
   toJSON(message: NewTxsEvent): unknown {
     const obj: any = {};
-    if (message.count !== undefined) {
-      obj.count = Math.round(message.count);
+    if (message.op !== undefined) {
+      obj.op = opToJSON(message.op);
     }
     if (message.txs?.length) {
       obj.txs = message.txs.map((e) => base64FromBytes(e));
+    }
+    if (message.tx_results?.length) {
+      obj.tx_results = message.tx_results.map((e) => ExecTxResult.toJSON(e));
     }
     return obj;
   },
@@ -815,8 +850,165 @@ export const NewTxsEvent = {
   },
   fromPartial(object: DeepPartial<NewTxsEvent>): NewTxsEvent {
     const message = createBaseNewTxsEvent();
-    message.count = object.count ?? 0;
+    message.op = object.op ?? 0;
     message.txs = object.txs?.map((e) => e) || [];
+    message.tx_results = object.tx_results?.map((e) => ExecTxResult.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseBlock(): Block {
+  return { block_id: undefined, block: undefined };
+}
+
+export const Block = {
+  $type: "flux.eventstream.v1beta1.Block" as const,
+
+  encode(message: Block, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.block_id !== undefined) {
+      BlockID.encode(message.block_id, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.block !== undefined) {
+      Block1.encode(message.block, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Block {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseBlock();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.block_id = BlockID.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.block = Block1.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Block {
+    return {
+      block_id: isSet(object.block_id) ? BlockID.fromJSON(object.block_id) : undefined,
+      block: isSet(object.block) ? Block1.fromJSON(object.block) : undefined,
+    };
+  },
+
+  toJSON(message: Block): unknown {
+    const obj: any = {};
+    if (message.block_id !== undefined) {
+      obj.block_id = BlockID.toJSON(message.block_id);
+    }
+    if (message.block !== undefined) {
+      obj.block = Block1.toJSON(message.block);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Block>): Block {
+    return Block.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Block>): Block {
+    const message = createBaseBlock();
+    message.block_id = (object.block_id !== undefined && object.block_id !== null)
+      ? BlockID.fromPartial(object.block_id)
+      : undefined;
+    message.block = (object.block !== undefined && object.block !== null)
+      ? Block1.fromPartial(object.block)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseNewBlockEvent(): NewBlockEvent {
+  return { op: 0, block: undefined };
+}
+
+export const NewBlockEvent = {
+  $type: "flux.eventstream.v1beta1.NewBlockEvent" as const,
+
+  encode(message: NewBlockEvent, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.op !== 0) {
+      writer.uint32(8).int32(message.op);
+    }
+    if (message.block !== undefined) {
+      Block.encode(message.block, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): NewBlockEvent {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseNewBlockEvent();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.op = reader.int32() as any;
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.block = Block.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): NewBlockEvent {
+    return {
+      op: isSet(object.op) ? opFromJSON(object.op) : 0,
+      block: isSet(object.block) ? Block.fromJSON(object.block) : undefined,
+    };
+  },
+
+  toJSON(message: NewBlockEvent): unknown {
+    const obj: any = {};
+    if (message.op !== undefined) {
+      obj.op = opToJSON(message.op);
+    }
+    if (message.block !== undefined) {
+      obj.block = Block.toJSON(message.block);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<NewBlockEvent>): NewBlockEvent {
+    return NewBlockEvent.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<NewBlockEvent>): NewBlockEvent {
+    const message = createBaseNewBlockEvent();
+    message.op = object.op ?? 0;
+    message.block = (object.block !== undefined && object.block !== null) ? Block.fromPartial(object.block) : undefined;
     return message;
   },
 };
