@@ -12,9 +12,12 @@ import _m0 from "protobufjs/minimal";
 import { Observable } from "rxjs";
 import { share } from "rxjs/operators";
 import { PageRequest, PageResponse } from "../../../cosmos/base/query/v1beta1/pagination";
+import { Tx as Tx1 } from "../../../cosmos/tx/v1beta1/tx";
 import { BoolValue } from "../../../google/protobuf/wrappers";
+import { ExecTxResult } from "../../../tendermint/abci/types";
 import { TokenMetadata } from "../../astromesh/v1beta1/event";
 import { Plane, planeFromJSON, planeToJSON } from "../../astromesh/v1beta1/tx";
+import { Block } from "../../eventstream/v1beta1/query";
 import { ContractInfo } from "../../evm/v1beta1/evm";
 import { StrategyTriggerEvent } from "../../strategy/v1beta1/event";
 import { Strategy, StrategyType, strategyTypeFromJSON, strategyTypeToJSON } from "../../strategy/v1beta1/strategy";
@@ -345,6 +348,74 @@ export interface StreamDriftOrdersResponse {
   deleted: string;
   /** The DriftOrder object */
   order: DriftOrder | undefined;
+}
+
+export interface ListTxsRequest {
+  /** optional */
+  start_block: string;
+  /** optional */
+  end_block: string;
+  /** optional, UNIX timestamp */
+  start_time: string;
+  /** optional, UNIX timestamp */
+  end_time: string;
+  pagination: PageRequest | undefined;
+}
+
+export interface ListTxsResponse {
+  pagination: PageResponse | undefined;
+  txs: Tx[];
+}
+
+export interface GetTxRequest {
+  tx_hash: string;
+}
+
+export interface Tx {
+  height: string;
+  time: string;
+  hash: string;
+  tx: Tx1 | undefined;
+  tx_result:
+    | ExecTxResult
+    | undefined;
+  /** serves as token in token_based pagination method */
+  tx_number: string;
+}
+
+export interface GetTxResponse {
+  tx: Tx | undefined;
+}
+
+export interface ListAccountTxsRequest {
+  account: string;
+  pagination: PageRequest | undefined;
+}
+
+export interface ListAccountTxsResponse {
+  pagination: PageResponse | undefined;
+  txs: Tx[];
+}
+
+export interface ListBlocksRequest {
+  /** optional */
+  start_block: string;
+  /** optional */
+  end_block: string;
+  pagination: PageRequest | undefined;
+}
+
+export interface ListBlocksResponse {
+  pagination: PageResponse | undefined;
+  blocks: Block[];
+}
+
+export interface GetBlockRequest {
+  block_height: string;
+}
+
+export interface GetBlockResponse {
+  block: Block | undefined;
 }
 
 function createBaseListEvmContractsRequest(): ListEvmContractsRequest {
@@ -3769,6 +3840,908 @@ export const StreamDriftOrdersResponse = {
   },
 };
 
+function createBaseListTxsRequest(): ListTxsRequest {
+  return { start_block: "0", end_block: "0", start_time: "0", end_time: "0", pagination: undefined };
+}
+
+export const ListTxsRequest = {
+  $type: "flux.indexer.explorer.ListTxsRequest" as const,
+
+  encode(message: ListTxsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.start_block !== "0") {
+      writer.uint32(8).int64(message.start_block);
+    }
+    if (message.end_block !== "0") {
+      writer.uint32(16).int64(message.end_block);
+    }
+    if (message.start_time !== "0") {
+      writer.uint32(24).int64(message.start_time);
+    }
+    if (message.end_time !== "0") {
+      writer.uint32(32).int64(message.end_time);
+    }
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(42).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListTxsRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListTxsRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.start_block = longToString(reader.int64() as Long);
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.end_block = longToString(reader.int64() as Long);
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.start_time = longToString(reader.int64() as Long);
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.end_time = longToString(reader.int64() as Long);
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListTxsRequest {
+    return {
+      start_block: isSet(object.start_block) ? globalThis.String(object.start_block) : "0",
+      end_block: isSet(object.end_block) ? globalThis.String(object.end_block) : "0",
+      start_time: isSet(object.start_time) ? globalThis.String(object.start_time) : "0",
+      end_time: isSet(object.end_time) ? globalThis.String(object.end_time) : "0",
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
+    };
+  },
+
+  toJSON(message: ListTxsRequest): unknown {
+    const obj: any = {};
+    if (message.start_block !== undefined) {
+      obj.start_block = message.start_block;
+    }
+    if (message.end_block !== undefined) {
+      obj.end_block = message.end_block;
+    }
+    if (message.start_time !== undefined) {
+      obj.start_time = message.start_time;
+    }
+    if (message.end_time !== undefined) {
+      obj.end_time = message.end_time;
+    }
+    if (message.pagination !== undefined) {
+      obj.pagination = PageRequest.toJSON(message.pagination);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListTxsRequest>): ListTxsRequest {
+    return ListTxsRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListTxsRequest>): ListTxsRequest {
+    const message = createBaseListTxsRequest();
+    message.start_block = object.start_block ?? "0";
+    message.end_block = object.end_block ?? "0";
+    message.start_time = object.start_time ?? "0";
+    message.end_time = object.end_time ?? "0";
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseListTxsResponse(): ListTxsResponse {
+  return { pagination: undefined, txs: [] };
+}
+
+export const ListTxsResponse = {
+  $type: "flux.indexer.explorer.ListTxsResponse" as const,
+
+  encode(message: ListTxsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    for (const v of message.txs) {
+      Tx.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListTxsResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListTxsResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.txs.push(Tx.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListTxsResponse {
+    return {
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+      txs: globalThis.Array.isArray(object?.txs) ? object.txs.map((e: any) => Tx.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: ListTxsResponse): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageResponse.toJSON(message.pagination);
+    }
+    if (message.txs?.length) {
+      obj.txs = message.txs.map((e) => Tx.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListTxsResponse>): ListTxsResponse {
+    return ListTxsResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListTxsResponse>): ListTxsResponse {
+    const message = createBaseListTxsResponse();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
+    message.txs = object.txs?.map((e) => Tx.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseGetTxRequest(): GetTxRequest {
+  return { tx_hash: "" };
+}
+
+export const GetTxRequest = {
+  $type: "flux.indexer.explorer.GetTxRequest" as const,
+
+  encode(message: GetTxRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.tx_hash !== "") {
+      writer.uint32(10).string(message.tx_hash);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetTxRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetTxRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.tx_hash = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetTxRequest {
+    return { tx_hash: isSet(object.tx_hash) ? globalThis.String(object.tx_hash) : "" };
+  },
+
+  toJSON(message: GetTxRequest): unknown {
+    const obj: any = {};
+    if (message.tx_hash !== undefined) {
+      obj.tx_hash = message.tx_hash;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GetTxRequest>): GetTxRequest {
+    return GetTxRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GetTxRequest>): GetTxRequest {
+    const message = createBaseGetTxRequest();
+    message.tx_hash = object.tx_hash ?? "";
+    return message;
+  },
+};
+
+function createBaseTx(): Tx {
+  return { height: "0", time: "0", hash: "", tx: undefined, tx_result: undefined, tx_number: "0" };
+}
+
+export const Tx = {
+  $type: "flux.indexer.explorer.Tx" as const,
+
+  encode(message: Tx, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.height !== "0") {
+      writer.uint32(8).int64(message.height);
+    }
+    if (message.time !== "0") {
+      writer.uint32(16).int64(message.time);
+    }
+    if (message.hash !== "") {
+      writer.uint32(26).string(message.hash);
+    }
+    if (message.tx !== undefined) {
+      Tx1.encode(message.tx, writer.uint32(34).fork()).ldelim();
+    }
+    if (message.tx_result !== undefined) {
+      ExecTxResult.encode(message.tx_result, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.tx_number !== "0") {
+      writer.uint32(48).int64(message.tx_number);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Tx {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTx();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.height = longToString(reader.int64() as Long);
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.time = longToString(reader.int64() as Long);
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.hash = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.tx = Tx1.decode(reader, reader.uint32());
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.tx_result = ExecTxResult.decode(reader, reader.uint32());
+          continue;
+        case 6:
+          if (tag !== 48) {
+            break;
+          }
+
+          message.tx_number = longToString(reader.int64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Tx {
+    return {
+      height: isSet(object.height) ? globalThis.String(object.height) : "0",
+      time: isSet(object.time) ? globalThis.String(object.time) : "0",
+      hash: isSet(object.hash) ? globalThis.String(object.hash) : "",
+      tx: isSet(object.tx) ? Tx1.fromJSON(object.tx) : undefined,
+      tx_result: isSet(object.tx_result) ? ExecTxResult.fromJSON(object.tx_result) : undefined,
+      tx_number: isSet(object.tx_number) ? globalThis.String(object.tx_number) : "0",
+    };
+  },
+
+  toJSON(message: Tx): unknown {
+    const obj: any = {};
+    if (message.height !== undefined) {
+      obj.height = message.height;
+    }
+    if (message.time !== undefined) {
+      obj.time = message.time;
+    }
+    if (message.hash !== undefined) {
+      obj.hash = message.hash;
+    }
+    if (message.tx !== undefined) {
+      obj.tx = Tx1.toJSON(message.tx);
+    }
+    if (message.tx_result !== undefined) {
+      obj.tx_result = ExecTxResult.toJSON(message.tx_result);
+    }
+    if (message.tx_number !== undefined) {
+      obj.tx_number = message.tx_number;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Tx>): Tx {
+    return Tx.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Tx>): Tx {
+    const message = createBaseTx();
+    message.height = object.height ?? "0";
+    message.time = object.time ?? "0";
+    message.hash = object.hash ?? "";
+    message.tx = (object.tx !== undefined && object.tx !== null) ? Tx1.fromPartial(object.tx) : undefined;
+    message.tx_result = (object.tx_result !== undefined && object.tx_result !== null)
+      ? ExecTxResult.fromPartial(object.tx_result)
+      : undefined;
+    message.tx_number = object.tx_number ?? "0";
+    return message;
+  },
+};
+
+function createBaseGetTxResponse(): GetTxResponse {
+  return { tx: undefined };
+}
+
+export const GetTxResponse = {
+  $type: "flux.indexer.explorer.GetTxResponse" as const,
+
+  encode(message: GetTxResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.tx !== undefined) {
+      Tx.encode(message.tx, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetTxResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetTxResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.tx = Tx.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetTxResponse {
+    return { tx: isSet(object.tx) ? Tx.fromJSON(object.tx) : undefined };
+  },
+
+  toJSON(message: GetTxResponse): unknown {
+    const obj: any = {};
+    if (message.tx !== undefined) {
+      obj.tx = Tx.toJSON(message.tx);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GetTxResponse>): GetTxResponse {
+    return GetTxResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GetTxResponse>): GetTxResponse {
+    const message = createBaseGetTxResponse();
+    message.tx = (object.tx !== undefined && object.tx !== null) ? Tx.fromPartial(object.tx) : undefined;
+    return message;
+  },
+};
+
+function createBaseListAccountTxsRequest(): ListAccountTxsRequest {
+  return { account: "", pagination: undefined };
+}
+
+export const ListAccountTxsRequest = {
+  $type: "flux.indexer.explorer.ListAccountTxsRequest" as const,
+
+  encode(message: ListAccountTxsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.account !== "") {
+      writer.uint32(10).string(message.account);
+    }
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListAccountTxsRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListAccountTxsRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.account = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListAccountTxsRequest {
+    return {
+      account: isSet(object.account) ? globalThis.String(object.account) : "",
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
+    };
+  },
+
+  toJSON(message: ListAccountTxsRequest): unknown {
+    const obj: any = {};
+    if (message.account !== undefined) {
+      obj.account = message.account;
+    }
+    if (message.pagination !== undefined) {
+      obj.pagination = PageRequest.toJSON(message.pagination);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListAccountTxsRequest>): ListAccountTxsRequest {
+    return ListAccountTxsRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListAccountTxsRequest>): ListAccountTxsRequest {
+    const message = createBaseListAccountTxsRequest();
+    message.account = object.account ?? "";
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseListAccountTxsResponse(): ListAccountTxsResponse {
+  return { pagination: undefined, txs: [] };
+}
+
+export const ListAccountTxsResponse = {
+  $type: "flux.indexer.explorer.ListAccountTxsResponse" as const,
+
+  encode(message: ListAccountTxsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    for (const v of message.txs) {
+      Tx.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListAccountTxsResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListAccountTxsResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.txs.push(Tx.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListAccountTxsResponse {
+    return {
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+      txs: globalThis.Array.isArray(object?.txs) ? object.txs.map((e: any) => Tx.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: ListAccountTxsResponse): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageResponse.toJSON(message.pagination);
+    }
+    if (message.txs?.length) {
+      obj.txs = message.txs.map((e) => Tx.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListAccountTxsResponse>): ListAccountTxsResponse {
+    return ListAccountTxsResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListAccountTxsResponse>): ListAccountTxsResponse {
+    const message = createBaseListAccountTxsResponse();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
+    message.txs = object.txs?.map((e) => Tx.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseListBlocksRequest(): ListBlocksRequest {
+  return { start_block: "0", end_block: "0", pagination: undefined };
+}
+
+export const ListBlocksRequest = {
+  $type: "flux.indexer.explorer.ListBlocksRequest" as const,
+
+  encode(message: ListBlocksRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.start_block !== "0") {
+      writer.uint32(8).int64(message.start_block);
+    }
+    if (message.end_block !== "0") {
+      writer.uint32(16).int64(message.end_block);
+    }
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListBlocksRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListBlocksRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.start_block = longToString(reader.int64() as Long);
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.end_block = longToString(reader.int64() as Long);
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListBlocksRequest {
+    return {
+      start_block: isSet(object.start_block) ? globalThis.String(object.start_block) : "0",
+      end_block: isSet(object.end_block) ? globalThis.String(object.end_block) : "0",
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
+    };
+  },
+
+  toJSON(message: ListBlocksRequest): unknown {
+    const obj: any = {};
+    if (message.start_block !== undefined) {
+      obj.start_block = message.start_block;
+    }
+    if (message.end_block !== undefined) {
+      obj.end_block = message.end_block;
+    }
+    if (message.pagination !== undefined) {
+      obj.pagination = PageRequest.toJSON(message.pagination);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListBlocksRequest>): ListBlocksRequest {
+    return ListBlocksRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListBlocksRequest>): ListBlocksRequest {
+    const message = createBaseListBlocksRequest();
+    message.start_block = object.start_block ?? "0";
+    message.end_block = object.end_block ?? "0";
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseListBlocksResponse(): ListBlocksResponse {
+  return { pagination: undefined, blocks: [] };
+}
+
+export const ListBlocksResponse = {
+  $type: "flux.indexer.explorer.ListBlocksResponse" as const,
+
+  encode(message: ListBlocksResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    for (const v of message.blocks) {
+      Block.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListBlocksResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListBlocksResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.blocks.push(Block.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListBlocksResponse {
+    return {
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+      blocks: globalThis.Array.isArray(object?.blocks) ? object.blocks.map((e: any) => Block.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: ListBlocksResponse): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageResponse.toJSON(message.pagination);
+    }
+    if (message.blocks?.length) {
+      obj.blocks = message.blocks.map((e) => Block.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListBlocksResponse>): ListBlocksResponse {
+    return ListBlocksResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListBlocksResponse>): ListBlocksResponse {
+    const message = createBaseListBlocksResponse();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
+    message.blocks = object.blocks?.map((e) => Block.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseGetBlockRequest(): GetBlockRequest {
+  return { block_height: "0" };
+}
+
+export const GetBlockRequest = {
+  $type: "flux.indexer.explorer.GetBlockRequest" as const,
+
+  encode(message: GetBlockRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.block_height !== "0") {
+      writer.uint32(8).int64(message.block_height);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetBlockRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetBlockRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.block_height = longToString(reader.int64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetBlockRequest {
+    return { block_height: isSet(object.block_height) ? globalThis.String(object.block_height) : "0" };
+  },
+
+  toJSON(message: GetBlockRequest): unknown {
+    const obj: any = {};
+    if (message.block_height !== undefined) {
+      obj.block_height = message.block_height;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GetBlockRequest>): GetBlockRequest {
+    return GetBlockRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GetBlockRequest>): GetBlockRequest {
+    const message = createBaseGetBlockRequest();
+    message.block_height = object.block_height ?? "0";
+    return message;
+  },
+};
+
+function createBaseGetBlockResponse(): GetBlockResponse {
+  return { block: undefined };
+}
+
+export const GetBlockResponse = {
+  $type: "flux.indexer.explorer.GetBlockResponse" as const,
+
+  encode(message: GetBlockResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.block !== undefined) {
+      Block.encode(message.block, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetBlockResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetBlockResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.block = Block.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetBlockResponse {
+    return { block: isSet(object.block) ? Block.fromJSON(object.block) : undefined };
+  },
+
+  toJSON(message: GetBlockResponse): unknown {
+    const obj: any = {};
+    if (message.block !== undefined) {
+      obj.block = Block.toJSON(message.block);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GetBlockResponse>): GetBlockResponse {
+    return GetBlockResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GetBlockResponse>): GetBlockResponse {
+    const message = createBaseGetBlockResponse();
+    message.block = (object.block !== undefined && object.block !== null) ? Block.fromPartial(object.block) : undefined;
+    return message;
+  },
+};
+
 export interface API {
   ListEvmContracts(
     request: DeepPartial<ListEvmContractsRequest>,
@@ -3825,6 +4798,14 @@ export interface API {
     request: DeepPartial<StreamDriftOrdersRequest>,
     metadata?: grpc.Metadata,
   ): Observable<StreamDriftOrdersResponse>;
+  ListTxs(request: DeepPartial<ListTxsRequest>, metadata?: grpc.Metadata): Promise<ListTxsResponse>;
+  GetTx(request: DeepPartial<GetTxRequest>, metadata?: grpc.Metadata): Promise<GetTxResponse>;
+  ListAccountTxs(
+    request: DeepPartial<ListAccountTxsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ListAccountTxsResponse>;
+  ListBlocks(request: DeepPartial<ListBlocksRequest>, metadata?: grpc.Metadata): Promise<ListBlocksResponse>;
+  GetBlock(request: DeepPartial<GetBlockRequest>, metadata?: grpc.Metadata): Promise<GetBlockResponse>;
 }
 
 export class APIClientImpl implements API {
@@ -3848,6 +4829,11 @@ export class APIClientImpl implements API {
     this.ListDriftOrders = this.ListDriftOrders.bind(this);
     this.ListFillableDriftJITOrders = this.ListFillableDriftJITOrders.bind(this);
     this.StreamDriftOrders = this.StreamDriftOrders.bind(this);
+    this.ListTxs = this.ListTxs.bind(this);
+    this.GetTx = this.GetTx.bind(this);
+    this.ListAccountTxs = this.ListAccountTxs.bind(this);
+    this.ListBlocks = this.ListBlocks.bind(this);
+    this.GetBlock = this.GetBlock.bind(this);
   }
 
   ListEvmContracts(
@@ -3959,6 +4945,29 @@ export class APIClientImpl implements API {
     metadata?: grpc.Metadata,
   ): Observable<StreamDriftOrdersResponse> {
     return this.rpc.invoke(APIStreamDriftOrdersDesc, StreamDriftOrdersRequest.fromPartial(request), metadata);
+  }
+
+  ListTxs(request: DeepPartial<ListTxsRequest>, metadata?: grpc.Metadata): Promise<ListTxsResponse> {
+    return this.rpc.unary(APIListTxsDesc, ListTxsRequest.fromPartial(request), metadata);
+  }
+
+  GetTx(request: DeepPartial<GetTxRequest>, metadata?: grpc.Metadata): Promise<GetTxResponse> {
+    return this.rpc.unary(APIGetTxDesc, GetTxRequest.fromPartial(request), metadata);
+  }
+
+  ListAccountTxs(
+    request: DeepPartial<ListAccountTxsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ListAccountTxsResponse> {
+    return this.rpc.unary(APIListAccountTxsDesc, ListAccountTxsRequest.fromPartial(request), metadata);
+  }
+
+  ListBlocks(request: DeepPartial<ListBlocksRequest>, metadata?: grpc.Metadata): Promise<ListBlocksResponse> {
+    return this.rpc.unary(APIListBlocksDesc, ListBlocksRequest.fromPartial(request), metadata);
+  }
+
+  GetBlock(request: DeepPartial<GetBlockRequest>, metadata?: grpc.Metadata): Promise<GetBlockResponse> {
+    return this.rpc.unary(APIGetBlockDesc, GetBlockRequest.fromPartial(request), metadata);
   }
 }
 
@@ -4322,6 +5331,121 @@ export const APIStreamDriftOrdersDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = StreamDriftOrdersResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const APIListTxsDesc: UnaryMethodDefinitionish = {
+  methodName: "ListTxs",
+  service: APIDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ListTxsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ListTxsResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const APIGetTxDesc: UnaryMethodDefinitionish = {
+  methodName: "GetTx",
+  service: APIDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetTxRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetTxResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const APIListAccountTxsDesc: UnaryMethodDefinitionish = {
+  methodName: "ListAccountTxs",
+  service: APIDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ListAccountTxsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ListAccountTxsResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const APIListBlocksDesc: UnaryMethodDefinitionish = {
+  methodName: "ListBlocks",
+  service: APIDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ListBlocksRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ListBlocksResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const APIGetBlockDesc: UnaryMethodDefinitionish = {
+  methodName: "GetBlock",
+  service: APIDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetBlockRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetBlockResponse.decode(data);
       return {
         ...value,
         toObject() {
