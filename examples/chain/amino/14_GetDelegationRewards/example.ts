@@ -1,21 +1,18 @@
-import * as ethwallet from '@ethereumjs/wallet'
-import { bech32 } from 'bech32'
-import { ChainGrpcDistributionQuery } from '../../../../packages'
+import { NodeHttpTransport } from '@improbable-eng/grpc-web-node-http-transport'
+// import { ChainGrpcDistributionQuery } from '../../../../packages'
+import * as txservice from '../../../../chain/cosmos/tx/v1beta1/service'
+import * as distributionQuery from '../../../../chain/cosmos/distribution/v1beta1/query'
 const main = async () => {
   // init clients
-  const distributionClient = new ChainGrpcDistributionQuery('http://localhost:10337')
 
-  // init user2
-  const wallet = ethwallet.Wallet.fromPrivateKey(
-    Uint8Array.from(
-      Buffer.from('741de4f8988ea941d3ff0287911ca4074e62b7d45c991a51186455366f10b544', 'hex')
-    )
-  )
-  const luxAddress = bech32.encode('lux', bech32.toWords(wallet.getAddress()))
+  const cc = new txservice.GrpcWebImpl('https://testnet.lcd.astromesh.xyz', {
+    transport: NodeHttpTransport()
+  })
+  const distributionClient = new distributionQuery.QueryClientImpl(cc)
   try {
-    const res = await distributionClient.getDelegationRewards({
-      delegator_address: luxAddress,
-      validator_address: 'luxvaloper1vvupy62qn5pug4vyuctl7x3vcfa7fl7xq0h82c'
+    const res = await distributionClient.DelegationRewards({
+      delegator_address: 'lux1vt79neuamq3mg4f8maxtkzxh2eh8kgzs2xudm8',
+      validator_address: 'luxvaloper1qry5x2d383v9hkqc0fpez53yluyxvey2c957m4'
     })
     console.log(JSON.stringify(res.rewards, null, 2))
   } catch (err: any) {
