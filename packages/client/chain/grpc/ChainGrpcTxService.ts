@@ -9,7 +9,7 @@ export class ChainGrpcTxService extends BaseGrpc {
   async broadcastTx(
     txBytes: Uint8Array,
     mode: txservice.BroadcastMode = txservice.BroadcastMode.BROADCAST_MODE_SYNC
-  ) {
+  ): Promise<any> {
     try {
       let request = txservice.BroadcastTxRequest.create({ tx_bytes: txBytes, mode })
       let response = await this.retry(() => this.client.BroadcastTx(request))

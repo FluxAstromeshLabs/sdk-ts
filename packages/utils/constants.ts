@@ -10,3 +10,6 @@ export const DEFAULT_STD_FEE = {
   ],
   gas: DEFAULT_GAS_LIMIT.toString()
 }
+
+export const BECH32_ADDR_ACC_PREFIX = 'lux'
+export const BECH32_ADDR_VAL_PREFIX = 'luxvaloper'
