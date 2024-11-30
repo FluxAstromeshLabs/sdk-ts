@@ -11,8 +11,8 @@ export class ChainGrpcStakingQuery extends BaseGrpc {
     status,
     pagination
   }: {
-    status: string
-    pagination: any
+    status?: string
+    pagination?: any
   }): Promise<stakingQuery.QueryValidatorsResponse> {
     try {
       const request = stakingQuery.QueryValidatorsRequest.create({

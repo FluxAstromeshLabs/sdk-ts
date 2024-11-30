@@ -144,4 +144,41 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
     const stream = this.client.StreamDriftOrders(request)
     return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
+
+  async listTxs(request: explorerQuery.ListTxsRequest): Promise<explorerQuery.ListTxsResponse> {
+    const response: explorerQuery.ListTxsResponse = await this.retry(() =>
+      this.client.ListTxs(request)
+    )
+    return response
+  }
+  //GetTx
+  async getTx(request: explorerQuery.GetTxRequest): Promise<explorerQuery.GetTxResponse> {
+    const response: explorerQuery.GetTxResponse = await this.retry(() => this.client.GetTx(request))
+    return response
+  }
+  //ListAccountTxs
+  async listAccountTxs(
+    request: explorerQuery.ListAccountTxsRequest
+  ): Promise<explorerQuery.ListAccountTxsResponse> {
+    const response: explorerQuery.ListAccountTxsResponse = await this.retry(() =>
+      this.client.ListAccountTxs(request)
+    )
+    return response
+  }
+  // ListBlocks
+  async listBlocks(
+    request: explorerQuery.ListBlocksRequest
+  ): Promise<explorerQuery.ListBlocksResponse> {
+    const response: explorerQuery.ListBlocksResponse = await this.retry(() =>
+      this.client.ListBlocks(request)
+    )
+    return response
+  }
+  // GetBlock
+  async getBlock(request: explorerQuery.GetBlockRequest): Promise<explorerQuery.GetBlockResponse> {
+    const response: explorerQuery.GetBlockResponse = await this.retry(() =>
+      this.client.GetBlock(request)
+    )
+    return response
+  }
 }

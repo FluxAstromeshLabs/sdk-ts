@@ -2,6 +2,12 @@ import * as ethcrypto from 'eth-crypto'
 import * as ethutil from '@ethereumjs/util'
 import * as metamaskutil from '@metamask/eth-sig-util'
 import { ChainId } from '../../utils'
+declare global {
+  interface Window {
+    ethereum?: any
+    providers?: any
+  }
+}
 export default class Metamask {
   private chainId: ChainId
   constructor(args: { chainId: ChainId }) {
