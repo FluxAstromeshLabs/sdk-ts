@@ -234,6 +234,22 @@ export interface QueryContractsByCreatorResponse {
 }
 
 /**
+ * QueryWasmLimitsConfigRequest is the request type for the
+ * Query/WasmLimitsConfig RPC method.
+ */
+export interface QueryWasmLimitsConfigRequest {
+}
+
+/**
+ * QueryWasmLimitsConfigResponse is the response type for the
+ * Query/WasmLimitsConfig RPC method. It contains the JSON encoded limits for
+ * static validation of Wasm files.
+ */
+export interface QueryWasmLimitsConfigResponse {
+  config: string;
+}
+
+/**
  * QueryBuildAddressRequest is the request type for the Query/BuildAddress RPC
  * method.
  */
@@ -2113,6 +2129,110 @@ export const QueryContractsByCreatorResponse = {
   },
 };
 
+function createBaseQueryWasmLimitsConfigRequest(): QueryWasmLimitsConfigRequest {
+  return {};
+}
+
+export const QueryWasmLimitsConfigRequest = {
+  $type: "cosmwasm.wasm.v1.QueryWasmLimitsConfigRequest" as const,
+
+  encode(_: QueryWasmLimitsConfigRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryWasmLimitsConfigRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryWasmLimitsConfigRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): QueryWasmLimitsConfigRequest {
+    return {};
+  },
+
+  toJSON(_: QueryWasmLimitsConfigRequest): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<QueryWasmLimitsConfigRequest>): QueryWasmLimitsConfigRequest {
+    return QueryWasmLimitsConfigRequest.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<QueryWasmLimitsConfigRequest>): QueryWasmLimitsConfigRequest {
+    const message = createBaseQueryWasmLimitsConfigRequest();
+    return message;
+  },
+};
+
+function createBaseQueryWasmLimitsConfigResponse(): QueryWasmLimitsConfigResponse {
+  return { config: "" };
+}
+
+export const QueryWasmLimitsConfigResponse = {
+  $type: "cosmwasm.wasm.v1.QueryWasmLimitsConfigResponse" as const,
+
+  encode(message: QueryWasmLimitsConfigResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.config !== "") {
+      writer.uint32(10).string(message.config);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): QueryWasmLimitsConfigResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseQueryWasmLimitsConfigResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.config = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryWasmLimitsConfigResponse {
+    return { config: isSet(object.config) ? globalThis.String(object.config) : "" };
+  },
+
+  toJSON(message: QueryWasmLimitsConfigResponse): unknown {
+    const obj: any = {};
+    if (message.config !== undefined) {
+      obj.config = message.config;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<QueryWasmLimitsConfigResponse>): QueryWasmLimitsConfigResponse {
+    return QueryWasmLimitsConfigResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<QueryWasmLimitsConfigResponse>): QueryWasmLimitsConfigResponse {
+    const message = createBaseQueryWasmLimitsConfigResponse();
+    message.config = object.config ?? "";
+    return message;
+  },
+};
+
 function createBaseQueryBuildAddressRequest(): QueryBuildAddressRequest {
   return { code_hash: "", creator_address: "", salt: "", init_args: new Uint8Array(0) };
 }
@@ -2328,6 +2448,14 @@ export interface Query {
     request: DeepPartial<QueryContractsByCreatorRequest>,
     metadata?: grpc.Metadata,
   ): Promise<QueryContractsByCreatorResponse>;
+  /**
+   * WasmLimitsConfig gets the configured limits for static validation of Wasm
+   * files, encoded in JSON.
+   */
+  WasmLimitsConfig(
+    request: DeepPartial<QueryWasmLimitsConfigRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryWasmLimitsConfigResponse>;
   /** BuildAddress builds a contract address */
   BuildAddress(
     request: DeepPartial<QueryBuildAddressRequest>,
@@ -2352,6 +2480,7 @@ export class QueryClientImpl implements Query {
     this.PinnedCodes = this.PinnedCodes.bind(this);
     this.Params = this.Params.bind(this);
     this.ContractsByCreator = this.ContractsByCreator.bind(this);
+    this.WasmLimitsConfig = this.WasmLimitsConfig.bind(this);
     this.BuildAddress = this.BuildAddress.bind(this);
   }
 
@@ -2425,6 +2554,13 @@ export class QueryClientImpl implements Query {
     metadata?: grpc.Metadata,
   ): Promise<QueryContractsByCreatorResponse> {
     return this.rpc.unary(QueryContractsByCreatorDesc, QueryContractsByCreatorRequest.fromPartial(request), metadata);
+  }
+
+  WasmLimitsConfig(
+    request: DeepPartial<QueryWasmLimitsConfigRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<QueryWasmLimitsConfigResponse> {
+    return this.rpc.unary(QueryWasmLimitsConfigDesc, QueryWasmLimitsConfigRequest.fromPartial(request), metadata);
   }
 
   BuildAddress(
@@ -2703,6 +2839,29 @@ export const QueryContractsByCreatorDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = QueryContractsByCreatorResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const QueryWasmLimitsConfigDesc: UnaryMethodDefinitionish = {
+  methodName: "WasmLimitsConfig",
+  service: QueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return QueryWasmLimitsConfigRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = QueryWasmLimitsConfigResponse.decode(data);
       return {
         ...value,
         toObject() {
