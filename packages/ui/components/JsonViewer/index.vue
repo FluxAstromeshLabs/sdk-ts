@@ -73,14 +73,14 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 
 interface JsonTreeProps {
   data: Record<string, any> | Array<any>
   isChildren?: boolean
 }
 
-defineProps<JsonTreeProps>()
+const props = defineProps<JsonTreeProps>()
 
 const collapsed = reactive<Record<string, boolean>>({})
 const collapsedRoot = ref(true)
@@ -98,6 +98,15 @@ const isObject = (value: any): boolean => {
 const isArray = (value: any): boolean => {
   return Array.isArray(value)
 }
+const data = computed<Record<string, any> | Array<any>>(() => {
+  try {
+    let t = JSON.stringify(props.data)
+    t = t.replace(/\\"/g, '"')
+    return JSON.parse(t)
+  } catch (e) {
+    console.log(e)
+  }
+})
 </script>
 
 <style scoped>
