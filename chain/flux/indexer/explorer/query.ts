@@ -516,11 +516,13 @@ export interface DumpsadCoin {
   vm: string;
   /** Associated cron ID */
   cron_id: string;
-  /** Associated cron ID */
+  /** Associated solver ID */
   solver_id: string;
   /** Current price of the coin */
   current_price: string;
+  /** Block height */
   height: string;
+  /** Pool address */
   pool_address: string;
 }
 
