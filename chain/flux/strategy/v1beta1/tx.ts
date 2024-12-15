@@ -88,6 +88,7 @@ export interface StrategyResponse {
   id: string;
   ixs: FISInstruction[];
   ix_responses: FISInstructionResponse[];
+  result: string;
 }
 
 export interface MsgTriggerStrategiesResponse {
@@ -453,7 +454,7 @@ export const MsgTriggerStrategies = {
 };
 
 function createBaseStrategyResponse(): StrategyResponse {
-  return { id: "", ixs: [], ix_responses: [] };
+  return { id: "", ixs: [], ix_responses: [], result: "" };
 }
 
 export const StrategyResponse = {
@@ -468,6 +469,9 @@ export const StrategyResponse = {
     }
     for (const v of message.ix_responses) {
       FISInstructionResponse.encode(v!, writer.uint32(26).fork()).ldelim();
+    }
+    if (message.result !== "") {
+      writer.uint32(34).string(message.result);
     }
     return writer;
   },
@@ -500,6 +504,13 @@ export const StrategyResponse = {
 
           message.ix_responses.push(FISInstructionResponse.decode(reader, reader.uint32()));
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.result = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -516,6 +527,7 @@ export const StrategyResponse = {
       ix_responses: globalThis.Array.isArray(object?.ix_responses)
         ? object.ix_responses.map((e: any) => FISInstructionResponse.fromJSON(e))
         : [],
+      result: isSet(object.result) ? globalThis.String(object.result) : "",
     };
   },
 
@@ -530,6 +542,9 @@ export const StrategyResponse = {
     if (message.ix_responses?.length) {
       obj.ix_responses = message.ix_responses.map((e) => FISInstructionResponse.toJSON(e));
     }
+    if (message.result !== undefined) {
+      obj.result = message.result;
+    }
     return obj;
   },
 
@@ -541,6 +556,7 @@ export const StrategyResponse = {
     message.id = object.id ?? "";
     message.ixs = object.ixs?.map((e) => FISInstruction.fromPartial(e)) || [];
     message.ix_responses = object.ix_responses?.map((e) => FISInstructionResponse.fromPartial(e)) || [];
+    message.result = object.result ?? "";
     return message;
   },
 };

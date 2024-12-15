@@ -8,7 +8,9 @@
 import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
 import _m0 from "protobufjs/minimal";
+import { Metadata } from "../../../cosmos/bank/v1beta1/bank";
 import { Coin } from "../../../cosmos/base/v1beta1/coin";
+import { InitialMint } from "./astromesh";
 
 export enum Plane {
   COSMOS = 0,
@@ -149,6 +151,18 @@ export interface MsgFISTransaction {
 
 export interface MsgFISTransactionResponse {
   instruction_responses: FISInstructionResponse[];
+}
+
+/** MsgCreateBankDenom defines a message to mint a new token on the bank module. */
+export interface MsgCreateBankDenom {
+  sender: string;
+  metadata: Metadata | undefined;
+  minter: string;
+  initial_mints: InitialMint[];
+}
+
+export interface MsgCreateBankDenomResponse {
+  created_denom: string;
 }
 
 function createBaseMsgChargeVmAccount(): MsgChargeVmAccount {
@@ -933,6 +947,175 @@ export const MsgFISTransactionResponse = {
   },
 };
 
+function createBaseMsgCreateBankDenom(): MsgCreateBankDenom {
+  return { sender: "", metadata: undefined, minter: "", initial_mints: [] };
+}
+
+export const MsgCreateBankDenom = {
+  $type: "flux.astromesh.v1beta1.MsgCreateBankDenom" as const,
+
+  encode(message: MsgCreateBankDenom, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.sender !== "") {
+      writer.uint32(10).string(message.sender);
+    }
+    if (message.metadata !== undefined) {
+      Metadata.encode(message.metadata, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.minter !== "") {
+      writer.uint32(26).string(message.minter);
+    }
+    for (const v of message.initial_mints) {
+      InitialMint.encode(v!, writer.uint32(34).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgCreateBankDenom {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgCreateBankDenom();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.sender = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.metadata = Metadata.decode(reader, reader.uint32());
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.minter = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.initial_mints.push(InitialMint.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgCreateBankDenom {
+    return {
+      sender: isSet(object.sender) ? globalThis.String(object.sender) : "",
+      metadata: isSet(object.metadata) ? Metadata.fromJSON(object.metadata) : undefined,
+      minter: isSet(object.minter) ? globalThis.String(object.minter) : "",
+      initial_mints: globalThis.Array.isArray(object?.initial_mints)
+        ? object.initial_mints.map((e: any) => InitialMint.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: MsgCreateBankDenom): unknown {
+    const obj: any = {};
+    if (message.sender !== undefined) {
+      obj.sender = message.sender;
+    }
+    if (message.metadata !== undefined) {
+      obj.metadata = Metadata.toJSON(message.metadata);
+    }
+    if (message.minter !== undefined) {
+      obj.minter = message.minter;
+    }
+    if (message.initial_mints?.length) {
+      obj.initial_mints = message.initial_mints.map((e) => InitialMint.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<MsgCreateBankDenom>): MsgCreateBankDenom {
+    return MsgCreateBankDenom.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<MsgCreateBankDenom>): MsgCreateBankDenom {
+    const message = createBaseMsgCreateBankDenom();
+    message.sender = object.sender ?? "";
+    message.metadata = (object.metadata !== undefined && object.metadata !== null)
+      ? Metadata.fromPartial(object.metadata)
+      : undefined;
+    message.minter = object.minter ?? "";
+    message.initial_mints = object.initial_mints?.map((e) => InitialMint.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseMsgCreateBankDenomResponse(): MsgCreateBankDenomResponse {
+  return { created_denom: "" };
+}
+
+export const MsgCreateBankDenomResponse = {
+  $type: "flux.astromesh.v1beta1.MsgCreateBankDenomResponse" as const,
+
+  encode(message: MsgCreateBankDenomResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.created_denom !== "") {
+      writer.uint32(10).string(message.created_denom);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgCreateBankDenomResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgCreateBankDenomResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.created_denom = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgCreateBankDenomResponse {
+    return { created_denom: isSet(object.created_denom) ? globalThis.String(object.created_denom) : "" };
+  },
+
+  toJSON(message: MsgCreateBankDenomResponse): unknown {
+    const obj: any = {};
+    if (message.created_denom !== undefined) {
+      obj.created_denom = message.created_denom;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<MsgCreateBankDenomResponse>): MsgCreateBankDenomResponse {
+    return MsgCreateBankDenomResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<MsgCreateBankDenomResponse>): MsgCreateBankDenomResponse {
+    const message = createBaseMsgCreateBankDenomResponse();
+    message.created_denom = object.created_denom ?? "";
+    return message;
+  },
+};
+
 export interface Msg {
   ChargeVmAccount(
     request: DeepPartial<MsgChargeVmAccount>,
@@ -941,6 +1124,10 @@ export interface Msg {
   DrainVmAccount(request: DeepPartial<MsgDrainVmAccount>, metadata?: grpc.Metadata): Promise<MsgDrainVmAccountResponse>;
   AstroTransfer(request: DeepPartial<MsgAstroTransfer>, metadata?: grpc.Metadata): Promise<MsgAstroTransferResponse>;
   FISTransaction(request: DeepPartial<MsgFISTransaction>, metadata?: grpc.Metadata): Promise<MsgFISTransactionResponse>;
+  CreateBankDenom(
+    request: DeepPartial<MsgCreateBankDenom>,
+    metadata?: grpc.Metadata,
+  ): Promise<MsgCreateBankDenomResponse>;
 }
 
 export class MsgClientImpl implements Msg {
@@ -952,6 +1139,7 @@ export class MsgClientImpl implements Msg {
     this.DrainVmAccount = this.DrainVmAccount.bind(this);
     this.AstroTransfer = this.AstroTransfer.bind(this);
     this.FISTransaction = this.FISTransaction.bind(this);
+    this.CreateBankDenom = this.CreateBankDenom.bind(this);
   }
 
   ChargeVmAccount(
@@ -977,6 +1165,13 @@ export class MsgClientImpl implements Msg {
     metadata?: grpc.Metadata,
   ): Promise<MsgFISTransactionResponse> {
     return this.rpc.unary(MsgFISTransactionDesc, MsgFISTransaction.fromPartial(request), metadata);
+  }
+
+  CreateBankDenom(
+    request: DeepPartial<MsgCreateBankDenom>,
+    metadata?: grpc.Metadata,
+  ): Promise<MsgCreateBankDenomResponse> {
+    return this.rpc.unary(MsgCreateBankDenomDesc, MsgCreateBankDenom.fromPartial(request), metadata);
   }
 }
 
@@ -1064,6 +1259,29 @@ export const MsgFISTransactionDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = MsgFISTransactionResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const MsgCreateBankDenomDesc: UnaryMethodDefinitionish = {
+  methodName: "CreateBankDenom",
+  service: MsgDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return MsgCreateBankDenom.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = MsgCreateBankDenomResponse.decode(data);
       return {
         ...value,
         toObject() {
