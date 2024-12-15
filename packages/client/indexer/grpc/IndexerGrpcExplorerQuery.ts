@@ -144,4 +144,12 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
     const stream = this.client.StreamDriftOrders(request)
     return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
+  async listDumpsadCoins(
+    request: explorerQuery.ListDumpsadCoinsRequest
+  ): Promise<explorerQuery.ListDumpsadCoinsResponse> {
+    const response: explorerQuery.ListDumpsadCoinsResponse = await this.retry(() =>
+      this.client.ListDumpsadCoins(request)
+    )
+    return response
+  }
 }
