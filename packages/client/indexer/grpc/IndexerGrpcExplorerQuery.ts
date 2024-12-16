@@ -72,7 +72,7 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
   }
 
   async streamBalances(
-    request: explorerQuery.BalancesRequest,
+    request: Partial<explorerQuery.BalancesRequest>,
     callback: (value: explorerQuery.StreamBalanceResponse) => void,
     onEndCallback?: (err: any) => void,
     onStatusCallback?: () => void
@@ -145,11 +145,20 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
     return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
   async listDumpsadCoins(
-    request: explorerQuery.ListDumpsadCoinsRequest
+    request: Partial<explorerQuery.ListDumpsadCoinsRequest>
   ): Promise<explorerQuery.ListDumpsadCoinsResponse> {
     const response: explorerQuery.ListDumpsadCoinsResponse = await this.retry(() =>
       this.client.ListDumpsadCoins(request)
     )
     return response
+  }
+  async streamDumpsadCoins(
+    request: Partial<explorerQuery.StreamDumpsadCoinsRequest>,
+    callback: (value: explorerQuery.StreamDumpsadCoinsResponse) => void,
+    onEndCallback?: (err: any) => void,
+    onStatusCallback?: () => void
+  ): Promise<Subscription> {
+    const stream = this.client.StreamDumpsadCoins(request)
+    return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
 }

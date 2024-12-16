@@ -5,13 +5,13 @@
   @apply w-full h-full relative z-[1] object-cover;
 }
 .base-avatar.sm {
-  @apply w-6 h-6 max-w-6 max-h-6 rounded-[8px];
+  @apply w-6 h-6 min-w-6 max-w-6 max-h-6 rounded-[8px];
 }
 .base-avatar.md {
-  @apply w-12 h-12 max-w-12 max-h-12 rounded-[16px];
+  @apply w-12 h-12 min-w-12 max-w-12 max-h-12 rounded-[16px];
 }
 .base-avatar.lg {
-  @apply w-[120px] h-[120px] max-w-[120px] max-h-[120px] rounded-[24px];
+  @apply w-[120px] h-[120px] min-w-[120px] max-w-[120px] max-h-[120px] rounded-[24px];
 }
 .base-avatar.background-0 {
   @apply bg-gradient-to-b from-orange-100 to-orange-400;
