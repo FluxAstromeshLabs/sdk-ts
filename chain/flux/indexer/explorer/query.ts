@@ -522,8 +522,8 @@ export interface DumpsadCoin {
   current_price: string;
   /** Block height */
   height: string;
-  /** Pool address */
-  pool_address: string;
+  /** Pool id/address */
+  pool_id: string;
 }
 
 export interface ListDumpsadCoinsResponse {
@@ -5931,7 +5931,7 @@ function createBaseDumpsadCoin(): DumpsadCoin {
     solver_id: "",
     current_price: "",
     height: "0",
-    pool_address: "",
+    pool_id: "",
   };
 }
 
@@ -5969,8 +5969,8 @@ export const DumpsadCoin = {
     if (message.height !== "0") {
       writer.uint32(80).int64(message.height);
     }
-    if (message.pool_address !== "") {
-      writer.uint32(90).string(message.pool_address);
+    if (message.pool_id !== "") {
+      writer.uint32(90).string(message.pool_id);
     }
     return writer;
   },
@@ -6057,7 +6057,7 @@ export const DumpsadCoin = {
             break;
           }
 
-          message.pool_address = reader.string();
+          message.pool_id = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -6080,7 +6080,7 @@ export const DumpsadCoin = {
       solver_id: isSet(object.solver_id) ? globalThis.String(object.solver_id) : "",
       current_price: isSet(object.current_price) ? globalThis.String(object.current_price) : "",
       height: isSet(object.height) ? globalThis.String(object.height) : "0",
-      pool_address: isSet(object.pool_address) ? globalThis.String(object.pool_address) : "",
+      pool_id: isSet(object.pool_id) ? globalThis.String(object.pool_id) : "",
     };
   },
 
@@ -6116,8 +6116,8 @@ export const DumpsadCoin = {
     if (message.height !== undefined) {
       obj.height = message.height;
     }
-    if (message.pool_address !== undefined) {
-      obj.pool_address = message.pool_address;
+    if (message.pool_id !== undefined) {
+      obj.pool_id = message.pool_id;
     }
     return obj;
   },
@@ -6137,7 +6137,7 @@ export const DumpsadCoin = {
     message.solver_id = object.solver_id ?? "";
     message.current_price = object.current_price ?? "";
     message.height = object.height ?? "0";
-    message.pool_address = object.pool_address ?? "";
+    message.pool_id = object.pool_id ?? "";
     return message;
   },
 };
