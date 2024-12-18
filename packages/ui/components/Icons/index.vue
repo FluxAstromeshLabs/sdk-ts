@@ -1,16 +1,12 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, useAttrs } from 'vue'
 const attrs = useAttrs()
-const props = defineProps({
-  name: {
-    type: String,
-    required: true
-  },
-  size: {
-    type: String,
-    default: 'md',
-    validator: (value: string) => ['xs', 'sm', 'md', 'lg', 'xl'].includes(value)
-  }
+interface Props {
+  name: string
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+}
+const props = withDefaults(defineProps<Props>(), {
+  size: 'md'
 })
 
 const filteredAttrs = computed(() => {
@@ -29,20 +25,22 @@ const filteredAttrs = computed(() => {
   return { ...attrs, class: [...defaultClasses, classes].join(' ') }
 })
 
-const dynamicComponent = defineAsyncComponent<Record<string, unknown>>(() => {
-  let name = props.name
-  //uppercase first letter
-  name = name.charAt(0).toUpperCase() + name.slice(1)
-  return new Promise((resolve, _reject) => {
-    const comps = import.meta.glob('./**/*.vue')
+const dynamicComponent = computed(() =>
+  defineAsyncComponent<Record<string, unknown>>(() => {
+    let name = props.name
+    //uppercase first letter
+    name = name.charAt(0).toUpperCase() + name.slice(1)
+    return new Promise((resolve, _reject) => {
+      const comps = import.meta.glob('./**/*.vue')
 
-    try {
-      return comps[`./${name}.vue`]().then((component: any) => resolve(component.default))
-    } catch (e) {
-      return comps[`./Default.vue`]().then((component: any) => resolve(component.default))
-    }
+      try {
+        return comps[`./${name}.vue`]().then((component: any) => resolve(component.default))
+      } catch (e) {
+        return comps[`./Default.vue`]().then((component: any) => resolve(component.default))
+      }
+    })
   })
-})
+)
 defineOptions({
   inheritAttrs: false
 })
