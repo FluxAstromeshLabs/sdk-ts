@@ -12,7 +12,6 @@ export class ChainGrpcAuthQuery extends BaseGrpc {
       let response = await this.retry(() => this.client.AccountInfo(request))
       return response as authQuery.QueryAccountInfoResponse
     } catch (e) {
-      console.log(e)
       throw e
     }
   }
