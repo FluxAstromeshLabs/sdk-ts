@@ -144,4 +144,8 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
     const stream = this.client.StreamDriftOrders(request)
     return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
+  async getTx(request: explorerQuery.GetTxRequest): Promise<explorerQuery.GetTxResponse> {
+    const response: explorerQuery.GetTxResponse = await this.retry(() => this.client.GetTx(request))
+    return response
+  }
 }
