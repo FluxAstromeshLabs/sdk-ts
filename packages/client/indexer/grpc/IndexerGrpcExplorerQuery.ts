@@ -144,6 +144,7 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
     const stream = this.client.StreamDriftOrders(request)
     return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
+
   async listDumpsadCoins(
     request: Partial<explorerQuery.ListDumpsadCoinsRequest>
   ): Promise<explorerQuery.ListDumpsadCoinsResponse> {
@@ -152,6 +153,7 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
     )
     return response
   }
+
   async streamDumpsadCoins(
     request: Partial<explorerQuery.StreamDumpsadCoinsRequest>,
     callback: (value: explorerQuery.StreamDumpsadCoinsResponse) => void,
@@ -160,5 +162,10 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
   ): Promise<Subscription> {
     const stream = this.client.StreamDumpsadCoins(request)
     return stream.subscribe(callback, onEndCallback, onStatusCallback)
+  }
+
+  async getTx(request: explorerQuery.GetTxRequest): Promise<explorerQuery.GetTxResponse> {
+    const response: explorerQuery.GetTxResponse = await this.retry(() => this.client.GetTx(request))
+    return response
   }
 }
