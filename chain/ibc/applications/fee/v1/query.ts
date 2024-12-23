@@ -1605,7 +1605,7 @@ export interface Query {
     request: DeepPartial<QueryIncentivizedPacketRequest>,
     metadata?: grpc.Metadata,
   ): Promise<QueryIncentivizedPacketResponse>;
-  /** Gets all incentivized packets for a specific channel */
+  /** IncentivizedPacketsForChannel retrieves all incentivized packets for a specific channel */
   IncentivizedPacketsForChannel(
     request: DeepPartial<QueryIncentivizedPacketsForChannelRequest>,
     metadata?: grpc.Metadata,

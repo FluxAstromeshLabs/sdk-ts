@@ -17,6 +17,7 @@ export interface MsgCreatePool {
 
 export interface MsgCreatePoolResponse {
   pool_id: string;
+  pool_svm_account: string;
 }
 
 /**
@@ -155,7 +156,7 @@ export const MsgCreatePool = {
 };
 
 function createBaseMsgCreatePoolResponse(): MsgCreatePoolResponse {
-  return { pool_id: "" };
+  return { pool_id: "", pool_svm_account: "" };
 }
 
 export const MsgCreatePoolResponse = {
@@ -164,6 +165,9 @@ export const MsgCreatePoolResponse = {
   encode(message: MsgCreatePoolResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.pool_id !== "") {
       writer.uint32(10).string(message.pool_id);
+    }
+    if (message.pool_svm_account !== "") {
+      writer.uint32(18).string(message.pool_svm_account);
     }
     return writer;
   },
@@ -182,6 +186,13 @@ export const MsgCreatePoolResponse = {
 
           message.pool_id = reader.string();
           continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.pool_svm_account = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -192,13 +203,19 @@ export const MsgCreatePoolResponse = {
   },
 
   fromJSON(object: any): MsgCreatePoolResponse {
-    return { pool_id: isSet(object.pool_id) ? globalThis.String(object.pool_id) : "" };
+    return {
+      pool_id: isSet(object.pool_id) ? globalThis.String(object.pool_id) : "",
+      pool_svm_account: isSet(object.pool_svm_account) ? globalThis.String(object.pool_svm_account) : "",
+    };
   },
 
   toJSON(message: MsgCreatePoolResponse): unknown {
     const obj: any = {};
     if (message.pool_id !== undefined) {
       obj.pool_id = message.pool_id;
+    }
+    if (message.pool_svm_account !== undefined) {
+      obj.pool_svm_account = message.pool_svm_account;
     }
     return obj;
   },
@@ -209,6 +226,7 @@ export const MsgCreatePoolResponse = {
   fromPartial(object: DeepPartial<MsgCreatePoolResponse>): MsgCreatePoolResponse {
     const message = createBaseMsgCreatePoolResponse();
     message.pool_id = object.pool_id ?? "";
+    message.pool_svm_account = object.pool_svm_account ?? "";
     return message;
   },
 };
