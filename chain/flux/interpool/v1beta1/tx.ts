@@ -7,24 +7,40 @@
 /* eslint-disable */
 import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
-import Long from "long";
 import _m0 from "protobufjs/minimal";
+import { CommissionConfig, CommissionFees } from "./interpool";
 
 export interface MsgCreatePool {
   sender: string;
-  operator_commission: string;
+  operator_commission_config: CommissionConfig | undefined;
 }
 
 export interface MsgCreatePoolResponse {
+  pool_id: string;
 }
 
+/**
+ * MsgUpdatePool updates pool funds and status.
+ * operator can update pools input, cron (pool's driver)
+ * cron can update input, output blob, charge fees
+ */
 export interface MsgUpdatePool {
   sender: string;
   pool_id: string;
-  inventory_snapshot: string[];
-  base_capital: string;
   input_blob: Uint8Array;
   output_blob: Uint8Array;
+  /**
+   * cron set this flag to true to charge management fee, ruled in Commission
+   * config
+   */
+  charge_management_fee: boolean;
+  trading_fee: string[];
+  cron_id: string;
+  /**
+   * drivers (nexus bots / contract) that can control the pool fund
+   * TODO: Add extra index so it can quickly determined solver A cantrol pool P
+   */
+  solver_id: string;
 }
 
 export interface MsgUpdatePoolResponse {
@@ -48,8 +64,17 @@ export interface MsgWithdraw {
 export interface MsgWithdrawResponse {
 }
 
+export interface MsgWithdrawCommissionFee {
+  sender: string;
+  pool_id: string;
+}
+
+export interface MsgWithdrawCommissionFeeResponse {
+  operator_comission_fees: CommissionFees | undefined;
+}
+
 function createBaseMsgCreatePool(): MsgCreatePool {
-  return { sender: "", operator_commission: "0" };
+  return { sender: "", operator_commission_config: undefined };
 }
 
 export const MsgCreatePool = {
@@ -59,8 +84,8 @@ export const MsgCreatePool = {
     if (message.sender !== "") {
       writer.uint32(10).string(message.sender);
     }
-    if (message.operator_commission !== "0") {
-      writer.uint32(16).uint64(message.operator_commission);
+    if (message.operator_commission_config !== undefined) {
+      CommissionConfig.encode(message.operator_commission_config, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -80,11 +105,11 @@ export const MsgCreatePool = {
           message.sender = reader.string();
           continue;
         case 2:
-          if (tag !== 16) {
+          if (tag !== 18) {
             break;
           }
 
-          message.operator_commission = longToString(reader.uint64() as Long);
+          message.operator_commission_config = CommissionConfig.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -98,7 +123,9 @@ export const MsgCreatePool = {
   fromJSON(object: any): MsgCreatePool {
     return {
       sender: isSet(object.sender) ? globalThis.String(object.sender) : "",
-      operator_commission: isSet(object.operator_commission) ? globalThis.String(object.operator_commission) : "0",
+      operator_commission_config: isSet(object.operator_commission_config)
+        ? CommissionConfig.fromJSON(object.operator_commission_config)
+        : undefined,
     };
   },
 
@@ -107,8 +134,8 @@ export const MsgCreatePool = {
     if (message.sender !== undefined) {
       obj.sender = message.sender;
     }
-    if (message.operator_commission !== undefined) {
-      obj.operator_commission = message.operator_commission;
+    if (message.operator_commission_config !== undefined) {
+      obj.operator_commission_config = CommissionConfig.toJSON(message.operator_commission_config);
     }
     return obj;
   },
@@ -119,19 +146,25 @@ export const MsgCreatePool = {
   fromPartial(object: DeepPartial<MsgCreatePool>): MsgCreatePool {
     const message = createBaseMsgCreatePool();
     message.sender = object.sender ?? "";
-    message.operator_commission = object.operator_commission ?? "0";
+    message.operator_commission_config =
+      (object.operator_commission_config !== undefined && object.operator_commission_config !== null)
+        ? CommissionConfig.fromPartial(object.operator_commission_config)
+        : undefined;
     return message;
   },
 };
 
 function createBaseMsgCreatePoolResponse(): MsgCreatePoolResponse {
-  return {};
+  return { pool_id: "" };
 }
 
 export const MsgCreatePoolResponse = {
   $type: "flux.interpool.v1beta1.MsgCreatePoolResponse" as const,
 
-  encode(_: MsgCreatePoolResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: MsgCreatePoolResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pool_id !== "") {
+      writer.uint32(10).string(message.pool_id);
+    }
     return writer;
   },
 
@@ -142,6 +175,13 @@ export const MsgCreatePoolResponse = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pool_id = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -151,20 +191,24 @@ export const MsgCreatePoolResponse = {
     return message;
   },
 
-  fromJSON(_: any): MsgCreatePoolResponse {
-    return {};
+  fromJSON(object: any): MsgCreatePoolResponse {
+    return { pool_id: isSet(object.pool_id) ? globalThis.String(object.pool_id) : "" };
   },
 
-  toJSON(_: MsgCreatePoolResponse): unknown {
+  toJSON(message: MsgCreatePoolResponse): unknown {
     const obj: any = {};
+    if (message.pool_id !== undefined) {
+      obj.pool_id = message.pool_id;
+    }
     return obj;
   },
 
   create(base?: DeepPartial<MsgCreatePoolResponse>): MsgCreatePoolResponse {
     return MsgCreatePoolResponse.fromPartial(base ?? {});
   },
-  fromPartial(_: DeepPartial<MsgCreatePoolResponse>): MsgCreatePoolResponse {
+  fromPartial(object: DeepPartial<MsgCreatePoolResponse>): MsgCreatePoolResponse {
     const message = createBaseMsgCreatePoolResponse();
+    message.pool_id = object.pool_id ?? "";
     return message;
   },
 };
@@ -173,10 +217,12 @@ function createBaseMsgUpdatePool(): MsgUpdatePool {
   return {
     sender: "",
     pool_id: "",
-    inventory_snapshot: [],
-    base_capital: "",
     input_blob: new Uint8Array(0),
     output_blob: new Uint8Array(0),
+    charge_management_fee: false,
+    trading_fee: [],
+    cron_id: "",
+    solver_id: "",
   };
 }
 
@@ -190,17 +236,23 @@ export const MsgUpdatePool = {
     if (message.pool_id !== "") {
       writer.uint32(18).string(message.pool_id);
     }
-    for (const v of message.inventory_snapshot) {
-      writer.uint32(26).string(v!);
-    }
-    if (message.base_capital !== "") {
-      writer.uint32(34).string(message.base_capital);
-    }
     if (message.input_blob.length !== 0) {
-      writer.uint32(42).bytes(message.input_blob);
+      writer.uint32(26).bytes(message.input_blob);
     }
     if (message.output_blob.length !== 0) {
-      writer.uint32(50).bytes(message.output_blob);
+      writer.uint32(34).bytes(message.output_blob);
+    }
+    if (message.charge_management_fee !== false) {
+      writer.uint32(40).bool(message.charge_management_fee);
+    }
+    for (const v of message.trading_fee) {
+      writer.uint32(50).string(v!);
+    }
+    if (message.cron_id !== "") {
+      writer.uint32(58).string(message.cron_id);
+    }
+    if (message.solver_id !== "") {
+      writer.uint32(66).string(message.solver_id);
     }
     return writer;
   },
@@ -231,28 +283,42 @@ export const MsgUpdatePool = {
             break;
           }
 
-          message.inventory_snapshot.push(reader.string());
+          message.input_blob = reader.bytes();
           continue;
         case 4:
           if (tag !== 34) {
             break;
           }
 
-          message.base_capital = reader.string();
+          message.output_blob = reader.bytes();
           continue;
         case 5:
-          if (tag !== 42) {
+          if (tag !== 40) {
             break;
           }
 
-          message.input_blob = reader.bytes();
+          message.charge_management_fee = reader.bool();
           continue;
         case 6:
           if (tag !== 50) {
             break;
           }
 
-          message.output_blob = reader.bytes();
+          message.trading_fee.push(reader.string());
+          continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.cron_id = reader.string();
+          continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.solver_id = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -267,12 +333,16 @@ export const MsgUpdatePool = {
     return {
       sender: isSet(object.sender) ? globalThis.String(object.sender) : "",
       pool_id: isSet(object.pool_id) ? globalThis.String(object.pool_id) : "",
-      inventory_snapshot: globalThis.Array.isArray(object?.inventory_snapshot)
-        ? object.inventory_snapshot.map((e: any) => globalThis.String(e))
-        : [],
-      base_capital: isSet(object.base_capital) ? globalThis.String(object.base_capital) : "",
       input_blob: isSet(object.input_blob) ? bytesFromBase64(object.input_blob) : new Uint8Array(0),
       output_blob: isSet(object.output_blob) ? bytesFromBase64(object.output_blob) : new Uint8Array(0),
+      charge_management_fee: isSet(object.charge_management_fee)
+        ? globalThis.Boolean(object.charge_management_fee)
+        : false,
+      trading_fee: globalThis.Array.isArray(object?.trading_fee)
+        ? object.trading_fee.map((e: any) => globalThis.String(e))
+        : [],
+      cron_id: isSet(object.cron_id) ? globalThis.String(object.cron_id) : "",
+      solver_id: isSet(object.solver_id) ? globalThis.String(object.solver_id) : "",
     };
   },
 
@@ -284,17 +354,23 @@ export const MsgUpdatePool = {
     if (message.pool_id !== undefined) {
       obj.pool_id = message.pool_id;
     }
-    if (message.inventory_snapshot?.length) {
-      obj.inventory_snapshot = message.inventory_snapshot;
-    }
-    if (message.base_capital !== undefined) {
-      obj.base_capital = message.base_capital;
-    }
     if (message.input_blob !== undefined) {
       obj.input_blob = base64FromBytes(message.input_blob);
     }
     if (message.output_blob !== undefined) {
       obj.output_blob = base64FromBytes(message.output_blob);
+    }
+    if (message.charge_management_fee !== undefined) {
+      obj.charge_management_fee = message.charge_management_fee;
+    }
+    if (message.trading_fee?.length) {
+      obj.trading_fee = message.trading_fee;
+    }
+    if (message.cron_id !== undefined) {
+      obj.cron_id = message.cron_id;
+    }
+    if (message.solver_id !== undefined) {
+      obj.solver_id = message.solver_id;
     }
     return obj;
   },
@@ -306,10 +382,12 @@ export const MsgUpdatePool = {
     const message = createBaseMsgUpdatePool();
     message.sender = object.sender ?? "";
     message.pool_id = object.pool_id ?? "";
-    message.inventory_snapshot = object.inventory_snapshot?.map((e) => e) || [];
-    message.base_capital = object.base_capital ?? "";
     message.input_blob = object.input_blob ?? new Uint8Array(0);
     message.output_blob = object.output_blob ?? new Uint8Array(0);
+    message.charge_management_fee = object.charge_management_fee ?? false;
+    message.trading_fee = object.trading_fee?.map((e) => e) || [];
+    message.cron_id = object.cron_id ?? "";
+    message.solver_id = object.solver_id ?? "";
     return message;
   },
 };
@@ -633,11 +711,157 @@ export const MsgWithdrawResponse = {
   },
 };
 
+function createBaseMsgWithdrawCommissionFee(): MsgWithdrawCommissionFee {
+  return { sender: "", pool_id: "" };
+}
+
+export const MsgWithdrawCommissionFee = {
+  $type: "flux.interpool.v1beta1.MsgWithdrawCommissionFee" as const,
+
+  encode(message: MsgWithdrawCommissionFee, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.sender !== "") {
+      writer.uint32(10).string(message.sender);
+    }
+    if (message.pool_id !== "") {
+      writer.uint32(18).string(message.pool_id);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgWithdrawCommissionFee {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgWithdrawCommissionFee();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.sender = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.pool_id = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgWithdrawCommissionFee {
+    return {
+      sender: isSet(object.sender) ? globalThis.String(object.sender) : "",
+      pool_id: isSet(object.pool_id) ? globalThis.String(object.pool_id) : "",
+    };
+  },
+
+  toJSON(message: MsgWithdrawCommissionFee): unknown {
+    const obj: any = {};
+    if (message.sender !== undefined) {
+      obj.sender = message.sender;
+    }
+    if (message.pool_id !== undefined) {
+      obj.pool_id = message.pool_id;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<MsgWithdrawCommissionFee>): MsgWithdrawCommissionFee {
+    return MsgWithdrawCommissionFee.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<MsgWithdrawCommissionFee>): MsgWithdrawCommissionFee {
+    const message = createBaseMsgWithdrawCommissionFee();
+    message.sender = object.sender ?? "";
+    message.pool_id = object.pool_id ?? "";
+    return message;
+  },
+};
+
+function createBaseMsgWithdrawCommissionFeeResponse(): MsgWithdrawCommissionFeeResponse {
+  return { operator_comission_fees: undefined };
+}
+
+export const MsgWithdrawCommissionFeeResponse = {
+  $type: "flux.interpool.v1beta1.MsgWithdrawCommissionFeeResponse" as const,
+
+  encode(message: MsgWithdrawCommissionFeeResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.operator_comission_fees !== undefined) {
+      CommissionFees.encode(message.operator_comission_fees, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgWithdrawCommissionFeeResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMsgWithdrawCommissionFeeResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.operator_comission_fees = CommissionFees.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgWithdrawCommissionFeeResponse {
+    return {
+      operator_comission_fees: isSet(object.operator_comission_fees)
+        ? CommissionFees.fromJSON(object.operator_comission_fees)
+        : undefined,
+    };
+  },
+
+  toJSON(message: MsgWithdrawCommissionFeeResponse): unknown {
+    const obj: any = {};
+    if (message.operator_comission_fees !== undefined) {
+      obj.operator_comission_fees = CommissionFees.toJSON(message.operator_comission_fees);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<MsgWithdrawCommissionFeeResponse>): MsgWithdrawCommissionFeeResponse {
+    return MsgWithdrawCommissionFeeResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<MsgWithdrawCommissionFeeResponse>): MsgWithdrawCommissionFeeResponse {
+    const message = createBaseMsgWithdrawCommissionFeeResponse();
+    message.operator_comission_fees =
+      (object.operator_comission_fees !== undefined && object.operator_comission_fees !== null)
+        ? CommissionFees.fromPartial(object.operator_comission_fees)
+        : undefined;
+    return message;
+  },
+};
+
 export interface Msg {
   CreatePool(request: DeepPartial<MsgCreatePool>, metadata?: grpc.Metadata): Promise<MsgCreatePoolResponse>;
   UpdatePool(request: DeepPartial<MsgUpdatePool>, metadata?: grpc.Metadata): Promise<MsgUpdatePoolResponse>;
   Deposit(request: DeepPartial<MsgDeposit>, metadata?: grpc.Metadata): Promise<MsgDepositResponse>;
   Withdraw(request: DeepPartial<MsgWithdraw>, metadata?: grpc.Metadata): Promise<MsgWithdrawResponse>;
+  WithdrawCommissionFees(
+    request: DeepPartial<MsgWithdrawCommissionFee>,
+    metadata?: grpc.Metadata,
+  ): Promise<MsgWithdrawCommissionFeeResponse>;
 }
 
 export class MsgClientImpl implements Msg {
@@ -649,6 +873,7 @@ export class MsgClientImpl implements Msg {
     this.UpdatePool = this.UpdatePool.bind(this);
     this.Deposit = this.Deposit.bind(this);
     this.Withdraw = this.Withdraw.bind(this);
+    this.WithdrawCommissionFees = this.WithdrawCommissionFees.bind(this);
   }
 
   CreatePool(request: DeepPartial<MsgCreatePool>, metadata?: grpc.Metadata): Promise<MsgCreatePoolResponse> {
@@ -665,6 +890,13 @@ export class MsgClientImpl implements Msg {
 
   Withdraw(request: DeepPartial<MsgWithdraw>, metadata?: grpc.Metadata): Promise<MsgWithdrawResponse> {
     return this.rpc.unary(MsgWithdrawDesc, MsgWithdraw.fromPartial(request), metadata);
+  }
+
+  WithdrawCommissionFees(
+    request: DeepPartial<MsgWithdrawCommissionFee>,
+    metadata?: grpc.Metadata,
+  ): Promise<MsgWithdrawCommissionFeeResponse> {
+    return this.rpc.unary(MsgWithdrawCommissionFeesDesc, MsgWithdrawCommissionFee.fromPartial(request), metadata);
   }
 }
 
@@ -752,6 +984,29 @@ export const MsgWithdrawDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = MsgWithdrawResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const MsgWithdrawCommissionFeesDesc: UnaryMethodDefinitionish = {
+  methodName: "WithdrawCommissionFees",
+  service: MsgDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return MsgWithdrawCommissionFee.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = MsgWithdrawCommissionFeeResponse.decode(data);
       return {
         ...value,
         toObject() {
@@ -862,15 +1117,6 @@ type DeepPartial<T> = T extends Builtin ? T
   : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
-
-function longToString(long: Long) {
-  return long.toString();
-}
-
-if (_m0.util.Long !== Long) {
-  _m0.util.Long = Long as any;
-  _m0.configure();
-}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

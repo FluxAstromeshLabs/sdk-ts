@@ -54,14 +54,23 @@ export enum Op {
   /** StrategyDeploy - strategy */
   StrategyDeploy = 6000,
   StrategyUpdate = 6001,
-  StrategyTrigger = 60002,
+  StrategyTrigger = 6002,
+  StrategyEmitEvent = 6003,
   /** WasmEventEmitted - wasm */
   WasmEventEmitted = 7000,
+  WasmContractDeployed = 7001,
+  WasmContractMigrateCode = 7002,
+  WasmContractUpdateAdmin = 7003,
   /** NewTxs - tx */
   NewTxs = 8000,
   NewBlock = 8001,
   /** OracleSimpleUpdate - oracle */
   OracleSimpleUpdate = 9000,
+  /** PoolCreated - pool */
+  PoolCreated = 10000,
+  PoolUpdated = 10001,
+  PoolDeposit = 10002,
+  PoolWithdraw = 10003,
   UNRECOGNIZED = -1,
 }
 
@@ -145,12 +154,24 @@ export function opFromJSON(object: any): Op {
     case 6001:
     case "StrategyUpdate":
       return Op.StrategyUpdate;
-    case 60002:
+    case 6002:
     case "StrategyTrigger":
       return Op.StrategyTrigger;
+    case 6003:
+    case "StrategyEmitEvent":
+      return Op.StrategyEmitEvent;
     case 7000:
     case "WasmEventEmitted":
       return Op.WasmEventEmitted;
+    case 7001:
+    case "WasmContractDeployed":
+      return Op.WasmContractDeployed;
+    case 7002:
+    case "WasmContractMigrateCode":
+      return Op.WasmContractMigrateCode;
+    case 7003:
+    case "WasmContractUpdateAdmin":
+      return Op.WasmContractUpdateAdmin;
     case 8000:
     case "NewTxs":
       return Op.NewTxs;
@@ -160,6 +181,18 @@ export function opFromJSON(object: any): Op {
     case 9000:
     case "OracleSimpleUpdate":
       return Op.OracleSimpleUpdate;
+    case 10000:
+    case "PoolCreated":
+      return Op.PoolCreated;
+    case 10001:
+    case "PoolUpdated":
+      return Op.PoolUpdated;
+    case 10002:
+    case "PoolDeposit":
+      return Op.PoolDeposit;
+    case 10003:
+    case "PoolWithdraw":
+      return Op.PoolWithdraw;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -223,14 +256,30 @@ export function opToJSON(object: Op): string {
       return "StrategyUpdate";
     case Op.StrategyTrigger:
       return "StrategyTrigger";
+    case Op.StrategyEmitEvent:
+      return "StrategyEmitEvent";
     case Op.WasmEventEmitted:
       return "WasmEventEmitted";
+    case Op.WasmContractDeployed:
+      return "WasmContractDeployed";
+    case Op.WasmContractMigrateCode:
+      return "WasmContractMigrateCode";
+    case Op.WasmContractUpdateAdmin:
+      return "WasmContractUpdateAdmin";
     case Op.NewTxs:
       return "NewTxs";
     case Op.NewBlock:
       return "NewBlock";
     case Op.OracleSimpleUpdate:
       return "OracleSimpleUpdate";
+    case Op.PoolCreated:
+      return "PoolCreated";
+    case Op.PoolUpdated:
+      return "PoolUpdated";
+    case Op.PoolDeposit:
+      return "PoolDeposit";
+    case Op.PoolWithdraw:
+      return "PoolWithdraw";
     case Op.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";

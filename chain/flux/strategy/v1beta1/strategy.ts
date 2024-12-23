@@ -9,6 +9,7 @@ import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { FISQueryRequest } from "../../astromesh/v1beta1/query";
 import { FISInstruction, Plane, planeFromJSON, planeToJSON } from "../../astromesh/v1beta1/tx";
+import { Op, opFromJSON, opToJSON } from "../../eventstream/v1beta1/query";
 
 export enum StrategyType {
   STRATEGY = 0,
@@ -178,8 +179,18 @@ export interface FISInput {
   data: Uint8Array[];
 }
 
+/** StrategyEvent emitted inside strategy */
+export interface StrategyEvent {
+  op: Op;
+  strategy_id: string;
+  topic: string;
+  data: Uint8Array;
+}
+
 export interface StrategyOutput {
   instructions: FISInstruction[];
+  events: StrategyEvent[];
+  result: string;
 }
 
 export interface SupportedApp {
@@ -1443,8 +1454,114 @@ export const FISInput = {
   },
 };
 
+function createBaseStrategyEvent(): StrategyEvent {
+  return { op: 0, strategy_id: "", topic: "", data: new Uint8Array(0) };
+}
+
+export const StrategyEvent = {
+  $type: "flux.strategy.v1beta1.StrategyEvent" as const,
+
+  encode(message: StrategyEvent, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.op !== 0) {
+      writer.uint32(8).int32(message.op);
+    }
+    if (message.strategy_id !== "") {
+      writer.uint32(18).string(message.strategy_id);
+    }
+    if (message.topic !== "") {
+      writer.uint32(26).string(message.topic);
+    }
+    if (message.data.length !== 0) {
+      writer.uint32(34).bytes(message.data);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StrategyEvent {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStrategyEvent();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.op = reader.int32() as any;
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.strategy_id = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.topic = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.data = reader.bytes();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StrategyEvent {
+    return {
+      op: isSet(object.op) ? opFromJSON(object.op) : 0,
+      strategy_id: isSet(object.strategy_id) ? globalThis.String(object.strategy_id) : "",
+      topic: isSet(object.topic) ? globalThis.String(object.topic) : "",
+      data: isSet(object.data) ? bytesFromBase64(object.data) : new Uint8Array(0),
+    };
+  },
+
+  toJSON(message: StrategyEvent): unknown {
+    const obj: any = {};
+    if (message.op !== undefined) {
+      obj.op = opToJSON(message.op);
+    }
+    if (message.strategy_id !== undefined) {
+      obj.strategy_id = message.strategy_id;
+    }
+    if (message.topic !== undefined) {
+      obj.topic = message.topic;
+    }
+    if (message.data !== undefined) {
+      obj.data = base64FromBytes(message.data);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StrategyEvent>): StrategyEvent {
+    return StrategyEvent.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StrategyEvent>): StrategyEvent {
+    const message = createBaseStrategyEvent();
+    message.op = object.op ?? 0;
+    message.strategy_id = object.strategy_id ?? "";
+    message.topic = object.topic ?? "";
+    message.data = object.data ?? new Uint8Array(0);
+    return message;
+  },
+};
+
 function createBaseStrategyOutput(): StrategyOutput {
-  return { instructions: [] };
+  return { instructions: [], events: [], result: "" };
 }
 
 export const StrategyOutput = {
@@ -1453,6 +1570,12 @@ export const StrategyOutput = {
   encode(message: StrategyOutput, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.instructions) {
       FISInstruction.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    for (const v of message.events) {
+      StrategyEvent.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.result !== "") {
+      writer.uint32(26).string(message.result);
     }
     return writer;
   },
@@ -1471,6 +1594,20 @@ export const StrategyOutput = {
 
           message.instructions.push(FISInstruction.decode(reader, reader.uint32()));
           continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.events.push(StrategyEvent.decode(reader, reader.uint32()));
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.result = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1485,6 +1622,8 @@ export const StrategyOutput = {
       instructions: globalThis.Array.isArray(object?.instructions)
         ? object.instructions.map((e: any) => FISInstruction.fromJSON(e))
         : [],
+      events: globalThis.Array.isArray(object?.events) ? object.events.map((e: any) => StrategyEvent.fromJSON(e)) : [],
+      result: isSet(object.result) ? globalThis.String(object.result) : "",
     };
   },
 
@@ -1492,6 +1631,12 @@ export const StrategyOutput = {
     const obj: any = {};
     if (message.instructions?.length) {
       obj.instructions = message.instructions.map((e) => FISInstruction.toJSON(e));
+    }
+    if (message.events?.length) {
+      obj.events = message.events.map((e) => StrategyEvent.toJSON(e));
+    }
+    if (message.result !== undefined) {
+      obj.result = message.result;
     }
     return obj;
   },
@@ -1502,6 +1647,8 @@ export const StrategyOutput = {
   fromPartial(object: DeepPartial<StrategyOutput>): StrategyOutput {
     const message = createBaseStrategyOutput();
     message.instructions = object.instructions?.map((e) => FISInstruction.fromPartial(e)) || [];
+    message.events = object.events?.map((e) => StrategyEvent.fromPartial(e)) || [];
+    message.result = object.result ?? "";
     return message;
   },
 };

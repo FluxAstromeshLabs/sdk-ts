@@ -7,6 +7,7 @@
 /* eslint-disable */
 import Long from "long";
 import _m0 from "protobufjs/minimal";
+import { ContractInfo } from "../../../cosmwasm/wasm/v1/types";
 import { Op, opFromJSON, opToJSON } from "../../eventstream/v1beta1/query";
 import { Plane, planeFromJSON, planeToJSON } from "./tx";
 
@@ -38,6 +39,12 @@ export interface TokenMetadata {
 export interface TokenMetadataEvent {
   op: Op;
   metadata: TokenMetadata[];
+}
+
+export interface WasmContractEvent {
+  op: Op;
+  contract_address: string;
+  info: ContractInfo | undefined;
 }
 
 function createBaseAccountBalance(): AccountBalance {
@@ -495,6 +502,99 @@ export const TokenMetadataEvent = {
     const message = createBaseTokenMetadataEvent();
     message.op = object.op ?? 0;
     message.metadata = object.metadata?.map((e) => TokenMetadata.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseWasmContractEvent(): WasmContractEvent {
+  return { op: 0, contract_address: "", info: undefined };
+}
+
+export const WasmContractEvent = {
+  $type: "flux.astromesh.v1beta1.WasmContractEvent" as const,
+
+  encode(message: WasmContractEvent, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.op !== 0) {
+      writer.uint32(8).int32(message.op);
+    }
+    if (message.contract_address !== "") {
+      writer.uint32(18).string(message.contract_address);
+    }
+    if (message.info !== undefined) {
+      ContractInfo.encode(message.info, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): WasmContractEvent {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseWasmContractEvent();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.op = reader.int32() as any;
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.contract_address = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.info = ContractInfo.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): WasmContractEvent {
+    return {
+      op: isSet(object.op) ? opFromJSON(object.op) : 0,
+      contract_address: isSet(object.contract_address) ? globalThis.String(object.contract_address) : "",
+      info: isSet(object.info) ? ContractInfo.fromJSON(object.info) : undefined,
+    };
+  },
+
+  toJSON(message: WasmContractEvent): unknown {
+    const obj: any = {};
+    if (message.op !== undefined) {
+      obj.op = opToJSON(message.op);
+    }
+    if (message.contract_address !== undefined) {
+      obj.contract_address = message.contract_address;
+    }
+    if (message.info !== undefined) {
+      obj.info = ContractInfo.toJSON(message.info);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<WasmContractEvent>): WasmContractEvent {
+    return WasmContractEvent.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<WasmContractEvent>): WasmContractEvent {
+    const message = createBaseWasmContractEvent();
+    message.op = object.op ?? 0;
+    message.contract_address = object.contract_address ?? "";
+    message.info = (object.info !== undefined && object.info !== null)
+      ? ContractInfo.fromPartial(object.info)
+      : undefined;
     return message;
   },
 };

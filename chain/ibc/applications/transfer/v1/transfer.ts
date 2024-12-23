@@ -32,7 +32,7 @@ export interface Params {
  * the coin should be unwinded to its native chain before forwarding.
  */
 export interface Forwarding {
-  /** optional unwinding for the token transfered */
+  /** optional unwinding for the token transferred */
   unwind: boolean;
   /** optional intermediate path through which packet will be forwarded */
   hops: Hop[];

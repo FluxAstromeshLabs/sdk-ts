@@ -13,6 +13,11 @@ export interface LinkInfo {
   dst_decimals: number;
 }
 
+export interface InitialMint {
+  address: string;
+  amount: string;
+}
+
 function createBaseLinkInfo(): LinkInfo {
   return { denom: new Uint8Array(0), src_decimals: 0, dst_decimals: 0 };
 }
@@ -100,6 +105,82 @@ export const LinkInfo = {
     message.denom = object.denom ?? new Uint8Array(0);
     message.src_decimals = object.src_decimals ?? 0;
     message.dst_decimals = object.dst_decimals ?? 0;
+    return message;
+  },
+};
+
+function createBaseInitialMint(): InitialMint {
+  return { address: "", amount: "" };
+}
+
+export const InitialMint = {
+  $type: "flux.astromesh.v1beta1.InitialMint" as const,
+
+  encode(message: InitialMint, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.address !== "") {
+      writer.uint32(10).string(message.address);
+    }
+    if (message.amount !== "") {
+      writer.uint32(18).string(message.amount);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): InitialMint {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseInitialMint();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.address = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.amount = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): InitialMint {
+    return {
+      address: isSet(object.address) ? globalThis.String(object.address) : "",
+      amount: isSet(object.amount) ? globalThis.String(object.amount) : "",
+    };
+  },
+
+  toJSON(message: InitialMint): unknown {
+    const obj: any = {};
+    if (message.address !== undefined) {
+      obj.address = message.address;
+    }
+    if (message.amount !== undefined) {
+      obj.amount = message.amount;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<InitialMint>): InitialMint {
+    return InitialMint.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<InitialMint>): InitialMint {
+    const message = createBaseInitialMint();
+    message.address = object.address ?? "";
+    message.amount = object.amount ?? "";
     return message;
   },
 };
