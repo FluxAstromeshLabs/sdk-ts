@@ -58,7 +58,7 @@ export interface RegisteredCounterpartyPayee {
 export interface ForwardRelayerAddress {
   /** the forward relayer address */
   address: string;
-  /** unique packet identifier comprised of the channel ID, port ID and sequence */
+  /** unique packet identifer comprised of the channel ID, port ID and sequence */
   packet_id: PacketId | undefined;
 }
 

@@ -43,7 +43,7 @@ export interface QueryIncentivizedPacketRequest {
   query_height: string;
 }
 
-/** QueryIncentivizedPacketResponse defines the response type for the IncentivizedPacket rpc */
+/** QueryIncentivizedPacketsResponse defines the response type for the IncentivizedPacket rpc */
 export interface QueryIncentivizedPacketResponse {
   /** the identified fees for the incentivized packet */
   incentivized_packet: IdentifiedPacketFees | undefined;
@@ -62,10 +62,7 @@ export interface QueryIncentivizedPacketsForChannelRequest {
   query_height: string;
 }
 
-/**
- * QueryIncentivizedPacketsForChannelResponse defines the response type for querying for all incentivized packets
- * for a specific channel
- */
+/** QueryIncentivizedPacketsResponse defines the response type for the incentivized packets RPC */
 export interface QueryIncentivizedPacketsForChannelResponse {
   /** Map of all incentivized_packets */
   incentivized_packets: IdentifiedPacketFees[];

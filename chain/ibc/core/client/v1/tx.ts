@@ -31,7 +31,6 @@ export interface MsgCreateClient {
 
 /** MsgCreateClientResponse defines the Msg/CreateClient response type. */
 export interface MsgCreateClientResponse {
-  client_id: string;
 }
 
 /**
@@ -263,16 +262,13 @@ export const MsgCreateClient = {
 };
 
 function createBaseMsgCreateClientResponse(): MsgCreateClientResponse {
-  return { client_id: "" };
+  return {};
 }
 
 export const MsgCreateClientResponse = {
   $type: "ibc.core.client.v1.MsgCreateClientResponse" as const,
 
-  encode(message: MsgCreateClientResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.client_id !== "") {
-      writer.uint32(10).string(message.client_id);
-    }
+  encode(_: MsgCreateClientResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     return writer;
   },
 
@@ -283,13 +279,6 @@ export const MsgCreateClientResponse = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.client_id = reader.string();
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -299,24 +288,20 @@ export const MsgCreateClientResponse = {
     return message;
   },
 
-  fromJSON(object: any): MsgCreateClientResponse {
-    return { client_id: isSet(object.client_id) ? globalThis.String(object.client_id) : "" };
+  fromJSON(_: any): MsgCreateClientResponse {
+    return {};
   },
 
-  toJSON(message: MsgCreateClientResponse): unknown {
+  toJSON(_: MsgCreateClientResponse): unknown {
     const obj: any = {};
-    if (message.client_id !== undefined) {
-      obj.client_id = message.client_id;
-    }
     return obj;
   },
 
   create(base?: DeepPartial<MsgCreateClientResponse>): MsgCreateClientResponse {
     return MsgCreateClientResponse.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<MsgCreateClientResponse>): MsgCreateClientResponse {
+  fromPartial(_: DeepPartial<MsgCreateClientResponse>): MsgCreateClientResponse {
     const message = createBaseMsgCreateClientResponse();
-    message.client_id = object.client_id ?? "";
     return message;
   },
 };

@@ -25,7 +25,7 @@ export interface ClientState {
     | Fraction
     | undefined;
   /**
-   * duration of the period since the LatestTimestamp during which the
+   * duration of the period since the LastestTimestamp during which the
    * submitted headers are valid for upgrade
    */
   trusting_period:
