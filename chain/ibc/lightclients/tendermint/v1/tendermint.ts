@@ -7,11 +7,11 @@
 /* eslint-disable */
 import Long from "long";
 import _m0 from "protobufjs/minimal";
+import { SignedHeader } from "../../../../cometbft/types/v1/types";
+import { ValidatorSet } from "../../../../cometbft/types/v1/validator";
 import { ProofSpec } from "../../../../cosmos/ics23/v1/proofs";
 import { Duration } from "../../../../google/protobuf/duration";
 import { Timestamp } from "../../../../google/protobuf/timestamp";
-import { SignedHeader } from "../../../../tendermint/types/types";
-import { ValidatorSet } from "../../../../tendermint/types/validator";
 import { Height } from "../../../core/client/v1/client";
 import { MerkleRoot } from "../../../core/commitment/v1/commitment";
 
@@ -25,7 +25,7 @@ export interface ClientState {
     | Fraction
     | undefined;
   /**
-   * duration of the period since the LastestTimestamp during which the
+   * duration of the period since the LatestTimestamp during which the
    * submitted headers are valid for upgrade
    */
   trusting_period:

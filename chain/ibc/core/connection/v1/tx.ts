@@ -44,6 +44,11 @@ export interface MsgConnectionOpenTry {
    * @deprecated
    */
   previous_connection_id: string;
+  /**
+   * Deprecated: this field is unused.
+   *
+   * @deprecated
+   */
   client_state: Any | undefined;
   counterparty: Counterparty | undefined;
   delay_period: string;
@@ -52,17 +57,34 @@ export interface MsgConnectionOpenTry {
     | Height
     | undefined;
   /**
-   * proof of the initialization the connection on Chain A: `UNITIALIZED ->
+   * proof of the initialization the connection on Chain A: `UNINITIALIZED ->
    * INIT`
    */
   proof_init: Uint8Array;
-  /** proof of client state included in message */
+  /**
+   * Deprecated: this field is unused.
+   *
+   * @deprecated
+   */
   proof_client: Uint8Array;
-  /** proof of client consensus state */
+  /**
+   * Deprecated: this field is unused.
+   *
+   * @deprecated
+   */
   proof_consensus: Uint8Array;
+  /**
+   * Deprecated: this field is unused.
+   *
+   * @deprecated
+   */
   consensus_height: Height | undefined;
   signer: string;
-  /** optional proof data for host state machines that are unable to introspect their own consensus state */
+  /**
+   * Deprecated: this field is unused.
+   *
+   * @deprecated
+   */
   host_consensus_state_proof: Uint8Array;
 }
 
@@ -77,23 +99,47 @@ export interface MsgConnectionOpenTryResponse {
 export interface MsgConnectionOpenAck {
   connection_id: string;
   counterparty_connection_id: string;
-  version: Version | undefined;
+  version:
+    | Version
+    | undefined;
+  /**
+   * Deprecated: this field is unused.
+   *
+   * @deprecated
+   */
   client_state: Any | undefined;
   proof_height:
     | Height
     | undefined;
   /**
-   * proof of the initialization the connection on Chain B: `UNITIALIZED ->
+   * proof of the initialization the connection on Chain B: `UNINITIALIZED ->
    * TRYOPEN`
    */
   proof_try: Uint8Array;
-  /** proof of client state included in message */
+  /**
+   * Deprecated: this field is unused.
+   *
+   * @deprecated
+   */
   proof_client: Uint8Array;
-  /** proof of client consensus state */
+  /**
+   * Deprecated: this field is unused.
+   *
+   * @deprecated
+   */
   proof_consensus: Uint8Array;
+  /**
+   * Deprecated: this field is unused.
+   *
+   * @deprecated
+   */
   consensus_height: Height | undefined;
   signer: string;
-  /** optional proof data for host state machines that are unable to introspect their own consensus state */
+  /**
+   * Deprecated: this field is unused.
+   *
+   * @deprecated
+   */
   host_consensus_state_proof: Uint8Array;
 }
 

@@ -43,7 +43,7 @@ export interface QueryIncentivizedPacketRequest {
   query_height: string;
 }
 
-/** QueryIncentivizedPacketsResponse defines the response type for the IncentivizedPacket rpc */
+/** QueryIncentivizedPacketResponse defines the response type for the IncentivizedPacket rpc */
 export interface QueryIncentivizedPacketResponse {
   /** the identified fees for the incentivized packet */
   incentivized_packet: IdentifiedPacketFees | undefined;
@@ -62,7 +62,10 @@ export interface QueryIncentivizedPacketsForChannelRequest {
   query_height: string;
 }
 
-/** QueryIncentivizedPacketsResponse defines the response type for the incentivized packets RPC */
+/**
+ * QueryIncentivizedPacketsForChannelResponse defines the response type for querying for all incentivized packets
+ * for a specific channel
+ */
 export interface QueryIncentivizedPacketsForChannelResponse {
   /** Map of all incentivized_packets */
   incentivized_packets: IdentifiedPacketFees[];
@@ -1602,7 +1605,7 @@ export interface Query {
     request: DeepPartial<QueryIncentivizedPacketRequest>,
     metadata?: grpc.Metadata,
   ): Promise<QueryIncentivizedPacketResponse>;
-  /** Gets all incentivized packets for a specific channel */
+  /** IncentivizedPacketsForChannel retrieves all incentivized packets for a specific channel */
   IncentivizedPacketsForChannel(
     request: DeepPartial<QueryIncentivizedPacketsForChannelRequest>,
     metadata?: grpc.Metadata,

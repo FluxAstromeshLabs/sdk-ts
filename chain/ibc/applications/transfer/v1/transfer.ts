@@ -8,20 +8,6 @@
 import _m0 from "protobufjs/minimal";
 
 /**
- * DenomTrace contains the base denomination for ICS20 fungible tokens and the
- * source tracing information path.
- */
-export interface DenomTrace {
-  /**
-   * path defines the chain of port/channel identifiers used for tracing the
-   * source of the fungible token.
-   */
-  path: string;
-  /** base denomination of the relayed fungible token. */
-  base_denom: string;
-}
-
-/**
  * Params defines the set of IBC transfer parameters.
  * NOTE: To prevent a single token from being transferred, set the
  * TransfersEnabled parameter to true and then set the bank module's SendEnabled
@@ -40,81 +26,26 @@ export interface Params {
   receive_enabled: boolean;
 }
 
-function createBaseDenomTrace(): DenomTrace {
-  return { path: "", base_denom: "" };
+/**
+ * Forwarding defines a list of port ID, channel ID pairs determining the path
+ * through which a packet must be forwarded, and an unwind boolean indicating if
+ * the coin should be unwinded to its native chain before forwarding.
+ */
+export interface Forwarding {
+  /** optional unwinding for the token transferred */
+  unwind: boolean;
+  /** optional intermediate path through which packet will be forwarded */
+  hops: Hop[];
 }
 
-export const DenomTrace = {
-  $type: "ibc.applications.transfer.v1.DenomTrace" as const,
-
-  encode(message: DenomTrace, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.path !== "") {
-      writer.uint32(10).string(message.path);
-    }
-    if (message.base_denom !== "") {
-      writer.uint32(18).string(message.base_denom);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): DenomTrace {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseDenomTrace();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.path = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.base_denom = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): DenomTrace {
-    return {
-      path: isSet(object.path) ? globalThis.String(object.path) : "",
-      base_denom: isSet(object.base_denom) ? globalThis.String(object.base_denom) : "",
-    };
-  },
-
-  toJSON(message: DenomTrace): unknown {
-    const obj: any = {};
-    if (message.path !== undefined) {
-      obj.path = message.path;
-    }
-    if (message.base_denom !== undefined) {
-      obj.base_denom = message.base_denom;
-    }
-    return obj;
-  },
-
-  create(base?: DeepPartial<DenomTrace>): DenomTrace {
-    return DenomTrace.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<DenomTrace>): DenomTrace {
-    const message = createBaseDenomTrace();
-    message.path = object.path ?? "";
-    message.base_denom = object.base_denom ?? "";
-    return message;
-  },
-};
+/**
+ * Hop defines a port ID, channel ID pair specifying where tokens must be forwarded
+ * next in a multihop transfer.
+ */
+export interface Hop {
+  port_id: string;
+  channel_id: string;
+}
 
 function createBaseParams(): Params {
   return { send_enabled: false, receive_enabled: false };
@@ -188,6 +119,158 @@ export const Params = {
     const message = createBaseParams();
     message.send_enabled = object.send_enabled ?? false;
     message.receive_enabled = object.receive_enabled ?? false;
+    return message;
+  },
+};
+
+function createBaseForwarding(): Forwarding {
+  return { unwind: false, hops: [] };
+}
+
+export const Forwarding = {
+  $type: "ibc.applications.transfer.v1.Forwarding" as const,
+
+  encode(message: Forwarding, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.unwind !== false) {
+      writer.uint32(8).bool(message.unwind);
+    }
+    for (const v of message.hops) {
+      Hop.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Forwarding {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseForwarding();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.unwind = reader.bool();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.hops.push(Hop.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Forwarding {
+    return {
+      unwind: isSet(object.unwind) ? globalThis.Boolean(object.unwind) : false,
+      hops: globalThis.Array.isArray(object?.hops) ? object.hops.map((e: any) => Hop.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: Forwarding): unknown {
+    const obj: any = {};
+    if (message.unwind !== undefined) {
+      obj.unwind = message.unwind;
+    }
+    if (message.hops?.length) {
+      obj.hops = message.hops.map((e) => Hop.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Forwarding>): Forwarding {
+    return Forwarding.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Forwarding>): Forwarding {
+    const message = createBaseForwarding();
+    message.unwind = object.unwind ?? false;
+    message.hops = object.hops?.map((e) => Hop.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseHop(): Hop {
+  return { port_id: "", channel_id: "" };
+}
+
+export const Hop = {
+  $type: "ibc.applications.transfer.v1.Hop" as const,
+
+  encode(message: Hop, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.port_id !== "") {
+      writer.uint32(10).string(message.port_id);
+    }
+    if (message.channel_id !== "") {
+      writer.uint32(18).string(message.channel_id);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Hop {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseHop();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.port_id = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.channel_id = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Hop {
+    return {
+      port_id: isSet(object.port_id) ? globalThis.String(object.port_id) : "",
+      channel_id: isSet(object.channel_id) ? globalThis.String(object.channel_id) : "",
+    };
+  },
+
+  toJSON(message: Hop): unknown {
+    const obj: any = {};
+    if (message.port_id !== undefined) {
+      obj.port_id = message.port_id;
+    }
+    if (message.channel_id !== undefined) {
+      obj.channel_id = message.channel_id;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Hop>): Hop {
+    return Hop.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Hop>): Hop {
+    const message = createBaseHop();
+    message.port_id = object.port_id ?? "";
+    message.channel_id = object.channel_id ?? "";
     return message;
   },
 };

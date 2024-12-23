@@ -7,6 +7,7 @@
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
 import { Coin } from "../../../../cosmos/base/v1beta1/coin";
+import { Hop } from "./transfer";
 
 /** Allocation defines the spend limit for a particular port and channel */
 export interface Allocation {
@@ -18,6 +19,22 @@ export interface Allocation {
   spend_limit: Coin[];
   /** allow list of receivers, an empty allow list permits any receiver address */
   allow_list: string[];
+  /**
+   * allow list of memo strings, an empty list prohibits all memo strings;
+   * a list only with "*" permits any memo string
+   */
+  allowed_packet_data: string[];
+  /** Forwarding options that are allowed. */
+  allowed_forwarding: AllowedForwarding[];
+}
+
+/** AllowedForwarding defines which options are allowed for forwarding. */
+export interface AllowedForwarding {
+  /**
+   * a list of allowed source port ID/channel ID pairs through which the packet is allowed to be forwarded until final
+   * destination
+   */
+  hops: Hop[];
 }
 
 /**
@@ -30,7 +47,14 @@ export interface TransferAuthorization {
 }
 
 function createBaseAllocation(): Allocation {
-  return { source_port: "", source_channel: "", spend_limit: [], allow_list: [] };
+  return {
+    source_port: "",
+    source_channel: "",
+    spend_limit: [],
+    allow_list: [],
+    allowed_packet_data: [],
+    allowed_forwarding: [],
+  };
 }
 
 export const Allocation = {
@@ -48,6 +72,12 @@ export const Allocation = {
     }
     for (const v of message.allow_list) {
       writer.uint32(34).string(v!);
+    }
+    for (const v of message.allowed_packet_data) {
+      writer.uint32(42).string(v!);
+    }
+    for (const v of message.allowed_forwarding) {
+      AllowedForwarding.encode(v!, writer.uint32(50).fork()).ldelim();
     }
     return writer;
   },
@@ -87,6 +117,20 @@ export const Allocation = {
 
           message.allow_list.push(reader.string());
           continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.allowed_packet_data.push(reader.string());
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.allowed_forwarding.push(AllowedForwarding.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -106,6 +150,12 @@ export const Allocation = {
       allow_list: globalThis.Array.isArray(object?.allow_list)
         ? object.allow_list.map((e: any) => globalThis.String(e))
         : [],
+      allowed_packet_data: globalThis.Array.isArray(object?.allowed_packet_data)
+        ? object.allowed_packet_data.map((e: any) => globalThis.String(e))
+        : [],
+      allowed_forwarding: globalThis.Array.isArray(object?.allowed_forwarding)
+        ? object.allowed_forwarding.map((e: any) => AllowedForwarding.fromJSON(e))
+        : [],
     };
   },
 
@@ -123,6 +173,12 @@ export const Allocation = {
     if (message.allow_list?.length) {
       obj.allow_list = message.allow_list;
     }
+    if (message.allowed_packet_data?.length) {
+      obj.allowed_packet_data = message.allowed_packet_data;
+    }
+    if (message.allowed_forwarding?.length) {
+      obj.allowed_forwarding = message.allowed_forwarding.map((e) => AllowedForwarding.toJSON(e));
+    }
     return obj;
   },
 
@@ -135,6 +191,67 @@ export const Allocation = {
     message.source_channel = object.source_channel ?? "";
     message.spend_limit = object.spend_limit?.map((e) => Coin.fromPartial(e)) || [];
     message.allow_list = object.allow_list?.map((e) => e) || [];
+    message.allowed_packet_data = object.allowed_packet_data?.map((e) => e) || [];
+    message.allowed_forwarding = object.allowed_forwarding?.map((e) => AllowedForwarding.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseAllowedForwarding(): AllowedForwarding {
+  return { hops: [] };
+}
+
+export const AllowedForwarding = {
+  $type: "ibc.applications.transfer.v1.AllowedForwarding" as const,
+
+  encode(message: AllowedForwarding, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.hops) {
+      Hop.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): AllowedForwarding {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAllowedForwarding();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.hops.push(Hop.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AllowedForwarding {
+    return { hops: globalThis.Array.isArray(object?.hops) ? object.hops.map((e: any) => Hop.fromJSON(e)) : [] };
+  },
+
+  toJSON(message: AllowedForwarding): unknown {
+    const obj: any = {};
+    if (message.hops?.length) {
+      obj.hops = message.hops.map((e) => Hop.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<AllowedForwarding>): AllowedForwarding {
+    return AllowedForwarding.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<AllowedForwarding>): AllowedForwarding {
+    const message = createBaseAllowedForwarding();
+    message.hops = object.hops?.map((e) => Hop.fromPartial(e)) || [];
     return message;
   },
 };
