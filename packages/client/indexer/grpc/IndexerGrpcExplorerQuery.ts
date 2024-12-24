@@ -168,4 +168,23 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
     const response: explorerQuery.GetTxResponse = await this.retry(() => this.client.GetTx(request))
     return response
   }
+
+  async listDumpsadTrades(
+    request: Partial<explorerQuery.ListDumpsadTradesRequest>
+  ): Promise<explorerQuery.ListDumpsadTradesResponse> {
+    const response: explorerQuery.ListDumpsadTradesResponse = await this.retry(() =>
+      this.client.ListDumpsadTrades(request)
+    )
+    return response
+  }
+
+  async streamDumpsadTrades(
+    request: Partial<explorerQuery.StreamDumpsadTradesRequest>,
+    callback: (value: explorerQuery.StreamDumpsadTradesResponse) => void,
+    onEndCallback?: (err: any) => void,
+    onStatusCallback?: () => void
+  ): Promise<Subscription> {
+    const stream = this.client.StreamDumpsadTrades(request)
+    return stream.subscribe(callback, onEndCallback, onStatusCallback)
+  }
 }
