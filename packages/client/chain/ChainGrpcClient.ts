@@ -9,7 +9,9 @@ import {
   ChainGrpcSVMQuery,
   ChainGrpcStrategyQuery,
   ChainGrpcOracleQuery,
-  ChainGrpcAstromeshQuery
+  ChainGrpcAstromeshQuery,
+  ChainGrpcInterpoolQuery,
+  ChainGrpcDistributionQuery
 } from './grpc'
 export class ChainGrpcClient {
   transaction: ChainGrpcTxService
@@ -23,6 +25,8 @@ export class ChainGrpcClient {
   strategy: ChainGrpcStrategyQuery
   oracle: ChainGrpcOracleQuery
   astromesh: ChainGrpcAstromeshQuery
+  interpool: ChainGrpcInterpoolQuery
+  distribution: ChainGrpcDistributionQuery
   constructor(endpoint: string) {
     this.transaction = new ChainGrpcTxService(endpoint)
     this.auth = new ChainGrpcAuthQuery(endpoint)
@@ -35,6 +39,8 @@ export class ChainGrpcClient {
     this.strategy = new ChainGrpcStrategyQuery(endpoint)
     this.oracle = new ChainGrpcOracleQuery(endpoint)
     this.astromesh = new ChainGrpcAstromeshQuery(endpoint)
+    this.interpool = new ChainGrpcInterpoolQuery(endpoint)
+    this.distribution = new ChainGrpcDistributionQuery(endpoint)
   }
   changeEndpoint(endpoint: string) {
     this.transaction = new ChainGrpcTxService(endpoint)
@@ -48,5 +54,7 @@ export class ChainGrpcClient {
     this.strategy = new ChainGrpcStrategyQuery(endpoint)
     this.oracle = new ChainGrpcOracleQuery(endpoint)
     this.astromesh = new ChainGrpcAstromeshQuery(endpoint)
+    this.interpool = new ChainGrpcInterpoolQuery(endpoint)
+    this.distribution = new ChainGrpcDistributionQuery(endpoint)
   }
 }
