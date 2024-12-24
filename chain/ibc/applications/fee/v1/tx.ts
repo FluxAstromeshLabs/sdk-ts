@@ -55,7 +55,7 @@ export interface MsgPayPacketFee {
     | undefined;
   /** the source port unique identifier */
   source_port_id: string;
-  /** the source channel unique identifier */
+  /** the source channel unique identifer */
   source_channel_id: string;
   /** account address to refund fee if necessary */
   signer: string;

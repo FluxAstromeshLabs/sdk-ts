@@ -11,7 +11,7 @@ import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { Coin } from "../../../../cosmos/base/v1beta1/coin";
 import { Height } from "../../../core/client/v1/client";
-import { Forwarding, Params } from "./transfer";
+import { Params } from "./transfer";
 
 /**
  * MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between
@@ -23,11 +23,7 @@ export interface MsgTransfer {
   source_port: string;
   /** the channel by which the packet will be sent */
   source_channel: string;
-  /**
-   * the token to be transferred. this field has been replaced by the tokens field.
-   *
-   * @deprecated
-   */
+  /** the tokens to be transferred */
   token:
     | Coin
     | undefined;
@@ -49,10 +45,6 @@ export interface MsgTransfer {
   timeout_timestamp: string;
   /** optional memo */
   memo: string;
-  /** tokens to be transferred */
-  tokens: Coin[];
-  /** optional forwarding information */
-  forwarding: Forwarding | undefined;
 }
 
 /** MsgTransferResponse defines the Msg/Transfer response type. */
@@ -90,8 +82,6 @@ function createBaseMsgTransfer(): MsgTransfer {
     timeout_height: undefined,
     timeout_timestamp: "0",
     memo: "",
-    tokens: [],
-    forwarding: undefined,
   };
 }
 
@@ -122,12 +112,6 @@ export const MsgTransfer = {
     }
     if (message.memo !== "") {
       writer.uint32(66).string(message.memo);
-    }
-    for (const v of message.tokens) {
-      Coin.encode(v!, writer.uint32(74).fork()).ldelim();
-    }
-    if (message.forwarding !== undefined) {
-      Forwarding.encode(message.forwarding, writer.uint32(82).fork()).ldelim();
     }
     return writer;
   },
@@ -195,20 +179,6 @@ export const MsgTransfer = {
 
           message.memo = reader.string();
           continue;
-        case 9:
-          if (tag !== 74) {
-            break;
-          }
-
-          message.tokens.push(Coin.decode(reader, reader.uint32()));
-          continue;
-        case 10:
-          if (tag !== 82) {
-            break;
-          }
-
-          message.forwarding = Forwarding.decode(reader, reader.uint32());
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -228,8 +198,6 @@ export const MsgTransfer = {
       timeout_height: isSet(object.timeout_height) ? Height.fromJSON(object.timeout_height) : undefined,
       timeout_timestamp: isSet(object.timeout_timestamp) ? globalThis.String(object.timeout_timestamp) : "0",
       memo: isSet(object.memo) ? globalThis.String(object.memo) : "",
-      tokens: globalThis.Array.isArray(object?.tokens) ? object.tokens.map((e: any) => Coin.fromJSON(e)) : [],
-      forwarding: isSet(object.forwarding) ? Forwarding.fromJSON(object.forwarding) : undefined,
     };
   },
 
@@ -259,12 +227,6 @@ export const MsgTransfer = {
     if (message.memo !== undefined) {
       obj.memo = message.memo;
     }
-    if (message.tokens?.length) {
-      obj.tokens = message.tokens.map((e) => Coin.toJSON(e));
-    }
-    if (message.forwarding !== undefined) {
-      obj.forwarding = Forwarding.toJSON(message.forwarding);
-    }
     return obj;
   },
 
@@ -283,10 +245,6 @@ export const MsgTransfer = {
       : undefined;
     message.timeout_timestamp = object.timeout_timestamp ?? "0";
     message.memo = object.memo ?? "";
-    message.tokens = object.tokens?.map((e) => Coin.fromPartial(e)) || [];
-    message.forwarding = (object.forwarding !== undefined && object.forwarding !== null)
-      ? Forwarding.fromPartial(object.forwarding)
-      : undefined;
     return message;
   },
 };
