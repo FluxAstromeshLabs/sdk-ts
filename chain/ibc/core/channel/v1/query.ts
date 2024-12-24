@@ -351,30 +351,6 @@ export interface QueryNextSequenceReceiveResponse {
   proof_height: Height | undefined;
 }
 
-/**
- * QueryNextSequenceSendRequest is the request type for the
- * Query/QueryNextSequenceSend RPC method
- */
-export interface QueryNextSequenceSendRequest {
-  /** port unique identifier */
-  port_id: string;
-  /** channel unique identifier */
-  channel_id: string;
-}
-
-/**
- * QueryNextSequenceSendResponse is the request type for the
- * Query/QueryNextSequenceSend RPC method
- */
-export interface QueryNextSequenceSendResponse {
-  /** next sequence send number */
-  next_sequence_send: string;
-  /** merkle proof of existence */
-  proof: Uint8Array;
-  /** height at which the proof was retrieved */
-  proof_height: Height | undefined;
-}
-
 function createBaseQueryChannelRequest(): QueryChannelRequest {
   return { port_id: "", channel_id: "" };
 }
@@ -2795,175 +2771,6 @@ export const QueryNextSequenceReceiveResponse = {
   },
 };
 
-function createBaseQueryNextSequenceSendRequest(): QueryNextSequenceSendRequest {
-  return { port_id: "", channel_id: "" };
-}
-
-export const QueryNextSequenceSendRequest = {
-  $type: "ibc.core.channel.v1.QueryNextSequenceSendRequest" as const,
-
-  encode(message: QueryNextSequenceSendRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.port_id !== "") {
-      writer.uint32(10).string(message.port_id);
-    }
-    if (message.channel_id !== "") {
-      writer.uint32(18).string(message.channel_id);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryNextSequenceSendRequest {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseQueryNextSequenceSendRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.port_id = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.channel_id = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): QueryNextSequenceSendRequest {
-    return {
-      port_id: isSet(object.port_id) ? globalThis.String(object.port_id) : "",
-      channel_id: isSet(object.channel_id) ? globalThis.String(object.channel_id) : "",
-    };
-  },
-
-  toJSON(message: QueryNextSequenceSendRequest): unknown {
-    const obj: any = {};
-    if (message.port_id !== undefined) {
-      obj.port_id = message.port_id;
-    }
-    if (message.channel_id !== undefined) {
-      obj.channel_id = message.channel_id;
-    }
-    return obj;
-  },
-
-  create(base?: DeepPartial<QueryNextSequenceSendRequest>): QueryNextSequenceSendRequest {
-    return QueryNextSequenceSendRequest.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<QueryNextSequenceSendRequest>): QueryNextSequenceSendRequest {
-    const message = createBaseQueryNextSequenceSendRequest();
-    message.port_id = object.port_id ?? "";
-    message.channel_id = object.channel_id ?? "";
-    return message;
-  },
-};
-
-function createBaseQueryNextSequenceSendResponse(): QueryNextSequenceSendResponse {
-  return { next_sequence_send: "0", proof: new Uint8Array(0), proof_height: undefined };
-}
-
-export const QueryNextSequenceSendResponse = {
-  $type: "ibc.core.channel.v1.QueryNextSequenceSendResponse" as const,
-
-  encode(message: QueryNextSequenceSendResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.next_sequence_send !== "0") {
-      writer.uint32(8).uint64(message.next_sequence_send);
-    }
-    if (message.proof.length !== 0) {
-      writer.uint32(18).bytes(message.proof);
-    }
-    if (message.proof_height !== undefined) {
-      Height.encode(message.proof_height, writer.uint32(26).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): QueryNextSequenceSendResponse {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseQueryNextSequenceSendResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.next_sequence_send = longToString(reader.uint64() as Long);
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.proof = reader.bytes();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.proof_height = Height.decode(reader, reader.uint32());
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): QueryNextSequenceSendResponse {
-    return {
-      next_sequence_send: isSet(object.next_sequence_send) ? globalThis.String(object.next_sequence_send) : "0",
-      proof: isSet(object.proof) ? bytesFromBase64(object.proof) : new Uint8Array(0),
-      proof_height: isSet(object.proof_height) ? Height.fromJSON(object.proof_height) : undefined,
-    };
-  },
-
-  toJSON(message: QueryNextSequenceSendResponse): unknown {
-    const obj: any = {};
-    if (message.next_sequence_send !== undefined) {
-      obj.next_sequence_send = message.next_sequence_send;
-    }
-    if (message.proof !== undefined) {
-      obj.proof = base64FromBytes(message.proof);
-    }
-    if (message.proof_height !== undefined) {
-      obj.proof_height = Height.toJSON(message.proof_height);
-    }
-    return obj;
-  },
-
-  create(base?: DeepPartial<QueryNextSequenceSendResponse>): QueryNextSequenceSendResponse {
-    return QueryNextSequenceSendResponse.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<QueryNextSequenceSendResponse>): QueryNextSequenceSendResponse {
-    const message = createBaseQueryNextSequenceSendResponse();
-    message.next_sequence_send = object.next_sequence_send ?? "0";
-    message.proof = object.proof ?? new Uint8Array(0);
-    message.proof_height = (object.proof_height !== undefined && object.proof_height !== null)
-      ? Height.fromPartial(object.proof_height)
-      : undefined;
-    return message;
-  },
-};
-
 /** Query provides defines the gRPC querier service */
 export interface Query {
   /** Channel queries an IBC Channel. */
@@ -3049,11 +2856,6 @@ export interface Query {
     request: DeepPartial<QueryNextSequenceReceiveRequest>,
     metadata?: grpc.Metadata,
   ): Promise<QueryNextSequenceReceiveResponse>;
-  /** NextSequenceSend returns the next send sequence for a given channel. */
-  NextSequenceSend(
-    request: DeepPartial<QueryNextSequenceSendRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<QueryNextSequenceSendResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -3074,7 +2876,6 @@ export class QueryClientImpl implements Query {
     this.UnreceivedPackets = this.UnreceivedPackets.bind(this);
     this.UnreceivedAcks = this.UnreceivedAcks.bind(this);
     this.NextSequenceReceive = this.NextSequenceReceive.bind(this);
-    this.NextSequenceSend = this.NextSequenceSend.bind(this);
   }
 
   Channel(request: DeepPartial<QueryChannelRequest>, metadata?: grpc.Metadata): Promise<QueryChannelResponse> {
@@ -3172,13 +2973,6 @@ export class QueryClientImpl implements Query {
     metadata?: grpc.Metadata,
   ): Promise<QueryNextSequenceReceiveResponse> {
     return this.rpc.unary(QueryNextSequenceReceiveDesc, QueryNextSequenceReceiveRequest.fromPartial(request), metadata);
-  }
-
-  NextSequenceSend(
-    request: DeepPartial<QueryNextSequenceSendRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<QueryNextSequenceSendResponse> {
-    return this.rpc.unary(QueryNextSequenceSendDesc, QueryNextSequenceSendRequest.fromPartial(request), metadata);
   }
 }
 
@@ -3473,29 +3267,6 @@ export const QueryNextSequenceReceiveDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = QueryNextSequenceReceiveResponse.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const QueryNextSequenceSendDesc: UnaryMethodDefinitionish = {
-  methodName: "NextSequenceSend",
-  service: QueryDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return QueryNextSequenceSendRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = QueryNextSequenceSendResponse.decode(data);
       return {
         ...value,
         toObject() {

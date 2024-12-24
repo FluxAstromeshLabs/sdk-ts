@@ -524,6 +524,8 @@ export interface DumpsadCoin {
   height: string;
   /** Pool id/address */
   pool_id: string;
+  curve_sol_amount: string;
+  market_cap: string;
 }
 
 export interface ListDumpsadCoinsResponse {
@@ -5976,6 +5978,8 @@ function createBaseDumpsadCoin(): DumpsadCoin {
     current_price: "",
     height: "0",
     pool_id: "",
+    curve_sol_amount: "",
+    market_cap: "",
   };
 }
 
@@ -6015,6 +6019,12 @@ export const DumpsadCoin = {
     }
     if (message.pool_id !== "") {
       writer.uint32(90).string(message.pool_id);
+    }
+    if (message.curve_sol_amount !== "") {
+      writer.uint32(98).string(message.curve_sol_amount);
+    }
+    if (message.market_cap !== "") {
+      writer.uint32(106).string(message.market_cap);
     }
     return writer;
   },
@@ -6103,6 +6113,20 @@ export const DumpsadCoin = {
 
           message.pool_id = reader.string();
           continue;
+        case 12:
+          if (tag !== 98) {
+            break;
+          }
+
+          message.curve_sol_amount = reader.string();
+          continue;
+        case 13:
+          if (tag !== 106) {
+            break;
+          }
+
+          message.market_cap = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -6125,6 +6149,8 @@ export const DumpsadCoin = {
       current_price: isSet(object.current_price) ? globalThis.String(object.current_price) : "",
       height: isSet(object.height) ? globalThis.String(object.height) : "0",
       pool_id: isSet(object.pool_id) ? globalThis.String(object.pool_id) : "",
+      curve_sol_amount: isSet(object.curve_sol_amount) ? globalThis.String(object.curve_sol_amount) : "",
+      market_cap: isSet(object.market_cap) ? globalThis.String(object.market_cap) : "",
     };
   },
 
@@ -6163,6 +6189,12 @@ export const DumpsadCoin = {
     if (message.pool_id !== undefined) {
       obj.pool_id = message.pool_id;
     }
+    if (message.curve_sol_amount !== undefined) {
+      obj.curve_sol_amount = message.curve_sol_amount;
+    }
+    if (message.market_cap !== undefined) {
+      obj.market_cap = message.market_cap;
+    }
     return obj;
   },
 
@@ -6182,6 +6214,8 @@ export const DumpsadCoin = {
     message.current_price = object.current_price ?? "";
     message.height = object.height ?? "0";
     message.pool_id = object.pool_id ?? "";
+    message.curve_sol_amount = object.curve_sol_amount ?? "";
+    message.market_cap = object.market_cap ?? "";
     return message;
   },
 };
