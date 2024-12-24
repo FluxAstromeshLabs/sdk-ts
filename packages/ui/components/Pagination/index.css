@@ -6,6 +6,10 @@
   @apply cursor-pointer hover:bg-blueGray-light-200;
 }
 
+.base-pagination .page-item.disabled {
+  @apply cursor-default hover:!bg-transparent;
+}
+
 .base-pagination .page-item,
 .base-pagination .break-view-item {
   @apply flex items-center justify-center p-2 rounded-[16px] min-w-[48px] min-h-[48px];
