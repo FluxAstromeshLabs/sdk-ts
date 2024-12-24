@@ -20,20 +20,15 @@ export interface GenesisState {
   params:
     | Params
     | undefined;
-  /**
-   * Deprecated: create_localhost has been deprecated.
-   * The localhost client is automatically created at genesis.
-   *
-   * @deprecated
-   */
+  /** create localhost on initialization */
   create_localhost: boolean;
   /** the sequence for the next generated client identifier */
   next_client_sequence: string;
 }
 
 /**
- * GenesisMetadata defines the genesis type for metadata that will be used
- * to export all client store keys that are not client or consensus states.
+ * GenesisMetadata defines the genesis type for metadata that clients may return
+ * with ExportMetadata
  */
 export interface GenesisMetadata {
   /** store key of metadata without clientID-prefix */

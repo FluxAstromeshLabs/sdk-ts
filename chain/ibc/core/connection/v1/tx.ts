@@ -11,7 +11,7 @@ import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { Any } from "../../../../google/protobuf/any";
 import { Height } from "../../client/v1/client";
-import { Counterparty, Params, Version } from "./connection";
+import { Counterparty, Version } from "./connection";
 
 /**
  * MsgConnectionOpenInit defines the msg sent by an account on Chain A to
@@ -44,11 +44,6 @@ export interface MsgConnectionOpenTry {
    * @deprecated
    */
   previous_connection_id: string;
-  /**
-   * Deprecated: this field is unused.
-   *
-   * @deprecated
-   */
   client_state: Any | undefined;
   counterparty: Counterparty | undefined;
   delay_period: string;
@@ -57,34 +52,17 @@ export interface MsgConnectionOpenTry {
     | Height
     | undefined;
   /**
-   * proof of the initialization the connection on Chain A: `UNINITIALIZED ->
+   * proof of the initialization the connection on Chain A: `UNITIALIZED ->
    * INIT`
    */
   proof_init: Uint8Array;
-  /**
-   * Deprecated: this field is unused.
-   *
-   * @deprecated
-   */
+  /** proof of client state included in message */
   proof_client: Uint8Array;
-  /**
-   * Deprecated: this field is unused.
-   *
-   * @deprecated
-   */
+  /** proof of client consensus state */
   proof_consensus: Uint8Array;
-  /**
-   * Deprecated: this field is unused.
-   *
-   * @deprecated
-   */
   consensus_height: Height | undefined;
   signer: string;
-  /**
-   * Deprecated: this field is unused.
-   *
-   * @deprecated
-   */
+  /** optional proof data for host state machines that are unable to introspect their own consensus state */
   host_consensus_state_proof: Uint8Array;
 }
 
@@ -99,47 +77,23 @@ export interface MsgConnectionOpenTryResponse {
 export interface MsgConnectionOpenAck {
   connection_id: string;
   counterparty_connection_id: string;
-  version:
-    | Version
-    | undefined;
-  /**
-   * Deprecated: this field is unused.
-   *
-   * @deprecated
-   */
+  version: Version | undefined;
   client_state: Any | undefined;
   proof_height:
     | Height
     | undefined;
   /**
-   * proof of the initialization the connection on Chain B: `UNINITIALIZED ->
+   * proof of the initialization the connection on Chain B: `UNITIALIZED ->
    * TRYOPEN`
    */
   proof_try: Uint8Array;
-  /**
-   * Deprecated: this field is unused.
-   *
-   * @deprecated
-   */
+  /** proof of client state included in message */
   proof_client: Uint8Array;
-  /**
-   * Deprecated: this field is unused.
-   *
-   * @deprecated
-   */
+  /** proof of client consensus state */
   proof_consensus: Uint8Array;
-  /**
-   * Deprecated: this field is unused.
-   *
-   * @deprecated
-   */
   consensus_height: Height | undefined;
   signer: string;
-  /**
-   * Deprecated: this field is unused.
-   *
-   * @deprecated
-   */
+  /** optional proof data for host state machines that are unable to introspect their own consensus state */
   host_consensus_state_proof: Uint8Array;
 }
 
@@ -164,22 +118,6 @@ export interface MsgConnectionOpenConfirm {
  * response type.
  */
 export interface MsgConnectionOpenConfirmResponse {
-}
-
-/** MsgUpdateParams defines the sdk.Msg type to update the connection parameters. */
-export interface MsgUpdateParams {
-  /** signer address */
-  signer: string;
-  /**
-   * params defines the connection parameters to update.
-   *
-   * NOTE: All parameters must be supplied.
-   */
-  params: Params | undefined;
-}
-
-/** MsgUpdateParamsResponse defines the MsgUpdateParams response type. */
-export interface MsgUpdateParamsResponse {
 }
 
 function createBaseMsgConnectionOpenInit(): MsgConnectionOpenInit {
@@ -1099,129 +1037,6 @@ export const MsgConnectionOpenConfirmResponse = {
   },
 };
 
-function createBaseMsgUpdateParams(): MsgUpdateParams {
-  return { signer: "", params: undefined };
-}
-
-export const MsgUpdateParams = {
-  $type: "ibc.core.connection.v1.MsgUpdateParams" as const,
-
-  encode(message: MsgUpdateParams, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.signer !== "") {
-      writer.uint32(10).string(message.signer);
-    }
-    if (message.params !== undefined) {
-      Params.encode(message.params, writer.uint32(18).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgUpdateParams {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMsgUpdateParams();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.signer = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.params = Params.decode(reader, reader.uint32());
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): MsgUpdateParams {
-    return {
-      signer: isSet(object.signer) ? globalThis.String(object.signer) : "",
-      params: isSet(object.params) ? Params.fromJSON(object.params) : undefined,
-    };
-  },
-
-  toJSON(message: MsgUpdateParams): unknown {
-    const obj: any = {};
-    if (message.signer !== undefined) {
-      obj.signer = message.signer;
-    }
-    if (message.params !== undefined) {
-      obj.params = Params.toJSON(message.params);
-    }
-    return obj;
-  },
-
-  create(base?: DeepPartial<MsgUpdateParams>): MsgUpdateParams {
-    return MsgUpdateParams.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<MsgUpdateParams>): MsgUpdateParams {
-    const message = createBaseMsgUpdateParams();
-    message.signer = object.signer ?? "";
-    message.params = (object.params !== undefined && object.params !== null)
-      ? Params.fromPartial(object.params)
-      : undefined;
-    return message;
-  },
-};
-
-function createBaseMsgUpdateParamsResponse(): MsgUpdateParamsResponse {
-  return {};
-}
-
-export const MsgUpdateParamsResponse = {
-  $type: "ibc.core.connection.v1.MsgUpdateParamsResponse" as const,
-
-  encode(_: MsgUpdateParamsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgUpdateParamsResponse {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMsgUpdateParamsResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(_: any): MsgUpdateParamsResponse {
-    return {};
-  },
-
-  toJSON(_: MsgUpdateParamsResponse): unknown {
-    const obj: any = {};
-    return obj;
-  },
-
-  create(base?: DeepPartial<MsgUpdateParamsResponse>): MsgUpdateParamsResponse {
-    return MsgUpdateParamsResponse.fromPartial(base ?? {});
-  },
-  fromPartial(_: DeepPartial<MsgUpdateParamsResponse>): MsgUpdateParamsResponse {
-    const message = createBaseMsgUpdateParamsResponse();
-    return message;
-  },
-};
-
 /** Msg defines the ibc/connection Msg service. */
 export interface Msg {
   /** ConnectionOpenInit defines a rpc handler method for MsgConnectionOpenInit. */
@@ -1247,14 +1062,6 @@ export interface Msg {
     request: DeepPartial<MsgConnectionOpenConfirm>,
     metadata?: grpc.Metadata,
   ): Promise<MsgConnectionOpenConfirmResponse>;
-  /**
-   * UpdateConnectionParams defines a rpc handler method for
-   * MsgUpdateParams.
-   */
-  UpdateConnectionParams(
-    request: DeepPartial<MsgUpdateParams>,
-    metadata?: grpc.Metadata,
-  ): Promise<MsgUpdateParamsResponse>;
 }
 
 export class MsgClientImpl implements Msg {
@@ -1266,7 +1073,6 @@ export class MsgClientImpl implements Msg {
     this.ConnectionOpenTry = this.ConnectionOpenTry.bind(this);
     this.ConnectionOpenAck = this.ConnectionOpenAck.bind(this);
     this.ConnectionOpenConfirm = this.ConnectionOpenConfirm.bind(this);
-    this.UpdateConnectionParams = this.UpdateConnectionParams.bind(this);
   }
 
   ConnectionOpenInit(
@@ -1295,13 +1101,6 @@ export class MsgClientImpl implements Msg {
     metadata?: grpc.Metadata,
   ): Promise<MsgConnectionOpenConfirmResponse> {
     return this.rpc.unary(MsgConnectionOpenConfirmDesc, MsgConnectionOpenConfirm.fromPartial(request), metadata);
-  }
-
-  UpdateConnectionParams(
-    request: DeepPartial<MsgUpdateParams>,
-    metadata?: grpc.Metadata,
-  ): Promise<MsgUpdateParamsResponse> {
-    return this.rpc.unary(MsgUpdateConnectionParamsDesc, MsgUpdateParams.fromPartial(request), metadata);
   }
 }
 
@@ -1389,29 +1188,6 @@ export const MsgConnectionOpenConfirmDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = MsgConnectionOpenConfirmResponse.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const MsgUpdateConnectionParamsDesc: UnaryMethodDefinitionish = {
-  methodName: "UpdateConnectionParams",
-  service: MsgDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return MsgUpdateParams.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = MsgUpdateParamsResponse.decode(data);
       return {
         ...value,
         toObject() {

@@ -524,6 +524,8 @@ export interface DumpsadCoin {
   height: string;
   /** Pool id/address */
   pool_id: string;
+  curve_sol_amount: string;
+  market_cap: string;
 }
 
 export interface ListDumpsadCoinsResponse {
@@ -544,6 +546,50 @@ export interface StreamDumpsadCoinsResponse {
   /** Indicator if the order is deleted (1 for true, 0 for false) */
   deleted: string;
   coin: DumpsadCoin | undefined;
+}
+
+export interface ListDumpsadTradesRequest {
+  /** Filter by denom */
+  denom: string;
+  /** Filter by strategy ID */
+  solver_id: string;
+  /** Filter by trader */
+  trader: string;
+  /** Filter by sol amount */
+  sol_amount: string;
+  pagination: PageRequest | undefined;
+}
+
+export interface DumpsadTrade {
+  denom: string;
+  solver_id: string;
+  trader: string;
+  /** "buy" or "sell" */
+  action: string;
+  meme_amount: string;
+  sol_amount: string;
+  height: string;
+  time: string;
+}
+
+export interface ListDumpsadTradesResponse {
+  /** List of trades */
+  trades: DumpsadTrade[];
+  pagination: PageResponse | undefined;
+}
+
+export interface StreamDumpsadTradesRequest {
+  /** Optional filter by denom */
+  denom: string;
+  /** Optional filter by strategy ID */
+  strategy_id: string;
+}
+
+export interface StreamDumpsadTradesResponse {
+  height: string;
+  /** Indicator if the trade is deleted (1 for true, 0 for false) */
+  deleted: string;
+  trade: DumpsadTrade | undefined;
 }
 
 function createBaseListEvmContractsRequest(): ListEvmContractsRequest {
@@ -5932,6 +5978,8 @@ function createBaseDumpsadCoin(): DumpsadCoin {
     current_price: "",
     height: "0",
     pool_id: "",
+    curve_sol_amount: "",
+    market_cap: "",
   };
 }
 
@@ -5971,6 +6019,12 @@ export const DumpsadCoin = {
     }
     if (message.pool_id !== "") {
       writer.uint32(90).string(message.pool_id);
+    }
+    if (message.curve_sol_amount !== "") {
+      writer.uint32(98).string(message.curve_sol_amount);
+    }
+    if (message.market_cap !== "") {
+      writer.uint32(106).string(message.market_cap);
     }
     return writer;
   },
@@ -6059,6 +6113,20 @@ export const DumpsadCoin = {
 
           message.pool_id = reader.string();
           continue;
+        case 12:
+          if (tag !== 98) {
+            break;
+          }
+
+          message.curve_sol_amount = reader.string();
+          continue;
+        case 13:
+          if (tag !== 106) {
+            break;
+          }
+
+          message.market_cap = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -6081,6 +6149,8 @@ export const DumpsadCoin = {
       current_price: isSet(object.current_price) ? globalThis.String(object.current_price) : "",
       height: isSet(object.height) ? globalThis.String(object.height) : "0",
       pool_id: isSet(object.pool_id) ? globalThis.String(object.pool_id) : "",
+      curve_sol_amount: isSet(object.curve_sol_amount) ? globalThis.String(object.curve_sol_amount) : "",
+      market_cap: isSet(object.market_cap) ? globalThis.String(object.market_cap) : "",
     };
   },
 
@@ -6119,6 +6189,12 @@ export const DumpsadCoin = {
     if (message.pool_id !== undefined) {
       obj.pool_id = message.pool_id;
     }
+    if (message.curve_sol_amount !== undefined) {
+      obj.curve_sol_amount = message.curve_sol_amount;
+    }
+    if (message.market_cap !== undefined) {
+      obj.market_cap = message.market_cap;
+    }
     return obj;
   },
 
@@ -6138,6 +6214,8 @@ export const DumpsadCoin = {
     message.current_price = object.current_price ?? "";
     message.height = object.height ?? "0";
     message.pool_id = object.pool_id ?? "";
+    message.curve_sol_amount = object.curve_sol_amount ?? "";
+    message.market_cap = object.market_cap ?? "";
     return message;
   },
 };
@@ -6374,6 +6452,542 @@ export const StreamDumpsadCoinsResponse = {
   },
 };
 
+function createBaseListDumpsadTradesRequest(): ListDumpsadTradesRequest {
+  return { denom: "", solver_id: "", trader: "", sol_amount: "", pagination: undefined };
+}
+
+export const ListDumpsadTradesRequest = {
+  $type: "flux.indexer.explorer.ListDumpsadTradesRequest" as const,
+
+  encode(message: ListDumpsadTradesRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.denom !== "") {
+      writer.uint32(10).string(message.denom);
+    }
+    if (message.solver_id !== "") {
+      writer.uint32(18).string(message.solver_id);
+    }
+    if (message.trader !== "") {
+      writer.uint32(26).string(message.trader);
+    }
+    if (message.sol_amount !== "") {
+      writer.uint32(34).string(message.sol_amount);
+    }
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(42).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListDumpsadTradesRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListDumpsadTradesRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.denom = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.solver_id = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.trader = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.sol_amount = reader.string();
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListDumpsadTradesRequest {
+    return {
+      denom: isSet(object.denom) ? globalThis.String(object.denom) : "",
+      solver_id: isSet(object.solver_id) ? globalThis.String(object.solver_id) : "",
+      trader: isSet(object.trader) ? globalThis.String(object.trader) : "",
+      sol_amount: isSet(object.sol_amount) ? globalThis.String(object.sol_amount) : "",
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
+    };
+  },
+
+  toJSON(message: ListDumpsadTradesRequest): unknown {
+    const obj: any = {};
+    if (message.denom !== undefined) {
+      obj.denom = message.denom;
+    }
+    if (message.solver_id !== undefined) {
+      obj.solver_id = message.solver_id;
+    }
+    if (message.trader !== undefined) {
+      obj.trader = message.trader;
+    }
+    if (message.sol_amount !== undefined) {
+      obj.sol_amount = message.sol_amount;
+    }
+    if (message.pagination !== undefined) {
+      obj.pagination = PageRequest.toJSON(message.pagination);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListDumpsadTradesRequest>): ListDumpsadTradesRequest {
+    return ListDumpsadTradesRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListDumpsadTradesRequest>): ListDumpsadTradesRequest {
+    const message = createBaseListDumpsadTradesRequest();
+    message.denom = object.denom ?? "";
+    message.solver_id = object.solver_id ?? "";
+    message.trader = object.trader ?? "";
+    message.sol_amount = object.sol_amount ?? "";
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseDumpsadTrade(): DumpsadTrade {
+  return { denom: "", solver_id: "", trader: "", action: "", meme_amount: "", sol_amount: "", height: "0", time: "0" };
+}
+
+export const DumpsadTrade = {
+  $type: "flux.indexer.explorer.DumpsadTrade" as const,
+
+  encode(message: DumpsadTrade, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.denom !== "") {
+      writer.uint32(10).string(message.denom);
+    }
+    if (message.solver_id !== "") {
+      writer.uint32(18).string(message.solver_id);
+    }
+    if (message.trader !== "") {
+      writer.uint32(26).string(message.trader);
+    }
+    if (message.action !== "") {
+      writer.uint32(34).string(message.action);
+    }
+    if (message.meme_amount !== "") {
+      writer.uint32(42).string(message.meme_amount);
+    }
+    if (message.sol_amount !== "") {
+      writer.uint32(50).string(message.sol_amount);
+    }
+    if (message.height !== "0") {
+      writer.uint32(56).int64(message.height);
+    }
+    if (message.time !== "0") {
+      writer.uint32(64).int64(message.time);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): DumpsadTrade {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDumpsadTrade();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.denom = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.solver_id = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.trader = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.action = reader.string();
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.meme_amount = reader.string();
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.sol_amount = reader.string();
+          continue;
+        case 7:
+          if (tag !== 56) {
+            break;
+          }
+
+          message.height = longToString(reader.int64() as Long);
+          continue;
+        case 8:
+          if (tag !== 64) {
+            break;
+          }
+
+          message.time = longToString(reader.int64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DumpsadTrade {
+    return {
+      denom: isSet(object.denom) ? globalThis.String(object.denom) : "",
+      solver_id: isSet(object.solver_id) ? globalThis.String(object.solver_id) : "",
+      trader: isSet(object.trader) ? globalThis.String(object.trader) : "",
+      action: isSet(object.action) ? globalThis.String(object.action) : "",
+      meme_amount: isSet(object.meme_amount) ? globalThis.String(object.meme_amount) : "",
+      sol_amount: isSet(object.sol_amount) ? globalThis.String(object.sol_amount) : "",
+      height: isSet(object.height) ? globalThis.String(object.height) : "0",
+      time: isSet(object.time) ? globalThis.String(object.time) : "0",
+    };
+  },
+
+  toJSON(message: DumpsadTrade): unknown {
+    const obj: any = {};
+    if (message.denom !== undefined) {
+      obj.denom = message.denom;
+    }
+    if (message.solver_id !== undefined) {
+      obj.solver_id = message.solver_id;
+    }
+    if (message.trader !== undefined) {
+      obj.trader = message.trader;
+    }
+    if (message.action !== undefined) {
+      obj.action = message.action;
+    }
+    if (message.meme_amount !== undefined) {
+      obj.meme_amount = message.meme_amount;
+    }
+    if (message.sol_amount !== undefined) {
+      obj.sol_amount = message.sol_amount;
+    }
+    if (message.height !== undefined) {
+      obj.height = message.height;
+    }
+    if (message.time !== undefined) {
+      obj.time = message.time;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<DumpsadTrade>): DumpsadTrade {
+    return DumpsadTrade.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<DumpsadTrade>): DumpsadTrade {
+    const message = createBaseDumpsadTrade();
+    message.denom = object.denom ?? "";
+    message.solver_id = object.solver_id ?? "";
+    message.trader = object.trader ?? "";
+    message.action = object.action ?? "";
+    message.meme_amount = object.meme_amount ?? "";
+    message.sol_amount = object.sol_amount ?? "";
+    message.height = object.height ?? "0";
+    message.time = object.time ?? "0";
+    return message;
+  },
+};
+
+function createBaseListDumpsadTradesResponse(): ListDumpsadTradesResponse {
+  return { trades: [], pagination: undefined };
+}
+
+export const ListDumpsadTradesResponse = {
+  $type: "flux.indexer.explorer.ListDumpsadTradesResponse" as const,
+
+  encode(message: ListDumpsadTradesResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.trades) {
+      DumpsadTrade.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListDumpsadTradesResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListDumpsadTradesResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.trades.push(DumpsadTrade.decode(reader, reader.uint32()));
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListDumpsadTradesResponse {
+    return {
+      trades: globalThis.Array.isArray(object?.trades) ? object.trades.map((e: any) => DumpsadTrade.fromJSON(e)) : [],
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+    };
+  },
+
+  toJSON(message: ListDumpsadTradesResponse): unknown {
+    const obj: any = {};
+    if (message.trades?.length) {
+      obj.trades = message.trades.map((e) => DumpsadTrade.toJSON(e));
+    }
+    if (message.pagination !== undefined) {
+      obj.pagination = PageResponse.toJSON(message.pagination);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListDumpsadTradesResponse>): ListDumpsadTradesResponse {
+    return ListDumpsadTradesResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListDumpsadTradesResponse>): ListDumpsadTradesResponse {
+    const message = createBaseListDumpsadTradesResponse();
+    message.trades = object.trades?.map((e) => DumpsadTrade.fromPartial(e)) || [];
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseStreamDumpsadTradesRequest(): StreamDumpsadTradesRequest {
+  return { denom: "", strategy_id: "" };
+}
+
+export const StreamDumpsadTradesRequest = {
+  $type: "flux.indexer.explorer.StreamDumpsadTradesRequest" as const,
+
+  encode(message: StreamDumpsadTradesRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.denom !== "") {
+      writer.uint32(10).string(message.denom);
+    }
+    if (message.strategy_id !== "") {
+      writer.uint32(18).string(message.strategy_id);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamDumpsadTradesRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamDumpsadTradesRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.denom = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.strategy_id = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamDumpsadTradesRequest {
+    return {
+      denom: isSet(object.denom) ? globalThis.String(object.denom) : "",
+      strategy_id: isSet(object.strategy_id) ? globalThis.String(object.strategy_id) : "",
+    };
+  },
+
+  toJSON(message: StreamDumpsadTradesRequest): unknown {
+    const obj: any = {};
+    if (message.denom !== undefined) {
+      obj.denom = message.denom;
+    }
+    if (message.strategy_id !== undefined) {
+      obj.strategy_id = message.strategy_id;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamDumpsadTradesRequest>): StreamDumpsadTradesRequest {
+    return StreamDumpsadTradesRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamDumpsadTradesRequest>): StreamDumpsadTradesRequest {
+    const message = createBaseStreamDumpsadTradesRequest();
+    message.denom = object.denom ?? "";
+    message.strategy_id = object.strategy_id ?? "";
+    return message;
+  },
+};
+
+function createBaseStreamDumpsadTradesResponse(): StreamDumpsadTradesResponse {
+  return { height: "0", deleted: "0", trade: undefined };
+}
+
+export const StreamDumpsadTradesResponse = {
+  $type: "flux.indexer.explorer.StreamDumpsadTradesResponse" as const,
+
+  encode(message: StreamDumpsadTradesResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.height !== "0") {
+      writer.uint32(8).uint64(message.height);
+    }
+    if (message.deleted !== "0") {
+      writer.uint32(16).uint64(message.deleted);
+    }
+    if (message.trade !== undefined) {
+      DumpsadTrade.encode(message.trade, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamDumpsadTradesResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamDumpsadTradesResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.height = longToString(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.deleted = longToString(reader.uint64() as Long);
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.trade = DumpsadTrade.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamDumpsadTradesResponse {
+    return {
+      height: isSet(object.height) ? globalThis.String(object.height) : "0",
+      deleted: isSet(object.deleted) ? globalThis.String(object.deleted) : "0",
+      trade: isSet(object.trade) ? DumpsadTrade.fromJSON(object.trade) : undefined,
+    };
+  },
+
+  toJSON(message: StreamDumpsadTradesResponse): unknown {
+    const obj: any = {};
+    if (message.height !== undefined) {
+      obj.height = message.height;
+    }
+    if (message.deleted !== undefined) {
+      obj.deleted = message.deleted;
+    }
+    if (message.trade !== undefined) {
+      obj.trade = DumpsadTrade.toJSON(message.trade);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamDumpsadTradesResponse>): StreamDumpsadTradesResponse {
+    return StreamDumpsadTradesResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamDumpsadTradesResponse>): StreamDumpsadTradesResponse {
+    const message = createBaseStreamDumpsadTradesResponse();
+    message.height = object.height ?? "0";
+    message.deleted = object.deleted ?? "0";
+    message.trade = (object.trade !== undefined && object.trade !== null)
+      ? DumpsadTrade.fromPartial(object.trade)
+      : undefined;
+    return message;
+  },
+};
+
 export interface API {
   ListEvmContracts(
     request: DeepPartial<ListEvmContractsRequest>,
@@ -6454,6 +7068,14 @@ export interface API {
     request: DeepPartial<StreamDumpsadCoinsRequest>,
     metadata?: grpc.Metadata,
   ): Observable<StreamDumpsadCoinsResponse>;
+  ListDumpsadTrades(
+    request: DeepPartial<ListDumpsadTradesRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ListDumpsadTradesResponse>;
+  StreamDumpsadTrades(
+    request: DeepPartial<StreamDumpsadTradesRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamDumpsadTradesResponse>;
 }
 
 export class APIClientImpl implements API {
@@ -6489,6 +7111,8 @@ export class APIClientImpl implements API {
     this.StreamContract = this.StreamContract.bind(this);
     this.ListDumpsadCoins = this.ListDumpsadCoins.bind(this);
     this.StreamDumpsadCoins = this.StreamDumpsadCoins.bind(this);
+    this.ListDumpsadTrades = this.ListDumpsadTrades.bind(this);
+    this.StreamDumpsadTrades = this.StreamDumpsadTrades.bind(this);
   }
 
   ListEvmContracts(
@@ -6660,6 +7284,20 @@ export class APIClientImpl implements API {
     metadata?: grpc.Metadata,
   ): Observable<StreamDumpsadCoinsResponse> {
     return this.rpc.invoke(APIStreamDumpsadCoinsDesc, StreamDumpsadCoinsRequest.fromPartial(request), metadata);
+  }
+
+  ListDumpsadTrades(
+    request: DeepPartial<ListDumpsadTradesRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ListDumpsadTradesResponse> {
+    return this.rpc.unary(APIListDumpsadTradesDesc, ListDumpsadTradesRequest.fromPartial(request), metadata);
+  }
+
+  StreamDumpsadTrades(
+    request: DeepPartial<StreamDumpsadTradesRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamDumpsadTradesResponse> {
+    return this.rpc.invoke(APIStreamDumpsadTradesDesc, StreamDumpsadTradesRequest.fromPartial(request), metadata);
   }
 }
 
@@ -7299,6 +7937,52 @@ export const APIStreamDumpsadCoinsDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = StreamDumpsadCoinsResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const APIListDumpsadTradesDesc: UnaryMethodDefinitionish = {
+  methodName: "ListDumpsadTrades",
+  service: APIDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ListDumpsadTradesRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ListDumpsadTradesResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const APIStreamDumpsadTradesDesc: UnaryMethodDefinitionish = {
+  methodName: "StreamDumpsadTrades",
+  service: APIDesc,
+  requestStream: false,
+  responseStream: true,
+  requestType: {
+    serializeBinary() {
+      return StreamDumpsadTradesRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = StreamDumpsadTradesResponse.decode(data);
       return {
         ...value,
         toObject() {
