@@ -1,12 +1,8 @@
 <template>
   <div class="progress-container">
-    <div class="progress-bar">
-      <span v-if="showValue" :class="textClass" class="text-[10px] font-bold">{{ value }}%</span>
-    </div>
-    <div
-      v-if="targetValue"
-      class="target h-full border-r border-dotted border-blueGray-50 absolute top-0"
-    />
+    <div class="progress-bar"></div>
+    <span v-if="showValue" :class="textClass" class="progress-value">{{ value }}%</span>
+    <div v-if="targetValue" class="target" />
     <div class="progress-bar-bg bg-blueGray-light-200"></div>
   </div>
 </template>
@@ -57,6 +53,9 @@ const left = computed(() => Number(props.targetValue) + '%')
   position: relative;
   border-radius: 12px;
 }
+.progress-value {
+  @apply text-[10px] font-bold;
+}
 .progress-bar-bg {
   bottom: 0;
   left: 0;
@@ -71,8 +70,8 @@ const left = computed(() => Number(props.targetValue) + '%')
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: 0 5px;
   border-radius: 12px;
+  padding: 0 0.1px;
   background-color: v-bind(color);
 }
 .striped {
@@ -92,6 +91,7 @@ const left = computed(() => Number(props.targetValue) + '%')
 }
 .target {
   left: v-bind(left);
+  @apply h-full border-r border-dotted border-blueGray-50 absolute top-0;
 }
 @keyframes move {
   from {
