@@ -46,6 +46,47 @@ export interface ClientConsensusStates {
 }
 
 /**
+ * ClientUpdateProposal is a governance proposal. If it passes, the substitute
+ * client's latest consensus state is copied over to the subject client. The proposal
+ * handler may fail if the subject and the substitute do not match in client and
+ * chain parameters (with exception to latest height, frozen height, and chain-id).
+ */
+export interface ClientUpdateProposal {
+  /** the title of the update proposal */
+  title: string;
+  /** the description of the proposal */
+  description: string;
+  /** the client identifier for the client to be updated if the proposal passes */
+  subject_client_id: string;
+  /**
+   * the substitute client identifier for the client standing in for the subject
+   * client
+   */
+  substitute_client_id: string;
+}
+
+/**
+ * UpgradeProposal is a gov Content type for initiating an IBC breaking
+ * upgrade.
+ */
+export interface UpgradeProposal {
+  title: string;
+  description: string;
+  plan:
+    | Plan
+    | undefined;
+  /**
+   * An UpgradedClientState must be provided to perform an IBC breaking upgrade.
+   * This will make the chain commit to the correct upgraded (self) client state
+   * before the upgrade occurs, so that connecting chains can verify that the
+   * new upgraded client is valid by verifying a proof on the previous version
+   * of the chain. This will allow IBC connections to persist smoothly across
+   * planned chain upgrades
+   */
+  upgraded_client_state: Any | undefined;
+}
+
+/**
  * Height is a monotonically increasing data type
  * that can be compared against another Height for the purposes of updating and
  * freezing clients
@@ -72,55 +113,6 @@ export interface Params {
    * of this client will be disabled until it is added again to the list.
    */
   allowed_clients: string[];
-}
-
-/**
- * ClientUpdateProposal is a legacy governance proposal. If it passes, the substitute
- * client's latest consensus state is copied over to the subject client. The proposal
- * handler may fail if the subject and the substitute do not match in client and
- * chain parameters (with exception to latest height, frozen height, and chain-id).
- *
- * Deprecated: Please use MsgRecoverClient in favour of this message type.
- *
- * @deprecated
- */
-export interface ClientUpdateProposal {
-  /** the title of the update proposal */
-  title: string;
-  /** the description of the proposal */
-  description: string;
-  /** the client identifier for the client to be updated if the proposal passes */
-  subject_client_id: string;
-  /**
-   * the substitute client identifier for the client standing in for the subject
-   * client
-   */
-  substitute_client_id: string;
-}
-
-/**
- * UpgradeProposal is a gov Content type for initiating an IBC breaking
- * upgrade.
- *
- * Deprecated: Please use MsgIBCSoftwareUpgrade in favour of this message type.
- *
- * @deprecated
- */
-export interface UpgradeProposal {
-  title: string;
-  description: string;
-  plan:
-    | Plan
-    | undefined;
-  /**
-   * An UpgradedClientState must be provided to perform an IBC breaking upgrade.
-   * This will make the chain commit to the correct upgraded (self) client state
-   * before the upgrade occurs, so that connecting chains can verify that the
-   * new upgraded client is valid by verifying a proof on the previous version
-   * of the chain. This will allow IBC connections to persist smoothly across
-   * planned chain upgrades
-   */
-  upgraded_client_state: Any | undefined;
 }
 
 function createBaseIdentifiedClientState(): IdentifiedClientState {
@@ -359,145 +351,6 @@ export const ClientConsensusStates = {
   },
 };
 
-function createBaseHeight(): Height {
-  return { revision_number: "0", revision_height: "0" };
-}
-
-export const Height = {
-  $type: "ibc.core.client.v1.Height" as const,
-
-  encode(message: Height, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.revision_number !== "0") {
-      writer.uint32(8).uint64(message.revision_number);
-    }
-    if (message.revision_height !== "0") {
-      writer.uint32(16).uint64(message.revision_height);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Height {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseHeight();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.revision_number = longToString(reader.uint64() as Long);
-          continue;
-        case 2:
-          if (tag !== 16) {
-            break;
-          }
-
-          message.revision_height = longToString(reader.uint64() as Long);
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Height {
-    return {
-      revision_number: isSet(object.revision_number) ? globalThis.String(object.revision_number) : "0",
-      revision_height: isSet(object.revision_height) ? globalThis.String(object.revision_height) : "0",
-    };
-  },
-
-  toJSON(message: Height): unknown {
-    const obj: any = {};
-    if (message.revision_number !== undefined) {
-      obj.revision_number = message.revision_number;
-    }
-    if (message.revision_height !== undefined) {
-      obj.revision_height = message.revision_height;
-    }
-    return obj;
-  },
-
-  create(base?: DeepPartial<Height>): Height {
-    return Height.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<Height>): Height {
-    const message = createBaseHeight();
-    message.revision_number = object.revision_number ?? "0";
-    message.revision_height = object.revision_height ?? "0";
-    return message;
-  },
-};
-
-function createBaseParams(): Params {
-  return { allowed_clients: [] };
-}
-
-export const Params = {
-  $type: "ibc.core.client.v1.Params" as const,
-
-  encode(message: Params, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.allowed_clients) {
-      writer.uint32(10).string(v!);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Params {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseParams();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.allowed_clients.push(reader.string());
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Params {
-    return {
-      allowed_clients: globalThis.Array.isArray(object?.allowed_clients)
-        ? object.allowed_clients.map((e: any) => globalThis.String(e))
-        : [],
-    };
-  },
-
-  toJSON(message: Params): unknown {
-    const obj: any = {};
-    if (message.allowed_clients?.length) {
-      obj.allowed_clients = message.allowed_clients;
-    }
-    return obj;
-  },
-
-  create(base?: DeepPartial<Params>): Params {
-    return Params.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<Params>): Params {
-    const message = createBaseParams();
-    message.allowed_clients = object.allowed_clients?.map((e) => e) || [];
-    return message;
-  },
-};
-
 function createBaseClientUpdateProposal(): ClientUpdateProposal {
   return { title: "", description: "", subject_client_id: "", substitute_client_id: "" };
 }
@@ -711,6 +564,145 @@ export const UpgradeProposal = {
       (object.upgraded_client_state !== undefined && object.upgraded_client_state !== null)
         ? Any.fromPartial(object.upgraded_client_state)
         : undefined;
+    return message;
+  },
+};
+
+function createBaseHeight(): Height {
+  return { revision_number: "0", revision_height: "0" };
+}
+
+export const Height = {
+  $type: "ibc.core.client.v1.Height" as const,
+
+  encode(message: Height, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.revision_number !== "0") {
+      writer.uint32(8).uint64(message.revision_number);
+    }
+    if (message.revision_height !== "0") {
+      writer.uint32(16).uint64(message.revision_height);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Height {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseHeight();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.revision_number = longToString(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.revision_height = longToString(reader.uint64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Height {
+    return {
+      revision_number: isSet(object.revision_number) ? globalThis.String(object.revision_number) : "0",
+      revision_height: isSet(object.revision_height) ? globalThis.String(object.revision_height) : "0",
+    };
+  },
+
+  toJSON(message: Height): unknown {
+    const obj: any = {};
+    if (message.revision_number !== undefined) {
+      obj.revision_number = message.revision_number;
+    }
+    if (message.revision_height !== undefined) {
+      obj.revision_height = message.revision_height;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Height>): Height {
+    return Height.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Height>): Height {
+    const message = createBaseHeight();
+    message.revision_number = object.revision_number ?? "0";
+    message.revision_height = object.revision_height ?? "0";
+    return message;
+  },
+};
+
+function createBaseParams(): Params {
+  return { allowed_clients: [] };
+}
+
+export const Params = {
+  $type: "ibc.core.client.v1.Params" as const,
+
+  encode(message: Params, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.allowed_clients) {
+      writer.uint32(10).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Params {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseParams();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.allowed_clients.push(reader.string());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Params {
+    return {
+      allowed_clients: globalThis.Array.isArray(object?.allowed_clients)
+        ? object.allowed_clients.map((e: any) => globalThis.String(e))
+        : [],
+    };
+  },
+
+  toJSON(message: Params): unknown {
+    const obj: any = {};
+    if (message.allowed_clients?.length) {
+      obj.allowed_clients = message.allowed_clients;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Params>): Params {
+    return Params.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Params>): Params {
+    const message = createBaseParams();
+    message.allowed_clients = object.allowed_clients?.map((e) => e) || [];
     return message;
   },
 };
