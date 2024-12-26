@@ -1,6 +1,6 @@
 <script>
 import { ref, reactive, computed, onBeforeMount, onBeforeUpdate } from 'vue'
-
+import Button from '../Button/index.vue'
 export default {
   props: {
     //page value
@@ -206,7 +206,7 @@ export default {
 <template>
   <!-- Alternative container without list items -->
   <div :class="containerClass" class="base-pagination" v>
-    <BaseButton
+    <Button
       v-if="firstLastButton"
       @click="selectFirstPage()"
       @keyup.enter="selectFirstPage()"
@@ -214,16 +214,16 @@ export default {
       tabindex="0"
       v-html="firstButtonText"
     >
-    </BaseButton>
-    <BaseButton
-      v-if="!(firstPageSelected() && hidePrevNext)"
+    </Button>
+    <Button
+      v-if="hidePrevNext"
       @click="prevPage()"
       @keyup.enter="prevPage()"
       :class="['page-item', { [disabledClass]: firstPageSelected() }]"
       tabindex="0"
     >
       <BaseIcons name="arrowLeft" />
-    </BaseButton>
+    </Button>
     <template v-for="page in pages">
       <a
         v-if="page.breakView"
@@ -252,23 +252,24 @@ export default {
         >{{ page.content }}</a
       >
     </template>
-    <BaseButton
-      v-if="!(lastPageSelected() && hidePrevNext)"
+    <Button
+      v-if="hidePrevNext"
       @click="nextPage()"
       @keyup.enter="nextPage()"
       :class="['page-item', { [disabledClass]: lastPageSelected() }]"
       tabindex="0"
     >
       <BaseIcons name="arrowRight" />
-    </BaseButton>
-    <BaseButton
+    </Button>
+    <Button
       v-if="firstLastButton"
       @click="selectLastPage()"
       @keyup.enter="selectLastPage()"
       :class="['page-item', { [disabledClass]: lastPageSelected() }]"
+      :disabled="lastPageSelected()"
       tabindex="0"
       v-html="lastButtonText"
-    ></BaseButton>
+    ></Button>
   </div>
 </template>
 

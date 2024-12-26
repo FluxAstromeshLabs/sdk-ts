@@ -72,7 +72,7 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
   }
 
   async streamBalances(
-    request: explorerQuery.BalancesRequest,
+    request: Partial<explorerQuery.BalancesRequest>,
     callback: (value: explorerQuery.StreamBalanceResponse) => void,
     onEndCallback?: (err: any) => void,
     onStatusCallback?: () => void
@@ -144,8 +144,47 @@ export class IndexerGrpcExplorerQuery extends BaseIndexerGrpc {
     const stream = this.client.StreamDriftOrders(request)
     return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
+
+  async listDumpsadCoins(
+    request: Partial<explorerQuery.ListDumpsadCoinsRequest>
+  ): Promise<explorerQuery.ListDumpsadCoinsResponse> {
+    const response: explorerQuery.ListDumpsadCoinsResponse = await this.retry(() =>
+      this.client.ListDumpsadCoins(request)
+    )
+    return response
+  }
+
+  async streamDumpsadCoins(
+    request: Partial<explorerQuery.StreamDumpsadCoinsRequest>,
+    callback: (value: explorerQuery.StreamDumpsadCoinsResponse) => void,
+    onEndCallback?: (err: any) => void,
+    onStatusCallback?: () => void
+  ): Promise<Subscription> {
+    const stream = this.client.StreamDumpsadCoins(request)
+    return stream.subscribe(callback, onEndCallback, onStatusCallback)
+  }
+
   async getTx(request: explorerQuery.GetTxRequest): Promise<explorerQuery.GetTxResponse> {
     const response: explorerQuery.GetTxResponse = await this.retry(() => this.client.GetTx(request))
     return response
+  }
+
+  async listDumpsadTrades(
+    request: Partial<explorerQuery.ListDumpsadTradesRequest>
+  ): Promise<explorerQuery.ListDumpsadTradesResponse> {
+    const response: explorerQuery.ListDumpsadTradesResponse = await this.retry(() =>
+      this.client.ListDumpsadTrades(request)
+    )
+    return response
+  }
+
+  async streamDumpsadTrades(
+    request: Partial<explorerQuery.StreamDumpsadTradesRequest>,
+    callback: (value: explorerQuery.StreamDumpsadTradesResponse) => void,
+    onEndCallback?: (err: any) => void,
+    onStatusCallback?: () => void
+  ): Promise<Subscription> {
+    const stream = this.client.StreamDumpsadTrades(request)
+    return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
 }

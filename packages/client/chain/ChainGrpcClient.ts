@@ -8,7 +8,10 @@ import {
   ChainGrpcCosmwasmWasmQuery,
   ChainGrpcSVMQuery,
   ChainGrpcStrategyQuery,
-  ChainGrpcAstromeshQuery
+  ChainGrpcOracleQuery,
+  ChainGrpcAstromeshQuery,
+  ChainGrpcInterpoolQuery,
+  ChainGrpcDistributionQuery
 } from './grpc'
 export class ChainGrpcClient {
   transaction: ChainGrpcTxService
@@ -20,7 +23,10 @@ export class ChainGrpcClient {
   cosmwasmWasm: ChainGrpcCosmwasmWasmQuery
   svm: ChainGrpcSVMQuery
   strategy: ChainGrpcStrategyQuery
+  oracle: ChainGrpcOracleQuery
   astromesh: ChainGrpcAstromeshQuery
+  interpool: ChainGrpcInterpoolQuery
+  distribution: ChainGrpcDistributionQuery
   constructor(endpoint: string) {
     this.transaction = new ChainGrpcTxService(endpoint)
     this.auth = new ChainGrpcAuthQuery(endpoint)
@@ -31,7 +37,10 @@ export class ChainGrpcClient {
     this.cosmwasmWasm = new ChainGrpcCosmwasmWasmQuery(endpoint)
     this.svm = new ChainGrpcSVMQuery(endpoint)
     this.strategy = new ChainGrpcStrategyQuery(endpoint)
+    this.oracle = new ChainGrpcOracleQuery(endpoint)
     this.astromesh = new ChainGrpcAstromeshQuery(endpoint)
+    this.interpool = new ChainGrpcInterpoolQuery(endpoint)
+    this.distribution = new ChainGrpcDistributionQuery(endpoint)
   }
   changeEndpoint(endpoint: string) {
     this.transaction = new ChainGrpcTxService(endpoint)
@@ -43,6 +52,9 @@ export class ChainGrpcClient {
     this.cosmwasmWasm = new ChainGrpcCosmwasmWasmQuery(endpoint)
     this.svm = new ChainGrpcSVMQuery(endpoint)
     this.strategy = new ChainGrpcStrategyQuery(endpoint)
+    this.oracle = new ChainGrpcOracleQuery(endpoint)
     this.astromesh = new ChainGrpcAstromeshQuery(endpoint)
+    this.interpool = new ChainGrpcInterpoolQuery(endpoint)
+    this.distribution = new ChainGrpcDistributionQuery(endpoint)
   }
 }
