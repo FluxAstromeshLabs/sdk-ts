@@ -9,7 +9,7 @@ import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
 import Long from "long";
 import _m0 from "protobufjs/minimal";
-import { PageRequest } from "../../../../cosmos/base/query/v1beta1/pagination";
+import { PageRequest, PageResponse } from "../../../../cosmos/base/query/v1beta1/pagination";
 import { Coin } from "../../../../cosmos/base/v1beta1/coin";
 import { PacketId } from "../../../core/channel/v1/channel";
 import { IdentifiedPacketFees } from "./fee";
@@ -29,6 +29,8 @@ export interface QueryIncentivizedPacketsRequest {
 export interface QueryIncentivizedPacketsResponse {
   /** list of identified fees for incentivized packets */
   incentivized_packets: IdentifiedPacketFees[];
+  /** pagination defines the pagination in the response. */
+  pagination: PageResponse | undefined;
 }
 
 /** QueryIncentivizedPacketRequest defines the request type for the IncentivizedPacket rpc */
@@ -64,6 +66,8 @@ export interface QueryIncentivizedPacketsForChannelRequest {
 export interface QueryIncentivizedPacketsForChannelResponse {
   /** Map of all incentivized_packets */
   incentivized_packets: IdentifiedPacketFees[];
+  /** pagination defines the pagination in the response. */
+  pagination: PageResponse | undefined;
 }
 
 /** QueryTotalRecvFeesRequest defines the request type for the TotalRecvFees rpc */
@@ -144,6 +148,8 @@ export interface QueryFeeEnabledChannelsRequest {
 export interface QueryFeeEnabledChannelsResponse {
   /** list of fee enabled channels */
   fee_enabled_channels: FeeEnabledChannel[];
+  /** pagination defines the pagination in the response. */
+  pagination: PageResponse | undefined;
 }
 
 /** QueryFeeEnabledChannelRequest defines the request type for the FeeEnabledChannel rpc */
@@ -239,7 +245,7 @@ export const QueryIncentivizedPacketsRequest = {
 };
 
 function createBaseQueryIncentivizedPacketsResponse(): QueryIncentivizedPacketsResponse {
-  return { incentivized_packets: [] };
+  return { incentivized_packets: [], pagination: undefined };
 }
 
 export const QueryIncentivizedPacketsResponse = {
@@ -248,6 +254,9 @@ export const QueryIncentivizedPacketsResponse = {
   encode(message: QueryIncentivizedPacketsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.incentivized_packets) {
       IdentifiedPacketFees.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -266,6 +275,13 @@ export const QueryIncentivizedPacketsResponse = {
 
           message.incentivized_packets.push(IdentifiedPacketFees.decode(reader, reader.uint32()));
           continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -280,6 +296,7 @@ export const QueryIncentivizedPacketsResponse = {
       incentivized_packets: globalThis.Array.isArray(object?.incentivized_packets)
         ? object.incentivized_packets.map((e: any) => IdentifiedPacketFees.fromJSON(e))
         : [],
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
     };
   },
 
@@ -287,6 +304,9 @@ export const QueryIncentivizedPacketsResponse = {
     const obj: any = {};
     if (message.incentivized_packets?.length) {
       obj.incentivized_packets = message.incentivized_packets.map((e) => IdentifiedPacketFees.toJSON(e));
+    }
+    if (message.pagination !== undefined) {
+      obj.pagination = PageResponse.toJSON(message.pagination);
     }
     return obj;
   },
@@ -297,6 +317,9 @@ export const QueryIncentivizedPacketsResponse = {
   fromPartial(object: DeepPartial<QueryIncentivizedPacketsResponse>): QueryIncentivizedPacketsResponse {
     const message = createBaseQueryIncentivizedPacketsResponse();
     message.incentivized_packets = object.incentivized_packets?.map((e) => IdentifiedPacketFees.fromPartial(e)) || [];
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
     return message;
   },
 };
@@ -555,7 +578,7 @@ export const QueryIncentivizedPacketsForChannelRequest = {
 };
 
 function createBaseQueryIncentivizedPacketsForChannelResponse(): QueryIncentivizedPacketsForChannelResponse {
-  return { incentivized_packets: [] };
+  return { incentivized_packets: [], pagination: undefined };
 }
 
 export const QueryIncentivizedPacketsForChannelResponse = {
@@ -564,6 +587,9 @@ export const QueryIncentivizedPacketsForChannelResponse = {
   encode(message: QueryIncentivizedPacketsForChannelResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.incentivized_packets) {
       IdentifiedPacketFees.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -582,6 +608,13 @@ export const QueryIncentivizedPacketsForChannelResponse = {
 
           message.incentivized_packets.push(IdentifiedPacketFees.decode(reader, reader.uint32()));
           continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -596,6 +629,7 @@ export const QueryIncentivizedPacketsForChannelResponse = {
       incentivized_packets: globalThis.Array.isArray(object?.incentivized_packets)
         ? object.incentivized_packets.map((e: any) => IdentifiedPacketFees.fromJSON(e))
         : [],
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
     };
   },
 
@@ -603,6 +637,9 @@ export const QueryIncentivizedPacketsForChannelResponse = {
     const obj: any = {};
     if (message.incentivized_packets?.length) {
       obj.incentivized_packets = message.incentivized_packets.map((e) => IdentifiedPacketFees.toJSON(e));
+    }
+    if (message.pagination !== undefined) {
+      obj.pagination = PageResponse.toJSON(message.pagination);
     }
     return obj;
   },
@@ -615,6 +652,9 @@ export const QueryIncentivizedPacketsForChannelResponse = {
   ): QueryIncentivizedPacketsForChannelResponse {
     const message = createBaseQueryIncentivizedPacketsForChannelResponse();
     message.incentivized_packets = object.incentivized_packets?.map((e) => IdentifiedPacketFees.fromPartial(e)) || [];
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
     return message;
   },
 };
@@ -1336,7 +1376,7 @@ export const QueryFeeEnabledChannelsRequest = {
 };
 
 function createBaseQueryFeeEnabledChannelsResponse(): QueryFeeEnabledChannelsResponse {
-  return { fee_enabled_channels: [] };
+  return { fee_enabled_channels: [], pagination: undefined };
 }
 
 export const QueryFeeEnabledChannelsResponse = {
@@ -1345,6 +1385,9 @@ export const QueryFeeEnabledChannelsResponse = {
   encode(message: QueryFeeEnabledChannelsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.fee_enabled_channels) {
       FeeEnabledChannel.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -1363,6 +1406,13 @@ export const QueryFeeEnabledChannelsResponse = {
 
           message.fee_enabled_channels.push(FeeEnabledChannel.decode(reader, reader.uint32()));
           continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1377,6 +1427,7 @@ export const QueryFeeEnabledChannelsResponse = {
       fee_enabled_channels: globalThis.Array.isArray(object?.fee_enabled_channels)
         ? object.fee_enabled_channels.map((e: any) => FeeEnabledChannel.fromJSON(e))
         : [],
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
     };
   },
 
@@ -1384,6 +1435,9 @@ export const QueryFeeEnabledChannelsResponse = {
     const obj: any = {};
     if (message.fee_enabled_channels?.length) {
       obj.fee_enabled_channels = message.fee_enabled_channels.map((e) => FeeEnabledChannel.toJSON(e));
+    }
+    if (message.pagination !== undefined) {
+      obj.pagination = PageResponse.toJSON(message.pagination);
     }
     return obj;
   },
@@ -1394,6 +1448,9 @@ export const QueryFeeEnabledChannelsResponse = {
   fromPartial(object: DeepPartial<QueryFeeEnabledChannelsResponse>): QueryFeeEnabledChannelsResponse {
     const message = createBaseQueryFeeEnabledChannelsResponse();
     message.fee_enabled_channels = object.fee_enabled_channels?.map((e) => FeeEnabledChannel.fromPartial(e)) || [];
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
     return message;
   },
 };
