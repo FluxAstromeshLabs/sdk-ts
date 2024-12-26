@@ -7,47 +7,46 @@
 /* eslint-disable */
 import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
-import Long from "long";
 import _m0 from "protobufjs/minimal";
-import { QueryRequest } from "./host";
+import { Params } from "./host";
 
-/** MsgModuleQuerySafe defines the payload for Msg/ModuleQuerySafe */
-export interface MsgModuleQuerySafe {
+/** MsgUpdateParams defines the payload for Msg/UpdateParams */
+export interface MsgUpdateParams {
   /** signer address */
   signer: string;
-  /** requests defines the module safe queries to execute. */
-  requests: QueryRequest[];
+  /**
+   * params defines the 27-interchain-accounts/host parameters to update.
+   *
+   * NOTE: All parameters must be supplied.
+   */
+  params: Params | undefined;
 }
 
-/** MsgModuleQuerySafeResponse defines the response for Msg/ModuleQuerySafe */
-export interface MsgModuleQuerySafeResponse {
-  /** height at which the responses were queried */
-  height: string;
-  /** protobuf encoded responses for each query */
-  responses: Uint8Array[];
+/** MsgUpdateParamsResponse defines the response for Msg/UpdateParams */
+export interface MsgUpdateParamsResponse {
 }
 
-function createBaseMsgModuleQuerySafe(): MsgModuleQuerySafe {
-  return { signer: "", requests: [] };
+function createBaseMsgUpdateParams(): MsgUpdateParams {
+  return { signer: "", params: undefined };
 }
 
-export const MsgModuleQuerySafe = {
-  $type: "ibc.applications.interchain_accounts.host.v1.MsgModuleQuerySafe" as const,
+export const MsgUpdateParams = {
+  $type: "ibc.applications.interchain_accounts.host.v1.MsgUpdateParams" as const,
 
-  encode(message: MsgModuleQuerySafe, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: MsgUpdateParams, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.signer !== "") {
       writer.uint32(10).string(message.signer);
     }
-    for (const v of message.requests) {
-      QueryRequest.encode(v!, writer.uint32(18).fork()).ldelim();
+    if (message.params !== undefined) {
+      Params.encode(message.params, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgModuleQuerySafe {
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgUpdateParams {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMsgModuleQuerySafe();
+    const message = createBaseMsgUpdateParams();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -63,7 +62,7 @@ export const MsgModuleQuerySafe = {
             break;
           }
 
-          message.requests.push(QueryRequest.decode(reader, reader.uint32()));
+          message.params = Params.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -74,75 +73,55 @@ export const MsgModuleQuerySafe = {
     return message;
   },
 
-  fromJSON(object: any): MsgModuleQuerySafe {
+  fromJSON(object: any): MsgUpdateParams {
     return {
       signer: isSet(object.signer) ? globalThis.String(object.signer) : "",
-      requests: globalThis.Array.isArray(object?.requests)
-        ? object.requests.map((e: any) => QueryRequest.fromJSON(e))
-        : [],
+      params: isSet(object.params) ? Params.fromJSON(object.params) : undefined,
     };
   },
 
-  toJSON(message: MsgModuleQuerySafe): unknown {
+  toJSON(message: MsgUpdateParams): unknown {
     const obj: any = {};
     if (message.signer !== undefined) {
       obj.signer = message.signer;
     }
-    if (message.requests?.length) {
-      obj.requests = message.requests.map((e) => QueryRequest.toJSON(e));
+    if (message.params !== undefined) {
+      obj.params = Params.toJSON(message.params);
     }
     return obj;
   },
 
-  create(base?: DeepPartial<MsgModuleQuerySafe>): MsgModuleQuerySafe {
-    return MsgModuleQuerySafe.fromPartial(base ?? {});
+  create(base?: DeepPartial<MsgUpdateParams>): MsgUpdateParams {
+    return MsgUpdateParams.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<MsgModuleQuerySafe>): MsgModuleQuerySafe {
-    const message = createBaseMsgModuleQuerySafe();
+  fromPartial(object: DeepPartial<MsgUpdateParams>): MsgUpdateParams {
+    const message = createBaseMsgUpdateParams();
     message.signer = object.signer ?? "";
-    message.requests = object.requests?.map((e) => QueryRequest.fromPartial(e)) || [];
+    message.params = (object.params !== undefined && object.params !== null)
+      ? Params.fromPartial(object.params)
+      : undefined;
     return message;
   },
 };
 
-function createBaseMsgModuleQuerySafeResponse(): MsgModuleQuerySafeResponse {
-  return { height: "0", responses: [] };
+function createBaseMsgUpdateParamsResponse(): MsgUpdateParamsResponse {
+  return {};
 }
 
-export const MsgModuleQuerySafeResponse = {
-  $type: "ibc.applications.interchain_accounts.host.v1.MsgModuleQuerySafeResponse" as const,
+export const MsgUpdateParamsResponse = {
+  $type: "ibc.applications.interchain_accounts.host.v1.MsgUpdateParamsResponse" as const,
 
-  encode(message: MsgModuleQuerySafeResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.height !== "0") {
-      writer.uint32(8).uint64(message.height);
-    }
-    for (const v of message.responses) {
-      writer.uint32(18).bytes(v!);
-    }
+  encode(_: MsgUpdateParamsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): MsgModuleQuerySafeResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): MsgUpdateParamsResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMsgModuleQuerySafeResponse();
+    const message = createBaseMsgUpdateParamsResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.height = longToString(reader.uint64() as Long);
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.responses.push(reader.bytes());
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -152,44 +131,28 @@ export const MsgModuleQuerySafeResponse = {
     return message;
   },
 
-  fromJSON(object: any): MsgModuleQuerySafeResponse {
-    return {
-      height: isSet(object.height) ? globalThis.String(object.height) : "0",
-      responses: globalThis.Array.isArray(object?.responses)
-        ? object.responses.map((e: any) => bytesFromBase64(e))
-        : [],
-    };
+  fromJSON(_: any): MsgUpdateParamsResponse {
+    return {};
   },
 
-  toJSON(message: MsgModuleQuerySafeResponse): unknown {
+  toJSON(_: MsgUpdateParamsResponse): unknown {
     const obj: any = {};
-    if (message.height !== undefined) {
-      obj.height = message.height;
-    }
-    if (message.responses?.length) {
-      obj.responses = message.responses.map((e) => base64FromBytes(e));
-    }
     return obj;
   },
 
-  create(base?: DeepPartial<MsgModuleQuerySafeResponse>): MsgModuleQuerySafeResponse {
-    return MsgModuleQuerySafeResponse.fromPartial(base ?? {});
+  create(base?: DeepPartial<MsgUpdateParamsResponse>): MsgUpdateParamsResponse {
+    return MsgUpdateParamsResponse.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<MsgModuleQuerySafeResponse>): MsgModuleQuerySafeResponse {
-    const message = createBaseMsgModuleQuerySafeResponse();
-    message.height = object.height ?? "0";
-    message.responses = object.responses?.map((e) => e) || [];
+  fromPartial(_: DeepPartial<MsgUpdateParamsResponse>): MsgUpdateParamsResponse {
+    const message = createBaseMsgUpdateParamsResponse();
     return message;
   },
 };
 
 /** Msg defines the 27-interchain-accounts/host Msg service. */
 export interface Msg {
-  /** ModuleQuerySafe defines a rpc handler for MsgModuleQuerySafe. */
-  ModuleQuerySafe(
-    request: DeepPartial<MsgModuleQuerySafe>,
-    metadata?: grpc.Metadata,
-  ): Promise<MsgModuleQuerySafeResponse>;
+  /** UpdateParams defines a rpc handler for MsgUpdateParams. */
+  UpdateParams(request: DeepPartial<MsgUpdateParams>, metadata?: grpc.Metadata): Promise<MsgUpdateParamsResponse>;
 }
 
 export class MsgClientImpl implements Msg {
@@ -197,32 +160,29 @@ export class MsgClientImpl implements Msg {
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.ModuleQuerySafe = this.ModuleQuerySafe.bind(this);
+    this.UpdateParams = this.UpdateParams.bind(this);
   }
 
-  ModuleQuerySafe(
-    request: DeepPartial<MsgModuleQuerySafe>,
-    metadata?: grpc.Metadata,
-  ): Promise<MsgModuleQuerySafeResponse> {
-    return this.rpc.unary(MsgModuleQuerySafeDesc, MsgModuleQuerySafe.fromPartial(request), metadata);
+  UpdateParams(request: DeepPartial<MsgUpdateParams>, metadata?: grpc.Metadata): Promise<MsgUpdateParamsResponse> {
+    return this.rpc.unary(MsgUpdateParamsDesc, MsgUpdateParams.fromPartial(request), metadata);
   }
 }
 
 export const MsgDesc = { serviceName: "ibc.applications.interchain_accounts.host.v1.Msg" };
 
-export const MsgModuleQuerySafeDesc: UnaryMethodDefinitionish = {
-  methodName: "ModuleQuerySafe",
+export const MsgUpdateParamsDesc: UnaryMethodDefinitionish = {
+  methodName: "UpdateParams",
   service: MsgDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return MsgModuleQuerySafe.encode(this).finish();
+      return MsgUpdateParams.encode(this).finish();
     },
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = MsgModuleQuerySafeResponse.decode(data);
+      const value = MsgUpdateParamsResponse.decode(data);
       return {
         ...value,
         toObject() {
@@ -301,31 +261,6 @@ export class GrpcWebImpl {
   }
 }
 
-function bytesFromBase64(b64: string): Uint8Array {
-  if ((globalThis as any).Buffer) {
-    return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
-  } else {
-    const bin = globalThis.atob(b64);
-    const arr = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; ++i) {
-      arr[i] = bin.charCodeAt(i);
-    }
-    return arr;
-  }
-}
-
-function base64FromBytes(arr: Uint8Array): string {
-  if ((globalThis as any).Buffer) {
-    return globalThis.Buffer.from(arr).toString("base64");
-  } else {
-    const bin: string[] = [];
-    arr.forEach((byte) => {
-      bin.push(globalThis.String.fromCharCode(byte));
-    });
-    return globalThis.btoa(bin.join(""));
-  }
-}
-
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 type DeepPartial<T> = T extends Builtin ? T
@@ -333,15 +268,6 @@ type DeepPartial<T> = T extends Builtin ? T
   : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
-
-function longToString(long: Long) {
-  return long.toString();
-}
-
-if (_m0.util.Long !== Long) {
-  _m0.util.Long = Long as any;
-  _m0.configure();
-}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

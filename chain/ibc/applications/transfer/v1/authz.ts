@@ -18,11 +18,6 @@ export interface Allocation {
   spend_limit: Coin[];
   /** allow list of receivers, an empty allow list permits any receiver address */
   allow_list: string[];
-  /**
-   * allow list of memo strings, an empty list prohibits all memo strings;
-   * a list only with "*" permits any memo string
-   */
-  allowed_packet_data: string[];
 }
 
 /**
@@ -35,7 +30,7 @@ export interface TransferAuthorization {
 }
 
 function createBaseAllocation(): Allocation {
-  return { source_port: "", source_channel: "", spend_limit: [], allow_list: [], allowed_packet_data: [] };
+  return { source_port: "", source_channel: "", spend_limit: [], allow_list: [] };
 }
 
 export const Allocation = {
@@ -53,9 +48,6 @@ export const Allocation = {
     }
     for (const v of message.allow_list) {
       writer.uint32(34).string(v!);
-    }
-    for (const v of message.allowed_packet_data) {
-      writer.uint32(42).string(v!);
     }
     return writer;
   },
@@ -95,13 +87,6 @@ export const Allocation = {
 
           message.allow_list.push(reader.string());
           continue;
-        case 5:
-          if (tag !== 42) {
-            break;
-          }
-
-          message.allowed_packet_data.push(reader.string());
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -121,9 +106,6 @@ export const Allocation = {
       allow_list: globalThis.Array.isArray(object?.allow_list)
         ? object.allow_list.map((e: any) => globalThis.String(e))
         : [],
-      allowed_packet_data: globalThis.Array.isArray(object?.allowed_packet_data)
-        ? object.allowed_packet_data.map((e: any) => globalThis.String(e))
-        : [],
     };
   },
 
@@ -141,9 +123,6 @@ export const Allocation = {
     if (message.allow_list?.length) {
       obj.allow_list = message.allow_list;
     }
-    if (message.allowed_packet_data?.length) {
-      obj.allowed_packet_data = message.allowed_packet_data;
-    }
     return obj;
   },
 
@@ -156,7 +135,6 @@ export const Allocation = {
     message.source_channel = object.source_channel ?? "";
     message.spend_limit = object.spend_limit?.map((e) => Coin.fromPartial(e)) || [];
     message.allow_list = object.allow_list?.map((e) => e) || [];
-    message.allowed_packet_data = object.allowed_packet_data?.map((e) => e) || [];
     return message;
   },
 };

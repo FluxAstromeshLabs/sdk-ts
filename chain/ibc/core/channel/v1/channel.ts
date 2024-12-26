@@ -249,6 +249,20 @@ export interface Acknowledgement {
   error?: string | undefined;
 }
 
+/**
+ * Timeout defines an execution deadline structure for 04-channel handlers.
+ * This includes packet lifecycle handlers as well as the upgrade handshake handlers.
+ * A valid Timeout contains either one or both of a timestamp and block height (sequence).
+ */
+export interface Timeout {
+  /** block height after which the packet or upgrade times out */
+  height:
+    | Height
+    | undefined;
+  /** block timestamp (in nanoseconds) after which the packet or upgrade times out */
+  timestamp: string;
+}
+
 function createBaseChannel(): Channel {
   return { state: 0, ordering: 0, counterparty: undefined, connection_hops: [], version: "" };
 }
@@ -1059,6 +1073,84 @@ export const Acknowledgement = {
     const message = createBaseAcknowledgement();
     message.result = object.result ?? undefined;
     message.error = object.error ?? undefined;
+    return message;
+  },
+};
+
+function createBaseTimeout(): Timeout {
+  return { height: undefined, timestamp: "0" };
+}
+
+export const Timeout = {
+  $type: "ibc.core.channel.v1.Timeout" as const,
+
+  encode(message: Timeout, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.height !== undefined) {
+      Height.encode(message.height, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.timestamp !== "0") {
+      writer.uint32(16).uint64(message.timestamp);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Timeout {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTimeout();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.height = Height.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.timestamp = longToString(reader.uint64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Timeout {
+    return {
+      height: isSet(object.height) ? Height.fromJSON(object.height) : undefined,
+      timestamp: isSet(object.timestamp) ? globalThis.String(object.timestamp) : "0",
+    };
+  },
+
+  toJSON(message: Timeout): unknown {
+    const obj: any = {};
+    if (message.height !== undefined) {
+      obj.height = Height.toJSON(message.height);
+    }
+    if (message.timestamp !== undefined) {
+      obj.timestamp = message.timestamp;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Timeout>): Timeout {
+    return Timeout.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Timeout>): Timeout {
+    const message = createBaseTimeout();
+    message.height = (object.height !== undefined && object.height !== null)
+      ? Height.fromPartial(object.height)
+      : undefined;
+    message.timestamp = object.timestamp ?? "0";
     return message;
   },
 };
