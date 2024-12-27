@@ -34,6 +34,7 @@ export interface TokenMetadata {
   symbol: string;
   decimals: number;
   height: string;
+  logo: string;
 }
 
 export interface TokenMetadataEvent {
@@ -293,7 +294,7 @@ export const BalanceUpdateEvent = {
 };
 
 function createBaseTokenMetadata(): TokenMetadata {
-  return { denom: "", plane: 0, name: "", symbol: "", decimals: 0, height: "0" };
+  return { denom: "", plane: 0, name: "", symbol: "", decimals: 0, height: "0", logo: "" };
 }
 
 export const TokenMetadata = {
@@ -317,6 +318,9 @@ export const TokenMetadata = {
     }
     if (message.height !== "0") {
       writer.uint32(48).int64(message.height);
+    }
+    if (message.logo !== "") {
+      writer.uint32(58).string(message.logo);
     }
     return writer;
   },
@@ -370,6 +374,13 @@ export const TokenMetadata = {
 
           message.height = longToString(reader.int64() as Long);
           continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.logo = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -387,6 +398,7 @@ export const TokenMetadata = {
       symbol: isSet(object.symbol) ? globalThis.String(object.symbol) : "",
       decimals: isSet(object.decimals) ? globalThis.Number(object.decimals) : 0,
       height: isSet(object.height) ? globalThis.String(object.height) : "0",
+      logo: isSet(object.logo) ? globalThis.String(object.logo) : "",
     };
   },
 
@@ -410,6 +422,9 @@ export const TokenMetadata = {
     if (message.height !== undefined) {
       obj.height = message.height;
     }
+    if (message.logo !== undefined) {
+      obj.logo = message.logo;
+    }
     return obj;
   },
 
@@ -424,6 +439,7 @@ export const TokenMetadata = {
     message.symbol = object.symbol ?? "";
     message.decimals = object.decimals ?? 0;
     message.height = object.height ?? "0";
+    message.logo = object.logo ?? "";
     return message;
   },
 };
