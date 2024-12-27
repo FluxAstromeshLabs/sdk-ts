@@ -541,6 +541,8 @@ export interface ListDumpsadCoinsResponse {
 export interface StreamDumpsadCoinsRequest {
   /** denom of the coin */
   denom: string;
+  /** Optional filter by strategy ID */
+  solver_id: string;
 }
 
 export interface StreamDumpsadCoinsResponse {
@@ -6336,7 +6338,7 @@ export const ListDumpsadCoinsResponse = {
 };
 
 function createBaseStreamDumpsadCoinsRequest(): StreamDumpsadCoinsRequest {
-  return { denom: "" };
+  return { denom: "", solver_id: "" };
 }
 
 export const StreamDumpsadCoinsRequest = {
@@ -6345,6 +6347,9 @@ export const StreamDumpsadCoinsRequest = {
   encode(message: StreamDumpsadCoinsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.denom !== "") {
       writer.uint32(10).string(message.denom);
+    }
+    if (message.solver_id !== "") {
+      writer.uint32(18).string(message.solver_id);
     }
     return writer;
   },
@@ -6363,6 +6368,13 @@ export const StreamDumpsadCoinsRequest = {
 
           message.denom = reader.string();
           continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.solver_id = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -6373,13 +6385,19 @@ export const StreamDumpsadCoinsRequest = {
   },
 
   fromJSON(object: any): StreamDumpsadCoinsRequest {
-    return { denom: isSet(object.denom) ? globalThis.String(object.denom) : "" };
+    return {
+      denom: isSet(object.denom) ? globalThis.String(object.denom) : "",
+      solver_id: isSet(object.solver_id) ? globalThis.String(object.solver_id) : "",
+    };
   },
 
   toJSON(message: StreamDumpsadCoinsRequest): unknown {
     const obj: any = {};
     if (message.denom !== undefined) {
       obj.denom = message.denom;
+    }
+    if (message.solver_id !== undefined) {
+      obj.solver_id = message.solver_id;
     }
     return obj;
   },
@@ -6390,6 +6408,7 @@ export const StreamDumpsadCoinsRequest = {
   fromPartial(object: DeepPartial<StreamDumpsadCoinsRequest>): StreamDumpsadCoinsRequest {
     const message = createBaseStreamDumpsadCoinsRequest();
     message.denom = object.denom ?? "";
+    message.solver_id = object.solver_id ?? "";
     return message;
   },
 };
