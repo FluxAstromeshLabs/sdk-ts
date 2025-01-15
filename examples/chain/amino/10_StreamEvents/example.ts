@@ -1,11 +1,10 @@
 import { NodeHttpTransport } from '@improbable-eng/grpc-web-node-http-transport';
-import * as streamservice from '../../../../chain/flux/stream/v1beta1/query'
+import * as streamservice from '../../../../chain/flux/eventstream/v1beta1/query';
 
 const main = async () => {
   // init stream client
   const cc = new streamservice.GrpcWebImpl('http://localhost:10337', {
     transport: NodeHttpTransport(),
-
   })
   const streamClient = new streamservice.QueryClientImpl(cc)
 
