@@ -19,7 +19,7 @@
 }
 
 .base-modal__content {
-  @apply rounded-xl shadow-lg relative z-[1300] flex flex-col max-h-[100%] bg-blueGray-900;
+  @apply rounded-xl shadow-lg relative z-[1300] flex flex-col max-h-[100%] bg-white dark:bg-blueGray-900;
 }
 
 /* neutral theme */

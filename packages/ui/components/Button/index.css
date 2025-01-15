@@ -1,6 +1,6 @@
 /* Base Button Styles */
 .btn {
-  @apply relative px-6 py-3 rounded-2xl font-bold text-[16px] relative bg-transparent text-blueGray-50 flex items-center justify-center overflow-hidden;
+  @apply relative px-6 py-3 rounded-2xl font-bold text-[16px] bg-transparent dark:text-blueGray-50 flex items-center justify-center overflow-hidden;
 }
 
 /* Disabled State */
