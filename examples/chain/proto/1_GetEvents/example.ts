@@ -1,4 +1,4 @@
-import * as streamtypes from '../../../../chain/flux/stream/v1beta1/query';
+import * as streamtypes from '../../../../chain/flux/eventstream/v1beta1/query';
 import { NodeHttpTransport } from '@improbable-eng/grpc-web-node-http-transport';
 
 const main = async () => {
