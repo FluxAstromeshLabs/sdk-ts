@@ -3,7 +3,6 @@ import * as CosmosTxV1Beta1Tx from '../../chain/cosmos/tx/v1beta1/tx'
 import * as CosmosBaseV1Beta1Coin from '../../chain/cosmos/base/v1beta1/coin'
 import * as GoogleProtobufAny from '../../chain/google/protobuf/any'
 import * as CosmosTxSigningV1Beta1Signing from '../../chain/cosmos/tx/signing/v1beta1/signing'
-import * as EthCryptoSecp256k1Keys from '../../chain/cosmos/crypto/ethsecp256k1/keys'
 import { SignDoc } from 'cosmjs-types/cosmos/tx/v1beta1/tx'
 import { EthereumChainId, DEFAULT_STD_FEE } from '../utils'
 import * as FluxTypesV1TxExt from '../../chain/flux/types/v1beta1/tx_ext'
@@ -15,29 +14,45 @@ import * as signingtypes from '../../chain/cosmos/tx/signing/v1beta1/signing'
 import keccak256 from 'keccak256'
 import { ChainGrpcTxService } from '../client/chain/grpc/ChainGrpcTxService'
 import * as ethsecp256k1 from '../../chain/cosmos/crypto/ethsecp256k1/keys'
-
-export const defaultSecp256k1Pubkey = () =>
-  ethsecp256k1.PubKey.create({
+const injectivePubKey = {
+  ...ethsecp256k1,
+  PubKey: {
+    ...ethsecp256k1.PubKey,
+    $type: 'injective.crypto.v1beta1.ethsecp256k1.PubKey'
+  }
+}
+export const defaultSecp256k1Pubkey = (isInjective?: boolean) => {
+  const eth256k1 = isInjective ? injectivePubKey : ethsecp256k1
+  return eth256k1.PubKey.create({
     key: Buffer.concat([Buffer.from([2]), Buffer.alloc(32, 0)])
   })
+}
 
-export const getPublicKeyAny = (key: string): GoogleProtobufAny.Any => {
+export const getPublicKeyAny = (key: string, isInjective?: boolean): GoogleProtobufAny.Any => {
+  const eth256k1 = isInjective ? injectivePubKey : ethsecp256k1
   return {
-    type_url: '/' + EthCryptoSecp256k1Keys.PubKey.$type,
-    value: EthCryptoSecp256k1Keys.PubKey.encode({ key: Buffer.from(key, 'hex') }).finish()
+    type_url: '/' + eth256k1.PubKey.$type,
+    value: eth256k1.PubKey.encode({ key: Buffer.from(key, 'hex') }).finish()
   }
 }
 
-export const getPublicKey = ({ key }: { key: string | GoogleProtobufAny.Any }) => {
+export const getPublicKey = ({
+  key,
+  isInjective
+}: {
+  key: string | GoogleProtobufAny.Any
+  isInjective?: boolean
+}) => {
   if (typeof key !== 'string') {
     return key
   }
+  const eth256k1 = isInjective ? injectivePubKey : ethsecp256k1
   let proto
   let path
   let baseProto
-  proto = EthCryptoSecp256k1Keys.PubKey.create()
-  baseProto = EthCryptoSecp256k1Keys.PubKey
-  path = '/' + EthCryptoSecp256k1Keys.PubKey.$type
+  proto = eth256k1.PubKey.create()
+  baseProto = eth256k1.PubKey
+  path = '/' + eth256k1.PubKey.$type
 
   proto.key = Buffer.from(key, 'base64')
 
@@ -106,18 +121,21 @@ export const createFee = ({
 export const createSigners = ({
   chainId,
   mode,
-  signers
+  signers,
+  isInjective
 }: {
   chainId: string
   signers: { pubKey: string | GoogleProtobufAny.Any; sequence: string }[]
   mode: CosmosTxSigningV1Beta1Signing.SignMode
+  isInjective?: boolean
 }) => {
   return signers.map((s) =>
     createSignerInfo({
       mode,
       chainId,
       publicKey: s.pubKey,
-      sequence: s.sequence
+      sequence: s.sequence,
+      isInjective
     })
   )
 }
@@ -126,14 +144,16 @@ export const createSignerInfo = ({
   chainId,
   publicKey,
   sequence,
-  mode
+  mode,
+  isInjective
 }: {
   chainId: string
   publicKey?: string | GoogleProtobufAny.Any
   sequence: string
   mode: CosmosTxSigningV1Beta1Signing.SignMode
+  isInjective?: boolean
 }) => {
-  const pubKey = getPublicKey({ key: publicKey ?? 'invalid pubkey' })
+  const pubKey = getPublicKey({ key: publicKey ?? 'invalid pubkey', isInjective })
   const single = CosmosTxV1Beta1Tx.ModeInfo_Single.create()
   single.mode = mode
 
@@ -270,6 +290,11 @@ interface CreateTransactionArgs {
   accountNumber: string
   messageWrapper: any
   txClient: ChainGrpcTxService
+  fee?: {
+    amount: { amount: string; denom: string }[]
+    gas: string
+  }
+  isInjective?: boolean
 }
 interface CreateTransactionResult {
   txRaw: CosmosTxV1Beta1Tx.TxRaw
@@ -305,6 +330,11 @@ interface CreateTransactionWithSignersArgs {
   signMode?: CosmosTxSigningV1Beta1Signing.SignMode
   messageWrapper: any
   txClient: ChainGrpcTxService
+  fee?: {
+    amount: { amount: string; denom: string }[]
+    gas: string
+  }
+  isInjective?: boolean
 }
 
 export const createTransactionWithSigners = async ({
@@ -315,14 +345,15 @@ export const createTransactionWithSigners = async ({
   memo = '',
   signMode = CosmosTxSigningV1Beta1Signing.SignMode.SIGN_MODE_DIRECT,
   messageWrapper,
-  txClient
+  txClient,
+  fee = DEFAULT_STD_FEE,
+  isInjective = false
 }: CreateTransactionWithSignersArgs): Promise<CreateTransactionResult> => {
   const actualSigners = Array.isArray(signers) ? signers : [signers]
   const [signer] = actualSigners
-  let fee = DEFAULT_STD_FEE
   const body = createBody({ message, memo, timeoutHeight, messageWrapper })
 
-  let simulateRes = await simulate(txClient, body, [signer.sequence])
+  let simulateRes = await simulate(txClient, body, [signer.sequence], fee, isInjective)
 
   const gasMultiplier = 4
   let gasLimit = simulateRes
@@ -338,7 +369,8 @@ export const createTransactionWithSigners = async ({
   const signInfo = createSigners({
     chainId,
     mode: signMode,
-    signers: actualSigners
+    signers: actualSigners,
+    isInjective
   })
 
   const authInfo = createAuthInfo({
@@ -417,17 +449,24 @@ export const createTxRawFromSigResponse = (
 export const simulate = async (
   txClient: ChainGrpcTxService,
   txBody: txtypes.TxBody,
-  signerAccSeqs: string[]
+  signerAccSeqs: string[],
+  fee?: {
+    amount: { amount: string; denom: string }[]
+    gas: string
+  },
+  isInjective?: boolean
 ): Promise<txservice.SimulateResponse> => {
   let signerInfos: txtypes.SignerInfo[] = []
   let simSignatures = []
   // simulate doesn't check pubkey, just need to add a placeholder for it
 
   for (let i = 0; i < signerAccSeqs.length; i++) {
+    const eth256k1 = isInjective ? injectivePubKey : ethsecp256k1
+    const defaultPubKey = defaultSecp256k1Pubkey(isInjective)
     signerInfos.push({
       public_key: anytypes.Any.create({
-        type_url: '/' + ethsecp256k1.PubKey.$type,
-        value: ethsecp256k1.PubKey.encode(defaultSecp256k1Pubkey()).finish()
+        type_url: '/' + eth256k1.PubKey.$type,
+        value: eth256k1.PubKey.encode(defaultPubKey).finish()
       }),
       mode_info: {
         single: {
@@ -442,13 +481,12 @@ export const simulate = async (
   const authInfo = txtypes.AuthInfo.create({
     signer_infos: signerInfos,
     fee: {
-      amount: [{ denom: 'lux', amount: '0' }],
-      gas_limit: '100000',
+      amount: fee.amount,
+      gas_limit: fee.gas,
       payer: '',
       granter: ''
     }
   })
-
   const txRaw: txtypes.TxRaw = {
     body_bytes: txtypes.TxBody.encode(txBody).finish(),
     auth_info_bytes: txtypes.AuthInfo.encode(authInfo).finish(),

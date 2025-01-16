@@ -4,9 +4,10 @@ import { EthSignType } from '@keplr-wallet/types'
 import { ChainId } from '../../utils'
 import { networkEndpoints } from '../../networks'
 export default class KeplrWallet {
-  private chainId: string
+  public chainId: string
   constructor(args: { chainId: string }) {
     this.chainId = args.chainId
+    this.suggestChain()
   }
 
   async suggestChain() {
@@ -17,8 +18,7 @@ export default class KeplrWallet {
       return
     }
     //todo: add the rest endpoint
-    await window.keplr.experimentalSuggestChain(
-      {
+    await window.keplr.experimentalSuggestChain({
       rpc: networkEndpoints.testnet.tm,
       rest: networkEndpoints.testnet.lcd,
       chainId: ChainId.Testnet,
@@ -53,9 +53,9 @@ export default class KeplrWallet {
       return !!(await keplr.getKey(chainId))
     } catch (e) {
       throw new Error(
-          `Keplr may not support ${
-            chainName[0] || chainId
-          } network. Please check if the chain can be added.`,
+        `Keplr may not support ${
+          chainName[0] || chainId
+        } network. Please check if the chain can be added.`
       )
     }
   }
