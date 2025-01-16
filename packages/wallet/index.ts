@@ -1,19 +1,13 @@
 import { Wallet } from './types'
-import {  getEthereumAddress } from '../utils'
+import { getEthereumAddress } from '../utils'
 import { Keplr, Metamask, Phantom } from './wallets'
 export * from './types'
 
 export default class WalletStrategy {
   public provider: any
-  private chainId:  string
+  public chainId: string
   public wallet: Wallet
-  constructor({
-    wallet,
-    chainId,
-  }: {
-    wallet?: Wallet
-    chainId: string
-  }) {
+  constructor({ wallet, chainId }: { wallet?: Wallet; chainId: string }) {
     this.chainId = chainId
     this.wallet = wallet
     try {
