@@ -6,7 +6,7 @@ export * from './types'
 export default class WalletStrategy {
   public provider: any
   private chainId:  string
-  private wallet: Wallet
+  public wallet: Wallet
   constructor({
     wallet,
     chainId,
@@ -17,24 +17,20 @@ export default class WalletStrategy {
     this.chainId = chainId
     this.wallet = wallet
     try {
-      switch (wallet) {
-        case Wallet.Keplr:
-          this.provider = new Keplr({ chainId })
-          break
-        case Wallet.Metamask:
-          this.provider = new Metamask({ chainId })
-          break
-        case Wallet.Phantom:
-          this.provider = new Phantom({ chainId })
-          break
-        default:
-          break
-      }
+      this.initProvider()
     } catch (e) {}
   }
   async setWallet(wallet: Wallet) {
     this.wallet = wallet
-    switch (wallet) {
+    this.initProvider()
+  }
+  async setChainId(chainId: string) {
+    this.chainId = chainId
+    console.log('chainId', chainId)
+    this.initProvider()
+  }
+  initProvider() {
+    switch (this.wallet) {
       case Wallet.Keplr:
         this.provider = new Keplr({ chainId: this.chainId })
         break
@@ -45,7 +41,6 @@ export default class WalletStrategy {
         this.provider = new Phantom({ chainId: this.chainId })
         break
       default:
-
         break
     }
   }
