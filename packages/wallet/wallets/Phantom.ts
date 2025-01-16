@@ -1,11 +1,10 @@
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets'
-import { ChainId } from '../../utils'
 const ERROR = {
   WalletNotReadyError: 'Please install Phantom wallet'
 }
 export default class Phantom {
   private chainId: string
-  constructor(args: { chainId: ChainId }) {
+  constructor(args: { chainId: string }) {
     this.chainId = args.chainId
   }
   async connect() {
