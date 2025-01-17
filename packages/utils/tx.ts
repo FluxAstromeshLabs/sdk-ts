@@ -450,7 +450,7 @@ export const simulate = async (
   txClient: ChainGrpcTxService,
   txBody: txtypes.TxBody,
   signerAccSeqs: string[],
-  fee?: {
+  fee: {
     amount: { amount: string; denom: string }[]
     gas: string
   },
