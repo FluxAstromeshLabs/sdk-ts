@@ -15,8 +15,8 @@
 .base-text-field .input input {
   @apply bg-transparent outline-none flex-1 min-w-[0px] px-3 py-2 h-full;
 }
-.base-text-field .input::placeholder {
-  @apply dark:text-blueGray-light-500 text-black/100;
+.base-text-field input::placeholder {
+  @apply dark:text-blueGray-light-500 text-[#0A0A0A99];
 }
 .base-text-field .input:hover {
   @apply dark:border-blueGray-50 border-blueGray-800;
