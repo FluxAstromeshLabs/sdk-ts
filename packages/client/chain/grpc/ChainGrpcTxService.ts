@@ -19,10 +19,10 @@ export class ChainGrpcTxService extends BaseGrpc {
       throw e
     }
   }
-  async simulate(txBytes: Uint8Array) {
+  async simulate(txBytes: Uint8Array, retries = 1) {
     try {
       let request = txservice.SimulateRequest.create({ tx_bytes: txBytes })
-      let response = await this.retry(() => this.client.Simulate(request))
+      let response = await this.retry(() => this.client.Simulate(request), retries)
       return response as txservice.SimulateResponse
     } catch (e) {
       console.log(e)
