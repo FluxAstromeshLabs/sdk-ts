@@ -17,11 +17,11 @@
   @apply rounded-full;
 }
 .btn:not(:disabled):not(.text):not(.textGradient):hover::before {
-  @apply bg-blueGray-light-100;
+  @apply dark:bg-blueGray-light-100 bg-black/10;
 }
 
 .btn:not(:disabled):not(.text):not(.textGradient):active::before {
-  @apply bg-blueGray-light-200;
+  @apply dark:bg-blueGray-light-200 bg-black/20;
 }
 
 .btn.textGradient:not(:disabled):hover::before,
