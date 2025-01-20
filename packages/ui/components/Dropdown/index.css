@@ -5,10 +5,10 @@
   display: none;
 }
 .base-dropdown__popover .v-popper__wrapper {
-  @apply rounded-md shadow-md bg-blueGray-900;
+  @apply rounded-md shadow-md bg-black/10 dark:bg-blueGray-900;
 }
 .base-dropdown__popover .v-popper__wrapper .v-popper__inner {
-  @apply dark:bg-blueGray-dark-600 bg-gray-200 border-none dark:text-blueGray-50;
+  @apply dark:bg-blueGray-dark-600 bg-black/10 border-none dark:text-blueGray-50;
 }
 .base-dropdown__popover[data-popper-placement='bottom'] {
   @apply mt-[-6px];
