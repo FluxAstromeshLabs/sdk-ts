@@ -4,15 +4,18 @@ import { EthSignType } from '@keplr-wallet/types'
 import { ChainId } from '../../utils'
 import { networkEndpoints } from '../../networks'
 export default class KeplrWallet {
-  private chainId: ChainId
-
-  constructor(args: { chainId: ChainId }) {
+  public chainId: string
+  constructor(args: { chainId: string }) {
     this.chainId = args.chainId
+    this.suggestChain()
   }
 
   async suggestChain() {
     if (!window || !window.keplr) {
       throw new Error('Please install the Keplr wallet extension')
+    }
+    if (this.checkChainIdSupport()) {
+      return
     }
     //todo: add the rest endpoint
     await window.keplr.experimentalSuggestChain({
@@ -40,6 +43,21 @@ export default class KeplrWallet {
         }
       ]
     })
+  }
+  public async checkChainIdSupport() {
+    const { chainId } = this
+    const keplr = await this.getKeplr()
+    const chainName = chainId.split('-')
+
+    try {
+      return !!(await keplr.getKey(chainId))
+    } catch (e) {
+      throw new Error(
+        `Keplr may not support ${
+          chainName[0] || chainId
+        } network. Please check if the chain can be added.`
+      )
+    }
   }
   async getAddresses(): Promise<string[]> {
     try {

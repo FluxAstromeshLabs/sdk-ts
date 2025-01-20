@@ -1,5 +1,5 @@
 .skeleton-loader {
-  @apply bg-blueGray-600 overflow-hidden rounded-md;
+  @apply bg-black/20 dark:bg-blueGray-600 overflow-hidden rounded-md;
 }
 
 .skeleton-loader--text {
@@ -17,7 +17,7 @@
 .skeleton-loader::before {
   content: '';
   display: block;
-  @apply w-full opacity-[0.4] h-full bg-gradient-to-r from-blueGray-dark-50 via-blueGray-light-400 to-blueGray-dark-50;
+  @apply w-full opacity-[0.4] h-full bg-gradient-to-r from-black/10 via-black/20 to-black/10 dark:from-blueGray-dark-50 dark:via-blueGray-light-400 dark:to-blueGray-dark-50;
   animation: loadingShine 1s infinite;
 }
 

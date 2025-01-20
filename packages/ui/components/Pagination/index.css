@@ -15,5 +15,5 @@
   @apply flex items-center justify-center p-2 rounded-[16px] min-w-[48px] min-h-[48px];
 }
 .base-pagination .active {
-  @apply bg-blueGray-50 text-blueGray-900 hover:bg-blueGray-50;
+  @apply dark:bg-blueGray-50 dark:text-blueGray-900 dark:hover:bg-blueGray-50 bg-black/10 hover:bg-black/10;
 }

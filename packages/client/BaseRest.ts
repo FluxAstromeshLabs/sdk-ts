@@ -7,7 +7,7 @@ import { StatusCodes } from 'http-status-codes'
 export default class BaseRestConsumer extends HttpRestClient {
   protected retry<TResponse>(
     httpCall: Function,
-    retries: number = 3,
+    retries: number = 1,
     delay: number = 1000
   ): Promise<TResponse> {
     const retryHttpCall = async (attempt = 1): Promise<any> => {

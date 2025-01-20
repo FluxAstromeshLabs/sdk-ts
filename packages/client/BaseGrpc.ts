@@ -13,7 +13,7 @@ export default class BaseGrpc extends txservice.GrpcWebImpl {
 
   protected retry<TResponse>(
     grpcCall: Function,
-    retries: number = 3,
+    retries: number = 1,
     delay: number = 1000
   ): Promise<TResponse> {
     const retryGrpcCall = async (attempt = 1): Promise<any> => {
