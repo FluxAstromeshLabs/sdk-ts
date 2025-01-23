@@ -10,7 +10,9 @@ export default class WalletStrategy {
   constructor({ wallet, chainId }: { wallet?: Wallet; chainId: string }) {
     this.chainId = chainId
     this.wallet = wallet
-    this.initProvider()
+    try {
+      this.initProvider()
+    } catch (e) {}
   }
   async setWallet(wallet: Wallet) {
     this.wallet = wallet
