@@ -11,38 +11,43 @@ export default class KeplrWallet {
   }
 
   async suggestChain() {
-    if (!window || !window.keplr) {
-      throw new Error('Please install the Keplr wallet extension')
+    try {
+      if (!window || !window.keplr) {
+        throw new Error('Please install the Keplr wallet extension')
+      }
+      let supported = await this.checkChainIdSupport()
+      if (supported) {
+        return true
+      }
+      //TODO: add option to suggest chain
+      // await window.keplr.experimentalSuggestChain({
+      //   rpc: networkEndpoints.testnet.tm,
+      //   rest: networkEndpoints.testnet.lcd,
+      //   chainId: ChainId.Testnet,
+      //   chainName: 'Flux',
+      //   stakeCurrency: { coinDenom: 'lux', coinMinimalDenom: 'lux', coinDecimals: 18 },
+      //   bech32Config: {
+      //     bech32PrefixAccAddr: 'lux',
+      //     bech32PrefixAccPub: 'luxpub',
+      //     bech32PrefixValAddr: 'luxvaloper',
+      //     bech32PrefixValPub: 'luxvaloperpub',
+      //     bech32PrefixConsAddr: 'luxvalcons',
+      //     bech32PrefixConsPub: 'luxvalconspub'
+      //   },
+      //   bip44: { coinType: 60 },
+      //   currencies: [{ coinDenom: 'lux', coinMinimalDenom: 'lux', coinDecimals: 18 }],
+      //   feeCurrencies: [
+      //     {
+      //       coinDenom: 'lux',
+      //       coinMinimalDenom: 'lux',
+      //       coinDecimals: 18,
+      //       gasPriceStep: { low: 10000000000, average: 10000000000, high: 10000000000 }
+      //     }
+      //   ]
+      // })
+    } catch (e) {
+      throw e
     }
-    if (await this.checkChainIdSupport()) {
-      return
-    }
-    //todo: add the rest endpoint
-    await window.keplr.experimentalSuggestChain({
-      rpc: networkEndpoints.testnet.tm,
-      rest: networkEndpoints.testnet.lcd,
-      chainId: ChainId.Testnet,
-      chainName: 'Flux',
-      stakeCurrency: { coinDenom: 'lux', coinMinimalDenom: 'lux', coinDecimals: 18 },
-      bech32Config: {
-        bech32PrefixAccAddr: 'lux',
-        bech32PrefixAccPub: 'luxpub',
-        bech32PrefixValAddr: 'luxvaloper',
-        bech32PrefixValPub: 'luxvaloperpub',
-        bech32PrefixConsAddr: 'luxvalcons',
-        bech32PrefixConsPub: 'luxvalconspub'
-      },
-      bip44: { coinType: 60 },
-      currencies: [{ coinDenom: 'lux', coinMinimalDenom: 'lux', coinDecimals: 18 }],
-      feeCurrencies: [
-        {
-          coinDenom: 'lux',
-          coinMinimalDenom: 'lux',
-          coinDecimals: 18,
-          gasPriceStep: { low: 10000000000, average: 10000000000, high: 10000000000 }
-        }
-      ]
-    })
   }
   public async checkChainIdSupport() {
     const { chainId } = this
@@ -50,9 +55,7 @@ export default class KeplrWallet {
     try {
       return !!(await keplr.getKey(chainId))
     } catch (e) {
-      throw new Error(
-        `Keplr may not support ${chainId} network. Please check if the chain can be added.`
-      )
+      throw e
     }
   }
   async getAddresses(): Promise<string[]> {
