@@ -14,7 +14,7 @@ export default class KeplrWallet {
     if (!window || !window.keplr) {
       throw new Error('Please install the Keplr wallet extension')
     }
-    if (this.checkChainIdSupport()) {
+    if (await this.checkChainIdSupport()) {
       return
     }
     //todo: add the rest endpoint
@@ -47,15 +47,11 @@ export default class KeplrWallet {
   public async checkChainIdSupport() {
     const { chainId } = this
     const keplr = await this.getKeplr()
-    const chainName = chainId.split('-')
-
     try {
       return !!(await keplr.getKey(chainId))
     } catch (e) {
       throw new Error(
-        `Keplr may not support ${
-          chainName[0] || chainId
-        } network. Please check if the chain can be added.`
+        `Keplr may not support ${chainId} network. Please check if the chain can be added.`
       )
     }
   }
