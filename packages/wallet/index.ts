@@ -19,23 +19,30 @@ export default class WalletStrategy {
     this.initProvider()
   }
   async setChainId(chainId: string) {
-    this.chainId = chainId
-    console.log('chainId', chainId)
-    this.initProvider()
+    try {
+      this.chainId = chainId
+      await this.initProvider()
+    } catch (e) {
+      throw e
+    }
   }
-  initProvider() {
-    switch (this.wallet) {
-      case Wallet.Keplr:
-        this.provider = new Keplr({ chainId: this.chainId })
-        break
-      case Wallet.Metamask:
-        this.provider = new Metamask({ chainId: this.chainId })
-        break
-      case Wallet.Phantom:
-        this.provider = new Phantom({ chainId: this.chainId })
-        break
-      default:
-        break
+  async initProvider() {
+    try {
+      switch (this.wallet) {
+        case Wallet.Keplr:
+          this.provider = new Keplr({ chainId: this.chainId })
+          break
+        case Wallet.Metamask:
+          this.provider = new Metamask({ chainId: this.chainId })
+          break
+        case Wallet.Phantom:
+          this.provider = new Phantom({ chainId: this.chainId })
+          break
+        default:
+          break
+      }
+    } catch (e) {
+      throw e
     }
   }
   getProvider() {
