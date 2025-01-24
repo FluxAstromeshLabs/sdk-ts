@@ -58,4 +58,25 @@ export class IndexerGrpcCampQuery extends BaseIndexerGrpc {
     const stream = this.client.StreamTrades(request)
     return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
+  async listComments(
+    request: Partial<campclashQuery.ListCommentsRequest>
+  ): Promise<campclashQuery.ListCommentsResponse> {
+    let response = await this.retry(() => this.client.ListComments(request))
+    return response as campclashQuery.ListCommentsResponse
+  }
+  async postComment(
+    request: Partial<campclashQuery.PostCommentRequest>
+  ): Promise<campclashQuery.PostCommentResponse> {
+    let response = await this.retry(() => this.client.PostComment(request))
+    return response as campclashQuery.PostCommentResponse
+  }
+  async streamComments(
+    request: Partial<campclashQuery.StreamCommentsRequest>,
+    callback: (value: campclashQuery.StreamCommentsResponse) => void,
+    onEndCallback?: (err: any) => void,
+    onStatusCallback?: () => void
+  ): Promise<Subscription> {
+    const stream = this.client.StreamComments(request)
+    return stream.subscribe(callback, onEndCallback, onStatusCallback)
+  }
 }
