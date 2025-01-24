@@ -119,7 +119,7 @@ export interface Metrics {
 /** User structure */
 export interface UserBalance {
   address: string;
-  denom: string;
+  camp_denom: string;
   /** Cast to math.Int */
   amount: string;
   updated_height: string;
@@ -963,7 +963,7 @@ export const Metrics = {
 };
 
 function createBaseUserBalance(): UserBalance {
-  return { address: "", denom: "", amount: "", updated_height: "0" };
+  return { address: "", camp_denom: "", amount: "", updated_height: "0" };
 }
 
 export const UserBalance = {
@@ -973,8 +973,8 @@ export const UserBalance = {
     if (message.address !== "") {
       writer.uint32(10).string(message.address);
     }
-    if (message.denom !== "") {
-      writer.uint32(18).string(message.denom);
+    if (message.camp_denom !== "") {
+      writer.uint32(18).string(message.camp_denom);
     }
     if (message.amount !== "") {
       writer.uint32(26).string(message.amount);
@@ -1004,7 +1004,7 @@ export const UserBalance = {
             break;
           }
 
-          message.denom = reader.string();
+          message.camp_denom = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
@@ -1032,7 +1032,7 @@ export const UserBalance = {
   fromJSON(object: any): UserBalance {
     return {
       address: isSet(object.address) ? globalThis.String(object.address) : "",
-      denom: isSet(object.denom) ? globalThis.String(object.denom) : "",
+      camp_denom: isSet(object.camp_denom) ? globalThis.String(object.camp_denom) : "",
       amount: isSet(object.amount) ? globalThis.String(object.amount) : "",
       updated_height: isSet(object.updated_height) ? globalThis.String(object.updated_height) : "0",
     };
@@ -1043,8 +1043,8 @@ export const UserBalance = {
     if (message.address !== undefined) {
       obj.address = message.address;
     }
-    if (message.denom !== undefined) {
-      obj.denom = message.denom;
+    if (message.camp_denom !== undefined) {
+      obj.camp_denom = message.camp_denom;
     }
     if (message.amount !== undefined) {
       obj.amount = message.amount;
@@ -1061,7 +1061,7 @@ export const UserBalance = {
   fromPartial(object: DeepPartial<UserBalance>): UserBalance {
     const message = createBaseUserBalance();
     message.address = object.address ?? "";
-    message.denom = object.denom ?? "";
+    message.camp_denom = object.camp_denom ?? "";
     message.amount = object.amount ?? "";
     message.updated_height = object.updated_height ?? "0";
     return message;

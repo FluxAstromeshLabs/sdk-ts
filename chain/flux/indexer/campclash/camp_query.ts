@@ -16,7 +16,7 @@ import { Project, Trade, UserBalance } from "./camp";
 
 export interface ListProjectsRequest {
   pagination: PageRequest | undefined;
-  denom: string;
+  camp_denom: string;
   search: string;
   /** ordering for leaderboard */
   sort_by_fields: string[];
@@ -28,7 +28,7 @@ export interface ListProjectsResponse {
 }
 
 export interface StreamProjectRequest {
-  denom: string;
+  camp_denom: string;
 }
 
 export interface StreamProjectResponse {
@@ -39,7 +39,7 @@ export interface StreamProjectResponse {
 
 export interface ListBalancesRequest {
   pagination: PageRequest | undefined;
-  denom: string;
+  camp_denom: string;
   user_address: string;
   sort_by: string;
   /** effective if sort_by != "" */
@@ -52,8 +52,8 @@ export interface ListBalancesResponse {
 }
 
 export interface StreamBalancesRequest {
-  denom: string;
-  user_address: string;
+  camp_denom: string;
+  address: string;
 }
 
 export interface StreamBalancesResponse {
@@ -63,7 +63,7 @@ export interface StreamBalancesResponse {
 
 export interface ListTradesRequest {
   pagination: PageRequest | undefined;
-  denom: string;
+  camp_denom: string;
   user_address: string;
 }
 
@@ -73,7 +73,7 @@ export interface ListTradesResponse {
 }
 
 export interface StreamTradesRequest {
-  denom: string;
+  camp_denom: string;
   user_address: string;
 }
 
@@ -118,7 +118,7 @@ export interface StreamCommentsResponse {
 }
 
 function createBaseListProjectsRequest(): ListProjectsRequest {
-  return { pagination: undefined, denom: "", search: "", sort_by_fields: [] };
+  return { pagination: undefined, camp_denom: "", search: "", sort_by_fields: [] };
 }
 
 export const ListProjectsRequest = {
@@ -128,8 +128,8 @@ export const ListProjectsRequest = {
     if (message.pagination !== undefined) {
       PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
     }
-    if (message.denom !== "") {
-      writer.uint32(18).string(message.denom);
+    if (message.camp_denom !== "") {
+      writer.uint32(18).string(message.camp_denom);
     }
     if (message.search !== "") {
       writer.uint32(26).string(message.search);
@@ -159,7 +159,7 @@ export const ListProjectsRequest = {
             break;
           }
 
-          message.denom = reader.string();
+          message.camp_denom = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
@@ -187,7 +187,7 @@ export const ListProjectsRequest = {
   fromJSON(object: any): ListProjectsRequest {
     return {
       pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
-      denom: isSet(object.denom) ? globalThis.String(object.denom) : "",
+      camp_denom: isSet(object.camp_denom) ? globalThis.String(object.camp_denom) : "",
       search: isSet(object.search) ? globalThis.String(object.search) : "",
       sort_by_fields: globalThis.Array.isArray(object?.sort_by_fields)
         ? object.sort_by_fields.map((e: any) => globalThis.String(e))
@@ -200,8 +200,8 @@ export const ListProjectsRequest = {
     if (message.pagination !== undefined) {
       obj.pagination = PageRequest.toJSON(message.pagination);
     }
-    if (message.denom !== undefined) {
-      obj.denom = message.denom;
+    if (message.camp_denom !== undefined) {
+      obj.camp_denom = message.camp_denom;
     }
     if (message.search !== undefined) {
       obj.search = message.search;
@@ -220,7 +220,7 @@ export const ListProjectsRequest = {
     message.pagination = (object.pagination !== undefined && object.pagination !== null)
       ? PageRequest.fromPartial(object.pagination)
       : undefined;
-    message.denom = object.denom ?? "";
+    message.camp_denom = object.camp_denom ?? "";
     message.search = object.search ?? "";
     message.sort_by_fields = object.sort_by_fields?.map((e) => e) || [];
     return message;
@@ -306,15 +306,15 @@ export const ListProjectsResponse = {
 };
 
 function createBaseStreamProjectRequest(): StreamProjectRequest {
-  return { denom: "" };
+  return { camp_denom: "" };
 }
 
 export const StreamProjectRequest = {
   $type: "flux.indexer.campclash.StreamProjectRequest" as const,
 
   encode(message: StreamProjectRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.denom !== "") {
-      writer.uint32(10).string(message.denom);
+    if (message.camp_denom !== "") {
+      writer.uint32(10).string(message.camp_denom);
     }
     return writer;
   },
@@ -331,7 +331,7 @@ export const StreamProjectRequest = {
             break;
           }
 
-          message.denom = reader.string();
+          message.camp_denom = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -343,13 +343,13 @@ export const StreamProjectRequest = {
   },
 
   fromJSON(object: any): StreamProjectRequest {
-    return { denom: isSet(object.denom) ? globalThis.String(object.denom) : "" };
+    return { camp_denom: isSet(object.camp_denom) ? globalThis.String(object.camp_denom) : "" };
   },
 
   toJSON(message: StreamProjectRequest): unknown {
     const obj: any = {};
-    if (message.denom !== undefined) {
-      obj.denom = message.denom;
+    if (message.camp_denom !== undefined) {
+      obj.camp_denom = message.camp_denom;
     }
     return obj;
   },
@@ -359,7 +359,7 @@ export const StreamProjectRequest = {
   },
   fromPartial(object: DeepPartial<StreamProjectRequest>): StreamProjectRequest {
     const message = createBaseStreamProjectRequest();
-    message.denom = object.denom ?? "";
+    message.camp_denom = object.camp_denom ?? "";
     return message;
   },
 };
@@ -458,7 +458,7 @@ export const StreamProjectResponse = {
 };
 
 function createBaseListBalancesRequest(): ListBalancesRequest {
-  return { pagination: undefined, denom: "", user_address: "", sort_by: "", sort_asc: false };
+  return { pagination: undefined, camp_denom: "", user_address: "", sort_by: "", sort_asc: false };
 }
 
 export const ListBalancesRequest = {
@@ -468,8 +468,8 @@ export const ListBalancesRequest = {
     if (message.pagination !== undefined) {
       PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
     }
-    if (message.denom !== "") {
-      writer.uint32(18).string(message.denom);
+    if (message.camp_denom !== "") {
+      writer.uint32(18).string(message.camp_denom);
     }
     if (message.user_address !== "") {
       writer.uint32(26).string(message.user_address);
@@ -502,7 +502,7 @@ export const ListBalancesRequest = {
             break;
           }
 
-          message.denom = reader.string();
+          message.camp_denom = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
@@ -537,7 +537,7 @@ export const ListBalancesRequest = {
   fromJSON(object: any): ListBalancesRequest {
     return {
       pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
-      denom: isSet(object.denom) ? globalThis.String(object.denom) : "",
+      camp_denom: isSet(object.camp_denom) ? globalThis.String(object.camp_denom) : "",
       user_address: isSet(object.user_address) ? globalThis.String(object.user_address) : "",
       sort_by: isSet(object.sort_by) ? globalThis.String(object.sort_by) : "",
       sort_asc: isSet(object.sort_asc) ? globalThis.Boolean(object.sort_asc) : false,
@@ -549,8 +549,8 @@ export const ListBalancesRequest = {
     if (message.pagination !== undefined) {
       obj.pagination = PageRequest.toJSON(message.pagination);
     }
-    if (message.denom !== undefined) {
-      obj.denom = message.denom;
+    if (message.camp_denom !== undefined) {
+      obj.camp_denom = message.camp_denom;
     }
     if (message.user_address !== undefined) {
       obj.user_address = message.user_address;
@@ -572,7 +572,7 @@ export const ListBalancesRequest = {
     message.pagination = (object.pagination !== undefined && object.pagination !== null)
       ? PageRequest.fromPartial(object.pagination)
       : undefined;
-    message.denom = object.denom ?? "";
+    message.camp_denom = object.camp_denom ?? "";
     message.user_address = object.user_address ?? "";
     message.sort_by = object.sort_by ?? "";
     message.sort_asc = object.sort_asc ?? false;
@@ -661,18 +661,18 @@ export const ListBalancesResponse = {
 };
 
 function createBaseStreamBalancesRequest(): StreamBalancesRequest {
-  return { denom: "", user_address: "" };
+  return { camp_denom: "", address: "" };
 }
 
 export const StreamBalancesRequest = {
   $type: "flux.indexer.campclash.StreamBalancesRequest" as const,
 
   encode(message: StreamBalancesRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.denom !== "") {
-      writer.uint32(10).string(message.denom);
+    if (message.camp_denom !== "") {
+      writer.uint32(10).string(message.camp_denom);
     }
-    if (message.user_address !== "") {
-      writer.uint32(18).string(message.user_address);
+    if (message.address !== "") {
+      writer.uint32(18).string(message.address);
     }
     return writer;
   },
@@ -689,14 +689,14 @@ export const StreamBalancesRequest = {
             break;
           }
 
-          message.denom = reader.string();
+          message.camp_denom = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.user_address = reader.string();
+          message.address = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -709,18 +709,18 @@ export const StreamBalancesRequest = {
 
   fromJSON(object: any): StreamBalancesRequest {
     return {
-      denom: isSet(object.denom) ? globalThis.String(object.denom) : "",
-      user_address: isSet(object.user_address) ? globalThis.String(object.user_address) : "",
+      camp_denom: isSet(object.camp_denom) ? globalThis.String(object.camp_denom) : "",
+      address: isSet(object.address) ? globalThis.String(object.address) : "",
     };
   },
 
   toJSON(message: StreamBalancesRequest): unknown {
     const obj: any = {};
-    if (message.denom !== undefined) {
-      obj.denom = message.denom;
+    if (message.camp_denom !== undefined) {
+      obj.camp_denom = message.camp_denom;
     }
-    if (message.user_address !== undefined) {
-      obj.user_address = message.user_address;
+    if (message.address !== undefined) {
+      obj.address = message.address;
     }
     return obj;
   },
@@ -730,8 +730,8 @@ export const StreamBalancesRequest = {
   },
   fromPartial(object: DeepPartial<StreamBalancesRequest>): StreamBalancesRequest {
     const message = createBaseStreamBalancesRequest();
-    message.denom = object.denom ?? "";
-    message.user_address = object.user_address ?? "";
+    message.camp_denom = object.camp_denom ?? "";
+    message.address = object.address ?? "";
     return message;
   },
 };
@@ -815,7 +815,7 @@ export const StreamBalancesResponse = {
 };
 
 function createBaseListTradesRequest(): ListTradesRequest {
-  return { pagination: undefined, denom: "", user_address: "" };
+  return { pagination: undefined, camp_denom: "", user_address: "" };
 }
 
 export const ListTradesRequest = {
@@ -825,8 +825,8 @@ export const ListTradesRequest = {
     if (message.pagination !== undefined) {
       PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
     }
-    if (message.denom !== "") {
-      writer.uint32(18).string(message.denom);
+    if (message.camp_denom !== "") {
+      writer.uint32(18).string(message.camp_denom);
     }
     if (message.user_address !== "") {
       writer.uint32(26).string(message.user_address);
@@ -853,7 +853,7 @@ export const ListTradesRequest = {
             break;
           }
 
-          message.denom = reader.string();
+          message.camp_denom = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
@@ -874,7 +874,7 @@ export const ListTradesRequest = {
   fromJSON(object: any): ListTradesRequest {
     return {
       pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
-      denom: isSet(object.denom) ? globalThis.String(object.denom) : "",
+      camp_denom: isSet(object.camp_denom) ? globalThis.String(object.camp_denom) : "",
       user_address: isSet(object.user_address) ? globalThis.String(object.user_address) : "",
     };
   },
@@ -884,8 +884,8 @@ export const ListTradesRequest = {
     if (message.pagination !== undefined) {
       obj.pagination = PageRequest.toJSON(message.pagination);
     }
-    if (message.denom !== undefined) {
-      obj.denom = message.denom;
+    if (message.camp_denom !== undefined) {
+      obj.camp_denom = message.camp_denom;
     }
     if (message.user_address !== undefined) {
       obj.user_address = message.user_address;
@@ -901,7 +901,7 @@ export const ListTradesRequest = {
     message.pagination = (object.pagination !== undefined && object.pagination !== null)
       ? PageRequest.fromPartial(object.pagination)
       : undefined;
-    message.denom = object.denom ?? "";
+    message.camp_denom = object.camp_denom ?? "";
     message.user_address = object.user_address ?? "";
     return message;
   },
@@ -986,15 +986,15 @@ export const ListTradesResponse = {
 };
 
 function createBaseStreamTradesRequest(): StreamTradesRequest {
-  return { denom: "", user_address: "" };
+  return { camp_denom: "", user_address: "" };
 }
 
 export const StreamTradesRequest = {
   $type: "flux.indexer.campclash.StreamTradesRequest" as const,
 
   encode(message: StreamTradesRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.denom !== "") {
-      writer.uint32(10).string(message.denom);
+    if (message.camp_denom !== "") {
+      writer.uint32(10).string(message.camp_denom);
     }
     if (message.user_address !== "") {
       writer.uint32(18).string(message.user_address);
@@ -1014,7 +1014,7 @@ export const StreamTradesRequest = {
             break;
           }
 
-          message.denom = reader.string();
+          message.camp_denom = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
@@ -1034,15 +1034,15 @@ export const StreamTradesRequest = {
 
   fromJSON(object: any): StreamTradesRequest {
     return {
-      denom: isSet(object.denom) ? globalThis.String(object.denom) : "",
+      camp_denom: isSet(object.camp_denom) ? globalThis.String(object.camp_denom) : "",
       user_address: isSet(object.user_address) ? globalThis.String(object.user_address) : "",
     };
   },
 
   toJSON(message: StreamTradesRequest): unknown {
     const obj: any = {};
-    if (message.denom !== undefined) {
-      obj.denom = message.denom;
+    if (message.camp_denom !== undefined) {
+      obj.camp_denom = message.camp_denom;
     }
     if (message.user_address !== undefined) {
       obj.user_address = message.user_address;
@@ -1055,7 +1055,7 @@ export const StreamTradesRequest = {
   },
   fromPartial(object: DeepPartial<StreamTradesRequest>): StreamTradesRequest {
     const message = createBaseStreamTradesRequest();
-    message.denom = object.denom ?? "";
+    message.camp_denom = object.camp_denom ?? "";
     message.user_address = object.user_address ?? "";
     return message;
   },
