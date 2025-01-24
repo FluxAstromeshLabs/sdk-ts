@@ -14,8 +14,8 @@ export interface QueryRequest {
   symbol: string;
   timeframe: string;
   limit: string;
-  start_time_unix: string;
-  end_time_unix: string;
+  start_epoch: string;
+  end_epoch: string;
 }
 
 export interface QueryResponse {
@@ -30,7 +30,7 @@ export interface ListSymbolsResponse {
 }
 
 function createBaseQueryRequest(): QueryRequest {
-  return { symbol: "", timeframe: "", limit: "0", start_time_unix: "0", end_time_unix: "0" };
+  return { symbol: "", timeframe: "", limit: "0", start_epoch: "0", end_epoch: "0" };
 }
 
 export const QueryRequest = {
@@ -46,11 +46,11 @@ export const QueryRequest = {
     if (message.limit !== "0") {
       writer.uint32(24).uint64(message.limit);
     }
-    if (message.start_time_unix !== "0") {
-      writer.uint32(32).int64(message.start_time_unix);
+    if (message.start_epoch !== "0") {
+      writer.uint32(32).int64(message.start_epoch);
     }
-    if (message.end_time_unix !== "0") {
-      writer.uint32(40).int64(message.end_time_unix);
+    if (message.end_epoch !== "0") {
+      writer.uint32(40).int64(message.end_epoch);
     }
     return writer;
   },
@@ -88,14 +88,14 @@ export const QueryRequest = {
             break;
           }
 
-          message.start_time_unix = longToString(reader.int64() as Long);
+          message.start_epoch = longToString(reader.int64() as Long);
           continue;
         case 5:
           if (tag !== 40) {
             break;
           }
 
-          message.end_time_unix = longToString(reader.int64() as Long);
+          message.end_epoch = longToString(reader.int64() as Long);
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -111,8 +111,8 @@ export const QueryRequest = {
       symbol: isSet(object.symbol) ? globalThis.String(object.symbol) : "",
       timeframe: isSet(object.timeframe) ? globalThis.String(object.timeframe) : "",
       limit: isSet(object.limit) ? globalThis.String(object.limit) : "0",
-      start_time_unix: isSet(object.start_time_unix) ? globalThis.String(object.start_time_unix) : "0",
-      end_time_unix: isSet(object.end_time_unix) ? globalThis.String(object.end_time_unix) : "0",
+      start_epoch: isSet(object.start_epoch) ? globalThis.String(object.start_epoch) : "0",
+      end_epoch: isSet(object.end_epoch) ? globalThis.String(object.end_epoch) : "0",
     };
   },
 
@@ -127,11 +127,11 @@ export const QueryRequest = {
     if (message.limit !== undefined) {
       obj.limit = message.limit;
     }
-    if (message.start_time_unix !== undefined) {
-      obj.start_time_unix = message.start_time_unix;
+    if (message.start_epoch !== undefined) {
+      obj.start_epoch = message.start_epoch;
     }
-    if (message.end_time_unix !== undefined) {
-      obj.end_time_unix = message.end_time_unix;
+    if (message.end_epoch !== undefined) {
+      obj.end_epoch = message.end_epoch;
     }
     return obj;
   },
@@ -144,8 +144,8 @@ export const QueryRequest = {
     message.symbol = object.symbol ?? "";
     message.timeframe = object.timeframe ?? "";
     message.limit = object.limit ?? "0";
-    message.start_time_unix = object.start_time_unix ?? "0";
-    message.end_time_unix = object.end_time_unix ?? "0";
+    message.start_epoch = object.start_epoch ?? "0";
+    message.end_epoch = object.end_epoch ?? "0";
     return message;
   },
 };

@@ -81,6 +81,40 @@ export interface StreamTradesResponse {
   trade: Trade | undefined;
 }
 
+export interface Comment {
+  camp_denom: string;
+  account: string;
+  content: string;
+  time: string;
+}
+
+export interface PostCommentRequest {
+  comment: Comment | undefined;
+}
+
+export interface PostCommentResponse {
+}
+
+export interface ListCommentsRequest {
+  pagination: PageRequest | undefined;
+  camp_denom: string;
+}
+
+export interface ListCommentsResponse {
+  pagination: PageResponse | undefined;
+  comments: Comment[];
+}
+
+export interface StreamCommentsRequest {
+  camp_denom: string;
+}
+
+export interface StreamCommentsResponse {
+  deleted: string;
+  height: string;
+  comment: Comment | undefined;
+}
+
 function createBaseListProjectsRequest(): ListProjectsRequest {
   return { pagination: undefined, denom: "", search: "", sort_by_fields: [] };
 }
@@ -1097,6 +1131,526 @@ export const StreamTradesResponse = {
   },
 };
 
+function createBaseComment(): Comment {
+  return { camp_denom: "", account: "", content: "", time: "0" };
+}
+
+export const Comment = {
+  $type: "flux.indexer.campclash.Comment" as const,
+
+  encode(message: Comment, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.camp_denom !== "") {
+      writer.uint32(10).string(message.camp_denom);
+    }
+    if (message.account !== "") {
+      writer.uint32(18).string(message.account);
+    }
+    if (message.content !== "") {
+      writer.uint32(26).string(message.content);
+    }
+    if (message.time !== "0") {
+      writer.uint32(32).uint64(message.time);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Comment {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseComment();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.camp_denom = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.account = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.content = reader.string();
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.time = longToString(reader.uint64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Comment {
+    return {
+      camp_denom: isSet(object.camp_denom) ? globalThis.String(object.camp_denom) : "",
+      account: isSet(object.account) ? globalThis.String(object.account) : "",
+      content: isSet(object.content) ? globalThis.String(object.content) : "",
+      time: isSet(object.time) ? globalThis.String(object.time) : "0",
+    };
+  },
+
+  toJSON(message: Comment): unknown {
+    const obj: any = {};
+    if (message.camp_denom !== undefined) {
+      obj.camp_denom = message.camp_denom;
+    }
+    if (message.account !== undefined) {
+      obj.account = message.account;
+    }
+    if (message.content !== undefined) {
+      obj.content = message.content;
+    }
+    if (message.time !== undefined) {
+      obj.time = message.time;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Comment>): Comment {
+    return Comment.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Comment>): Comment {
+    const message = createBaseComment();
+    message.camp_denom = object.camp_denom ?? "";
+    message.account = object.account ?? "";
+    message.content = object.content ?? "";
+    message.time = object.time ?? "0";
+    return message;
+  },
+};
+
+function createBasePostCommentRequest(): PostCommentRequest {
+  return { comment: undefined };
+}
+
+export const PostCommentRequest = {
+  $type: "flux.indexer.campclash.PostCommentRequest" as const,
+
+  encode(message: PostCommentRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.comment !== undefined) {
+      Comment.encode(message.comment, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): PostCommentRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePostCommentRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.comment = Comment.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PostCommentRequest {
+    return { comment: isSet(object.comment) ? Comment.fromJSON(object.comment) : undefined };
+  },
+
+  toJSON(message: PostCommentRequest): unknown {
+    const obj: any = {};
+    if (message.comment !== undefined) {
+      obj.comment = Comment.toJSON(message.comment);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<PostCommentRequest>): PostCommentRequest {
+    return PostCommentRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<PostCommentRequest>): PostCommentRequest {
+    const message = createBasePostCommentRequest();
+    message.comment = (object.comment !== undefined && object.comment !== null)
+      ? Comment.fromPartial(object.comment)
+      : undefined;
+    return message;
+  },
+};
+
+function createBasePostCommentResponse(): PostCommentResponse {
+  return {};
+}
+
+export const PostCommentResponse = {
+  $type: "flux.indexer.campclash.PostCommentResponse" as const,
+
+  encode(_: PostCommentResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): PostCommentResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePostCommentResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): PostCommentResponse {
+    return {};
+  },
+
+  toJSON(_: PostCommentResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<PostCommentResponse>): PostCommentResponse {
+    return PostCommentResponse.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<PostCommentResponse>): PostCommentResponse {
+    const message = createBasePostCommentResponse();
+    return message;
+  },
+};
+
+function createBaseListCommentsRequest(): ListCommentsRequest {
+  return { pagination: undefined, camp_denom: "" };
+}
+
+export const ListCommentsRequest = {
+  $type: "flux.indexer.campclash.ListCommentsRequest" as const,
+
+  encode(message: ListCommentsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.camp_denom !== "") {
+      writer.uint32(18).string(message.camp_denom);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListCommentsRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListCommentsRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.camp_denom = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListCommentsRequest {
+    return {
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
+      camp_denom: isSet(object.camp_denom) ? globalThis.String(object.camp_denom) : "",
+    };
+  },
+
+  toJSON(message: ListCommentsRequest): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageRequest.toJSON(message.pagination);
+    }
+    if (message.camp_denom !== undefined) {
+      obj.camp_denom = message.camp_denom;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListCommentsRequest>): ListCommentsRequest {
+    return ListCommentsRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListCommentsRequest>): ListCommentsRequest {
+    const message = createBaseListCommentsRequest();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
+    message.camp_denom = object.camp_denom ?? "";
+    return message;
+  },
+};
+
+function createBaseListCommentsResponse(): ListCommentsResponse {
+  return { pagination: undefined, comments: [] };
+}
+
+export const ListCommentsResponse = {
+  $type: "flux.indexer.campclash.ListCommentsResponse" as const,
+
+  encode(message: ListCommentsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    for (const v of message.comments) {
+      Comment.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListCommentsResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListCommentsResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.comments.push(Comment.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListCommentsResponse {
+    return {
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+      comments: globalThis.Array.isArray(object?.comments) ? object.comments.map((e: any) => Comment.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: ListCommentsResponse): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageResponse.toJSON(message.pagination);
+    }
+    if (message.comments?.length) {
+      obj.comments = message.comments.map((e) => Comment.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListCommentsResponse>): ListCommentsResponse {
+    return ListCommentsResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListCommentsResponse>): ListCommentsResponse {
+    const message = createBaseListCommentsResponse();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
+    message.comments = object.comments?.map((e) => Comment.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseStreamCommentsRequest(): StreamCommentsRequest {
+  return { camp_denom: "" };
+}
+
+export const StreamCommentsRequest = {
+  $type: "flux.indexer.campclash.StreamCommentsRequest" as const,
+
+  encode(message: StreamCommentsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.camp_denom !== "") {
+      writer.uint32(10).string(message.camp_denom);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamCommentsRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamCommentsRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.camp_denom = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamCommentsRequest {
+    return { camp_denom: isSet(object.camp_denom) ? globalThis.String(object.camp_denom) : "" };
+  },
+
+  toJSON(message: StreamCommentsRequest): unknown {
+    const obj: any = {};
+    if (message.camp_denom !== undefined) {
+      obj.camp_denom = message.camp_denom;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamCommentsRequest>): StreamCommentsRequest {
+    return StreamCommentsRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamCommentsRequest>): StreamCommentsRequest {
+    const message = createBaseStreamCommentsRequest();
+    message.camp_denom = object.camp_denom ?? "";
+    return message;
+  },
+};
+
+function createBaseStreamCommentsResponse(): StreamCommentsResponse {
+  return { deleted: "0", height: "0", comment: undefined };
+}
+
+export const StreamCommentsResponse = {
+  $type: "flux.indexer.campclash.StreamCommentsResponse" as const,
+
+  encode(message: StreamCommentsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.deleted !== "0") {
+      writer.uint32(8).uint64(message.deleted);
+    }
+    if (message.height !== "0") {
+      writer.uint32(16).uint64(message.height);
+    }
+    if (message.comment !== undefined) {
+      Comment.encode(message.comment, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamCommentsResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamCommentsResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.deleted = longToString(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.height = longToString(reader.uint64() as Long);
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.comment = Comment.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamCommentsResponse {
+    return {
+      deleted: isSet(object.deleted) ? globalThis.String(object.deleted) : "0",
+      height: isSet(object.height) ? globalThis.String(object.height) : "0",
+      comment: isSet(object.comment) ? Comment.fromJSON(object.comment) : undefined,
+    };
+  },
+
+  toJSON(message: StreamCommentsResponse): unknown {
+    const obj: any = {};
+    if (message.deleted !== undefined) {
+      obj.deleted = message.deleted;
+    }
+    if (message.height !== undefined) {
+      obj.height = message.height;
+    }
+    if (message.comment !== undefined) {
+      obj.comment = Comment.toJSON(message.comment);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamCommentsResponse>): StreamCommentsResponse {
+    return StreamCommentsResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamCommentsResponse>): StreamCommentsResponse {
+    const message = createBaseStreamCommentsResponse();
+    message.deleted = object.deleted ?? "0";
+    message.height = object.height ?? "0";
+    message.comment = (object.comment !== undefined && object.comment !== null)
+      ? Comment.fromPartial(object.comment)
+      : undefined;
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface CampclashQuery {
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse>;
@@ -1108,6 +1662,12 @@ export interface CampclashQuery {
   StreamUsers(request: DeepPartial<StreamUsersRequest>, metadata?: grpc.Metadata): Observable<StreamUsersResponse>;
   ListTrades(request: DeepPartial<ListTradesRequest>, metadata?: grpc.Metadata): Promise<ListTradesResponse>;
   StreamTrades(request: DeepPartial<StreamTradesRequest>, metadata?: grpc.Metadata): Observable<StreamTradesResponse>;
+  PostComment(request: DeepPartial<PostCommentRequest>, metadata?: grpc.Metadata): Promise<PostCommentResponse>;
+  ListComments(request: DeepPartial<ListCommentsRequest>, metadata?: grpc.Metadata): Promise<ListCommentsResponse>;
+  StreamComments(
+    request: DeepPartial<StreamCommentsRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamCommentsResponse>;
 }
 
 export class CampclashQueryClientImpl implements CampclashQuery {
@@ -1121,6 +1681,9 @@ export class CampclashQueryClientImpl implements CampclashQuery {
     this.StreamUsers = this.StreamUsers.bind(this);
     this.ListTrades = this.ListTrades.bind(this);
     this.StreamTrades = this.StreamTrades.bind(this);
+    this.PostComment = this.PostComment.bind(this);
+    this.ListComments = this.ListComments.bind(this);
+    this.StreamComments = this.StreamComments.bind(this);
   }
 
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse> {
@@ -1148,6 +1711,21 @@ export class CampclashQueryClientImpl implements CampclashQuery {
 
   StreamTrades(request: DeepPartial<StreamTradesRequest>, metadata?: grpc.Metadata): Observable<StreamTradesResponse> {
     return this.rpc.invoke(CampclashQueryStreamTradesDesc, StreamTradesRequest.fromPartial(request), metadata);
+  }
+
+  PostComment(request: DeepPartial<PostCommentRequest>, metadata?: grpc.Metadata): Promise<PostCommentResponse> {
+    return this.rpc.unary(CampclashQueryPostCommentDesc, PostCommentRequest.fromPartial(request), metadata);
+  }
+
+  ListComments(request: DeepPartial<ListCommentsRequest>, metadata?: grpc.Metadata): Promise<ListCommentsResponse> {
+    return this.rpc.unary(CampclashQueryListCommentsDesc, ListCommentsRequest.fromPartial(request), metadata);
+  }
+
+  StreamComments(
+    request: DeepPartial<StreamCommentsRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamCommentsResponse> {
+    return this.rpc.invoke(CampclashQueryStreamCommentsDesc, StreamCommentsRequest.fromPartial(request), metadata);
   }
 }
 
@@ -1281,6 +1859,75 @@ export const CampclashQueryStreamTradesDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = StreamTradesResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQueryPostCommentDesc: UnaryMethodDefinitionish = {
+  methodName: "PostComment",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return PostCommentRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = PostCommentResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQueryListCommentsDesc: UnaryMethodDefinitionish = {
+  methodName: "ListComments",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ListCommentsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ListCommentsResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQueryStreamCommentsDesc: UnaryMethodDefinitionish = {
+  methodName: "StreamComments",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: true,
+  requestType: {
+    serializeBinary() {
+      return StreamCommentsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = StreamCommentsResponse.decode(data);
       return {
         ...value,
         toObject() {
