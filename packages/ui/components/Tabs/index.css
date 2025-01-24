@@ -5,7 +5,7 @@
   @apply flex-col items-start;
 }
 .tabs .tabs_item {
-  @apply p-4 text-[16px] flex font-bold text-blueGray-500 dark:text-blueGray-400 cursor-pointer border-b border-blueGray-dark-200 dark:border-blueGray-light-200;
+  @apply p-4 text-[16px] flex font-bold text-black/60 dark:text-blueGray-400 cursor-pointer border-b border-blueGray-dark-200 dark:border-blueGray-light-200;
 }
 
 .tabs .active-border {
