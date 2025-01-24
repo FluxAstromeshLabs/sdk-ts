@@ -12,7 +12,7 @@ import _m0 from "protobufjs/minimal";
 import { Observable } from "rxjs";
 import { share } from "rxjs/operators";
 import { PageRequest, PageResponse } from "../../../cosmos/base/query/v1beta1/pagination";
-import { Project, Trade, User } from "./camp";
+import { Project, Trade, UserBalance } from "./camp";
 
 export interface ListProjectsRequest {
   pagination: PageRequest | undefined;
@@ -37,26 +37,28 @@ export interface StreamProjectResponse {
   project: Project | undefined;
 }
 
-export interface ListUsersRequest {
+export interface ListBalancesRequest {
   pagination: PageRequest | undefined;
   denom: string;
   user_address: string;
+  sort_by: string;
+  /** effective if sort_by != "" */
+  sort_asc: boolean;
 }
 
-export interface ListUsersResponse {
+export interface ListBalancesResponse {
   pagination: PageResponse | undefined;
-  user: User[];
+  user_balance: UserBalance[];
 }
 
-export interface StreamUsersRequest {
+export interface StreamBalancesRequest {
   denom: string;
   user_address: string;
 }
 
-export interface StreamUsersResponse {
+export interface StreamBalancesResponse {
   deleted: string;
-  height: string;
-  user: User | undefined;
+  user: UserBalance | undefined;
 }
 
 export interface ListTradesRequest {
@@ -455,14 +457,14 @@ export const StreamProjectResponse = {
   },
 };
 
-function createBaseListUsersRequest(): ListUsersRequest {
-  return { pagination: undefined, denom: "", user_address: "" };
+function createBaseListBalancesRequest(): ListBalancesRequest {
+  return { pagination: undefined, denom: "", user_address: "", sort_by: "", sort_asc: false };
 }
 
-export const ListUsersRequest = {
-  $type: "flux.indexer.campclash.ListUsersRequest" as const,
+export const ListBalancesRequest = {
+  $type: "flux.indexer.campclash.ListBalancesRequest" as const,
 
-  encode(message: ListUsersRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: ListBalancesRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.pagination !== undefined) {
       PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
     }
@@ -472,13 +474,19 @@ export const ListUsersRequest = {
     if (message.user_address !== "") {
       writer.uint32(26).string(message.user_address);
     }
+    if (message.sort_by !== "") {
+      writer.uint32(34).string(message.sort_by);
+    }
+    if (message.sort_asc !== false) {
+      writer.uint32(40).bool(message.sort_asc);
+    }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): ListUsersRequest {
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListBalancesRequest {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseListUsersRequest();
+    const message = createBaseListBalancesRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -503,6 +511,20 @@ export const ListUsersRequest = {
 
           message.user_address = reader.string();
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.sort_by = reader.string();
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.sort_asc = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -512,15 +534,17 @@ export const ListUsersRequest = {
     return message;
   },
 
-  fromJSON(object: any): ListUsersRequest {
+  fromJSON(object: any): ListBalancesRequest {
     return {
       pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
       denom: isSet(object.denom) ? globalThis.String(object.denom) : "",
       user_address: isSet(object.user_address) ? globalThis.String(object.user_address) : "",
+      sort_by: isSet(object.sort_by) ? globalThis.String(object.sort_by) : "",
+      sort_asc: isSet(object.sort_asc) ? globalThis.Boolean(object.sort_asc) : false,
     };
   },
 
-  toJSON(message: ListUsersRequest): unknown {
+  toJSON(message: ListBalancesRequest): unknown {
     const obj: any = {};
     if (message.pagination !== undefined) {
       obj.pagination = PageRequest.toJSON(message.pagination);
@@ -531,44 +555,52 @@ export const ListUsersRequest = {
     if (message.user_address !== undefined) {
       obj.user_address = message.user_address;
     }
+    if (message.sort_by !== undefined) {
+      obj.sort_by = message.sort_by;
+    }
+    if (message.sort_asc !== undefined) {
+      obj.sort_asc = message.sort_asc;
+    }
     return obj;
   },
 
-  create(base?: DeepPartial<ListUsersRequest>): ListUsersRequest {
-    return ListUsersRequest.fromPartial(base ?? {});
+  create(base?: DeepPartial<ListBalancesRequest>): ListBalancesRequest {
+    return ListBalancesRequest.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<ListUsersRequest>): ListUsersRequest {
-    const message = createBaseListUsersRequest();
+  fromPartial(object: DeepPartial<ListBalancesRequest>): ListBalancesRequest {
+    const message = createBaseListBalancesRequest();
     message.pagination = (object.pagination !== undefined && object.pagination !== null)
       ? PageRequest.fromPartial(object.pagination)
       : undefined;
     message.denom = object.denom ?? "";
     message.user_address = object.user_address ?? "";
+    message.sort_by = object.sort_by ?? "";
+    message.sort_asc = object.sort_asc ?? false;
     return message;
   },
 };
 
-function createBaseListUsersResponse(): ListUsersResponse {
-  return { pagination: undefined, user: [] };
+function createBaseListBalancesResponse(): ListBalancesResponse {
+  return { pagination: undefined, user_balance: [] };
 }
 
-export const ListUsersResponse = {
-  $type: "flux.indexer.campclash.ListUsersResponse" as const,
+export const ListBalancesResponse = {
+  $type: "flux.indexer.campclash.ListBalancesResponse" as const,
 
-  encode(message: ListUsersResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: ListBalancesResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.pagination !== undefined) {
       PageResponse.encode(message.pagination, writer.uint32(10).fork()).ldelim();
     }
-    for (const v of message.user) {
-      User.encode(v!, writer.uint32(18).fork()).ldelim();
+    for (const v of message.user_balance) {
+      UserBalance.encode(v!, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): ListUsersResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListBalancesResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseListUsersResponse();
+    const message = createBaseListBalancesResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -584,7 +616,7 @@ export const ListUsersResponse = {
             break;
           }
 
-          message.user.push(User.decode(reader, reader.uint32()));
+          message.user_balance.push(UserBalance.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -595,45 +627,47 @@ export const ListUsersResponse = {
     return message;
   },
 
-  fromJSON(object: any): ListUsersResponse {
+  fromJSON(object: any): ListBalancesResponse {
     return {
       pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
-      user: globalThis.Array.isArray(object?.user) ? object.user.map((e: any) => User.fromJSON(e)) : [],
+      user_balance: globalThis.Array.isArray(object?.user_balance)
+        ? object.user_balance.map((e: any) => UserBalance.fromJSON(e))
+        : [],
     };
   },
 
-  toJSON(message: ListUsersResponse): unknown {
+  toJSON(message: ListBalancesResponse): unknown {
     const obj: any = {};
     if (message.pagination !== undefined) {
       obj.pagination = PageResponse.toJSON(message.pagination);
     }
-    if (message.user?.length) {
-      obj.user = message.user.map((e) => User.toJSON(e));
+    if (message.user_balance?.length) {
+      obj.user_balance = message.user_balance.map((e) => UserBalance.toJSON(e));
     }
     return obj;
   },
 
-  create(base?: DeepPartial<ListUsersResponse>): ListUsersResponse {
-    return ListUsersResponse.fromPartial(base ?? {});
+  create(base?: DeepPartial<ListBalancesResponse>): ListBalancesResponse {
+    return ListBalancesResponse.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<ListUsersResponse>): ListUsersResponse {
-    const message = createBaseListUsersResponse();
+  fromPartial(object: DeepPartial<ListBalancesResponse>): ListBalancesResponse {
+    const message = createBaseListBalancesResponse();
     message.pagination = (object.pagination !== undefined && object.pagination !== null)
       ? PageResponse.fromPartial(object.pagination)
       : undefined;
-    message.user = object.user?.map((e) => User.fromPartial(e)) || [];
+    message.user_balance = object.user_balance?.map((e) => UserBalance.fromPartial(e)) || [];
     return message;
   },
 };
 
-function createBaseStreamUsersRequest(): StreamUsersRequest {
+function createBaseStreamBalancesRequest(): StreamBalancesRequest {
   return { denom: "", user_address: "" };
 }
 
-export const StreamUsersRequest = {
-  $type: "flux.indexer.campclash.StreamUsersRequest" as const,
+export const StreamBalancesRequest = {
+  $type: "flux.indexer.campclash.StreamBalancesRequest" as const,
 
-  encode(message: StreamUsersRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: StreamBalancesRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.denom !== "") {
       writer.uint32(10).string(message.denom);
     }
@@ -643,10 +677,10 @@ export const StreamUsersRequest = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): StreamUsersRequest {
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamBalancesRequest {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseStreamUsersRequest();
+    const message = createBaseStreamBalancesRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -673,14 +707,14 @@ export const StreamUsersRequest = {
     return message;
   },
 
-  fromJSON(object: any): StreamUsersRequest {
+  fromJSON(object: any): StreamBalancesRequest {
     return {
       denom: isSet(object.denom) ? globalThis.String(object.denom) : "",
       user_address: isSet(object.user_address) ? globalThis.String(object.user_address) : "",
     };
   },
 
-  toJSON(message: StreamUsersRequest): unknown {
+  toJSON(message: StreamBalancesRequest): unknown {
     const obj: any = {};
     if (message.denom !== undefined) {
       obj.denom = message.denom;
@@ -691,41 +725,38 @@ export const StreamUsersRequest = {
     return obj;
   },
 
-  create(base?: DeepPartial<StreamUsersRequest>): StreamUsersRequest {
-    return StreamUsersRequest.fromPartial(base ?? {});
+  create(base?: DeepPartial<StreamBalancesRequest>): StreamBalancesRequest {
+    return StreamBalancesRequest.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<StreamUsersRequest>): StreamUsersRequest {
-    const message = createBaseStreamUsersRequest();
+  fromPartial(object: DeepPartial<StreamBalancesRequest>): StreamBalancesRequest {
+    const message = createBaseStreamBalancesRequest();
     message.denom = object.denom ?? "";
     message.user_address = object.user_address ?? "";
     return message;
   },
 };
 
-function createBaseStreamUsersResponse(): StreamUsersResponse {
-  return { deleted: "0", height: "0", user: undefined };
+function createBaseStreamBalancesResponse(): StreamBalancesResponse {
+  return { deleted: "0", user: undefined };
 }
 
-export const StreamUsersResponse = {
-  $type: "flux.indexer.campclash.StreamUsersResponse" as const,
+export const StreamBalancesResponse = {
+  $type: "flux.indexer.campclash.StreamBalancesResponse" as const,
 
-  encode(message: StreamUsersResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: StreamBalancesResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.deleted !== "0") {
       writer.uint32(8).uint64(message.deleted);
     }
-    if (message.height !== "0") {
-      writer.uint32(16).uint64(message.height);
-    }
     if (message.user !== undefined) {
-      User.encode(message.user, writer.uint32(26).fork()).ldelim();
+      UserBalance.encode(message.user, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): StreamUsersResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamBalancesResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseStreamUsersResponse();
+    const message = createBaseStreamBalancesResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -737,18 +768,11 @@ export const StreamUsersResponse = {
           message.deleted = longToString(reader.uint64() as Long);
           continue;
         case 2:
-          if (tag !== 16) {
+          if (tag !== 18) {
             break;
           }
 
-          message.height = longToString(reader.uint64() as Long);
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.user = User.decode(reader, reader.uint32());
+          message.user = UserBalance.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -759,36 +783,33 @@ export const StreamUsersResponse = {
     return message;
   },
 
-  fromJSON(object: any): StreamUsersResponse {
+  fromJSON(object: any): StreamBalancesResponse {
     return {
       deleted: isSet(object.deleted) ? globalThis.String(object.deleted) : "0",
-      height: isSet(object.height) ? globalThis.String(object.height) : "0",
-      user: isSet(object.user) ? User.fromJSON(object.user) : undefined,
+      user: isSet(object.user) ? UserBalance.fromJSON(object.user) : undefined,
     };
   },
 
-  toJSON(message: StreamUsersResponse): unknown {
+  toJSON(message: StreamBalancesResponse): unknown {
     const obj: any = {};
     if (message.deleted !== undefined) {
       obj.deleted = message.deleted;
     }
-    if (message.height !== undefined) {
-      obj.height = message.height;
-    }
     if (message.user !== undefined) {
-      obj.user = User.toJSON(message.user);
+      obj.user = UserBalance.toJSON(message.user);
     }
     return obj;
   },
 
-  create(base?: DeepPartial<StreamUsersResponse>): StreamUsersResponse {
-    return StreamUsersResponse.fromPartial(base ?? {});
+  create(base?: DeepPartial<StreamBalancesResponse>): StreamBalancesResponse {
+    return StreamBalancesResponse.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<StreamUsersResponse>): StreamUsersResponse {
-    const message = createBaseStreamUsersResponse();
+  fromPartial(object: DeepPartial<StreamBalancesResponse>): StreamBalancesResponse {
+    const message = createBaseStreamBalancesResponse();
     message.deleted = object.deleted ?? "0";
-    message.height = object.height ?? "0";
-    message.user = (object.user !== undefined && object.user !== null) ? User.fromPartial(object.user) : undefined;
+    message.user = (object.user !== undefined && object.user !== null)
+      ? UserBalance.fromPartial(object.user)
+      : undefined;
     return message;
   },
 };
@@ -1658,8 +1679,11 @@ export interface CampclashQuery {
     request: DeepPartial<StreamProjectRequest>,
     metadata?: grpc.Metadata,
   ): Observable<StreamProjectResponse>;
-  ListUsers(request: DeepPartial<ListUsersRequest>, metadata?: grpc.Metadata): Promise<ListUsersResponse>;
-  StreamUsers(request: DeepPartial<StreamUsersRequest>, metadata?: grpc.Metadata): Observable<StreamUsersResponse>;
+  ListBalances(request: DeepPartial<ListBalancesRequest>, metadata?: grpc.Metadata): Promise<ListBalancesResponse>;
+  StreamBalances(
+    request: DeepPartial<StreamBalancesRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamBalancesResponse>;
   ListTrades(request: DeepPartial<ListTradesRequest>, metadata?: grpc.Metadata): Promise<ListTradesResponse>;
   StreamTrades(request: DeepPartial<StreamTradesRequest>, metadata?: grpc.Metadata): Observable<StreamTradesResponse>;
   PostComment(request: DeepPartial<PostCommentRequest>, metadata?: grpc.Metadata): Promise<PostCommentResponse>;
@@ -1677,8 +1701,8 @@ export class CampclashQueryClientImpl implements CampclashQuery {
     this.rpc = rpc;
     this.ListProjects = this.ListProjects.bind(this);
     this.StreamProject = this.StreamProject.bind(this);
-    this.ListUsers = this.ListUsers.bind(this);
-    this.StreamUsers = this.StreamUsers.bind(this);
+    this.ListBalances = this.ListBalances.bind(this);
+    this.StreamBalances = this.StreamBalances.bind(this);
     this.ListTrades = this.ListTrades.bind(this);
     this.StreamTrades = this.StreamTrades.bind(this);
     this.PostComment = this.PostComment.bind(this);
@@ -1697,12 +1721,15 @@ export class CampclashQueryClientImpl implements CampclashQuery {
     return this.rpc.invoke(CampclashQueryStreamProjectDesc, StreamProjectRequest.fromPartial(request), metadata);
   }
 
-  ListUsers(request: DeepPartial<ListUsersRequest>, metadata?: grpc.Metadata): Promise<ListUsersResponse> {
-    return this.rpc.unary(CampclashQueryListUsersDesc, ListUsersRequest.fromPartial(request), metadata);
+  ListBalances(request: DeepPartial<ListBalancesRequest>, metadata?: grpc.Metadata): Promise<ListBalancesResponse> {
+    return this.rpc.unary(CampclashQueryListBalancesDesc, ListBalancesRequest.fromPartial(request), metadata);
   }
 
-  StreamUsers(request: DeepPartial<StreamUsersRequest>, metadata?: grpc.Metadata): Observable<StreamUsersResponse> {
-    return this.rpc.invoke(CampclashQueryStreamUsersDesc, StreamUsersRequest.fromPartial(request), metadata);
+  StreamBalances(
+    request: DeepPartial<StreamBalancesRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamBalancesResponse> {
+    return this.rpc.invoke(CampclashQueryStreamBalancesDesc, StreamBalancesRequest.fromPartial(request), metadata);
   }
 
   ListTrades(request: DeepPartial<ListTradesRequest>, metadata?: grpc.Metadata): Promise<ListTradesResponse> {
@@ -1777,19 +1804,19 @@ export const CampclashQueryStreamProjectDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const CampclashQueryListUsersDesc: UnaryMethodDefinitionish = {
-  methodName: "ListUsers",
+export const CampclashQueryListBalancesDesc: UnaryMethodDefinitionish = {
+  methodName: "ListBalances",
   service: CampclashQueryDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return ListUsersRequest.encode(this).finish();
+      return ListBalancesRequest.encode(this).finish();
     },
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = ListUsersResponse.decode(data);
+      const value = ListBalancesResponse.decode(data);
       return {
         ...value,
         toObject() {
@@ -1800,19 +1827,19 @@ export const CampclashQueryListUsersDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const CampclashQueryStreamUsersDesc: UnaryMethodDefinitionish = {
-  methodName: "StreamUsers",
+export const CampclashQueryStreamBalancesDesc: UnaryMethodDefinitionish = {
+  methodName: "StreamBalances",
   service: CampclashQueryDesc,
   requestStream: false,
   responseStream: true,
   requestType: {
     serializeBinary() {
-      return StreamUsersRequest.encode(this).finish();
+      return StreamBalancesRequest.encode(this).finish();
     },
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = StreamUsersResponse.decode(data);
+      const value = StreamBalancesResponse.decode(data);
       return {
         ...value,
         toObject() {
