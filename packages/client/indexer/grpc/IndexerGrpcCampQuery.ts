@@ -25,20 +25,20 @@ export class IndexerGrpcCampQuery extends BaseIndexerGrpc {
     return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
 
-  async listUsers(
-    request: Partial<campclashQuery.ListUsersRequest>
-  ): Promise<campclashQuery.ListUsersResponse> {
-    let response = await this.retry(() => this.client.ListUsers(request))
-    return response as campclashQuery.ListUsersResponse
+  async listBalances(
+    request: Partial<campclashQuery.ListBalancesRequest>
+  ): Promise<campclashQuery.ListBalancesResponse> {
+    let response = await this.retry(() => this.client.ListBalances(request))
+    return response as campclashQuery.ListBalancesResponse
   }
 
-  async streamUsers(
-    request: Partial<campclashQuery.StreamUsersRequest>,
-    callback: (value: campclashQuery.StreamUsersResponse) => void,
+  async streamBalances(
+    request: Partial<campclashQuery.StreamBalancesRequest>,
+    callback: (value: campclashQuery.StreamBalancesResponse) => void,
     onEndCallback?: (err: any) => void,
     onStatusCallback?: () => void
   ): Promise<Subscription> {
-    const stream = this.client.StreamUsers(request)
+    const stream = this.client.StreamBalances(request)
     return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
 
@@ -56,6 +56,27 @@ export class IndexerGrpcCampQuery extends BaseIndexerGrpc {
     onStatusCallback?: () => void
   ): Promise<Subscription> {
     const stream = this.client.StreamTrades(request)
+    return stream.subscribe(callback, onEndCallback, onStatusCallback)
+  }
+  async listComments(
+    request: Partial<campclashQuery.ListCommentsRequest>
+  ): Promise<campclashQuery.ListCommentsResponse> {
+    let response = await this.retry(() => this.client.ListComments(request))
+    return response as campclashQuery.ListCommentsResponse
+  }
+  async postComment(
+    request: Partial<campclashQuery.PostCommentRequest>
+  ): Promise<campclashQuery.PostCommentResponse> {
+    let response = await this.retry(() => this.client.PostComment(request))
+    return response as campclashQuery.PostCommentResponse
+  }
+  async streamComments(
+    request: Partial<campclashQuery.StreamCommentsRequest>,
+    callback: (value: campclashQuery.StreamCommentsResponse) => void,
+    onEndCallback?: (err: any) => void,
+    onStatusCallback?: () => void
+  ): Promise<Subscription> {
+    const stream = this.client.StreamComments(request)
     return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
 }

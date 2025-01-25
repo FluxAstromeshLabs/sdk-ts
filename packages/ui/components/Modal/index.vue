@@ -28,6 +28,10 @@ const props = defineProps({
   hideButtonClose: {
     type: Boolean,
     default: false
+  },
+  zIndex: {
+    type: Number,
+    default: 1300
   }
 })
 //watch open = true, get body element disabled scroll
@@ -51,9 +55,15 @@ const closeOnEsc = (event) => {
 </script>
 <template>
   <teleport to="body">
-    <div class="base-modal-backdrop" v-if="isOpen" @click="onClose" />
+    <div class="base-modal-backdrop" v-if="isOpen" @click="onClose" :style="{ zIndex: zIndex }" />
     <Transition>
-      <div class="base-modal" v-if="isOpen" :class="class" @click="onClose">
+      <div
+        class="base-modal"
+        v-if="isOpen"
+        :style="{ zIndex: zIndex }"
+        :class="class"
+        @click="onClose"
+      >
         <div class="base-modal__content" :class="contentClass" @click.stop>
           <div :class="headerClass" class="base-modal__header">
             <div class="flex-1">

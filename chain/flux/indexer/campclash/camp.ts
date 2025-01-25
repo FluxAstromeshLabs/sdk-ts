@@ -117,11 +117,11 @@ export interface Metrics {
 }
 
 /** User structure */
-export interface User {
+export interface UserBalance {
   address: string;
   camp_denom: string;
   /** Cast to math.Int */
-  camp_amount: string;
+  amount: string;
   updated_height: string;
 }
 
@@ -962,22 +962,22 @@ export const Metrics = {
   },
 };
 
-function createBaseUser(): User {
-  return { address: "", camp_denom: "", camp_amount: "", updated_height: "0" };
+function createBaseUserBalance(): UserBalance {
+  return { address: "", camp_denom: "", amount: "", updated_height: "0" };
 }
 
-export const User = {
-  $type: "flux.indexer.campclash.User" as const,
+export const UserBalance = {
+  $type: "flux.indexer.campclash.UserBalance" as const,
 
-  encode(message: User, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: UserBalance, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.address !== "") {
       writer.uint32(10).string(message.address);
     }
     if (message.camp_denom !== "") {
       writer.uint32(18).string(message.camp_denom);
     }
-    if (message.camp_amount !== "") {
-      writer.uint32(26).string(message.camp_amount);
+    if (message.amount !== "") {
+      writer.uint32(26).string(message.amount);
     }
     if (message.updated_height !== "0") {
       writer.uint32(32).uint64(message.updated_height);
@@ -985,10 +985,10 @@ export const User = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): User {
+  decode(input: _m0.Reader | Uint8Array, length?: number): UserBalance {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseUser();
+    const message = createBaseUserBalance();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1011,7 +1011,7 @@ export const User = {
             break;
           }
 
-          message.camp_amount = reader.string();
+          message.amount = reader.string();
           continue;
         case 4:
           if (tag !== 32) {
@@ -1029,16 +1029,16 @@ export const User = {
     return message;
   },
 
-  fromJSON(object: any): User {
+  fromJSON(object: any): UserBalance {
     return {
       address: isSet(object.address) ? globalThis.String(object.address) : "",
       camp_denom: isSet(object.camp_denom) ? globalThis.String(object.camp_denom) : "",
-      camp_amount: isSet(object.camp_amount) ? globalThis.String(object.camp_amount) : "",
+      amount: isSet(object.amount) ? globalThis.String(object.amount) : "",
       updated_height: isSet(object.updated_height) ? globalThis.String(object.updated_height) : "0",
     };
   },
 
-  toJSON(message: User): unknown {
+  toJSON(message: UserBalance): unknown {
     const obj: any = {};
     if (message.address !== undefined) {
       obj.address = message.address;
@@ -1046,8 +1046,8 @@ export const User = {
     if (message.camp_denom !== undefined) {
       obj.camp_denom = message.camp_denom;
     }
-    if (message.camp_amount !== undefined) {
-      obj.camp_amount = message.camp_amount;
+    if (message.amount !== undefined) {
+      obj.amount = message.amount;
     }
     if (message.updated_height !== undefined) {
       obj.updated_height = message.updated_height;
@@ -1055,14 +1055,14 @@ export const User = {
     return obj;
   },
 
-  create(base?: DeepPartial<User>): User {
-    return User.fromPartial(base ?? {});
+  create(base?: DeepPartial<UserBalance>): UserBalance {
+    return UserBalance.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<User>): User {
-    const message = createBaseUser();
+  fromPartial(object: DeepPartial<UserBalance>): UserBalance {
+    const message = createBaseUserBalance();
     message.address = object.address ?? "";
     message.camp_denom = object.camp_denom ?? "";
-    message.camp_amount = object.camp_amount ?? "";
+    message.amount = object.amount ?? "";
     message.updated_height = object.updated_height ?? "0";
     return message;
   },
