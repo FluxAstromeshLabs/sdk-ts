@@ -15,11 +15,11 @@ export default class Metamask {
   }
   async getAddresses(): Promise<string[]> {
     const ethereum = await this.getEthereum()
-
     try {
-      return await ethereum.request({
+      const res = await ethereum.request({
         method: 'eth_requestAccounts'
       })
+      return res
     } catch (e: unknown) {
       throw e
     }
@@ -32,16 +32,16 @@ export default class Metamask {
     )
   }
   async getEthereum() {
-    if (window?.ethereum?.isMetaMask) {
-      return window.ethereum
-    }
-
-    if (window.providers) {
-      let metamask = window.providers.find((p: any) => p?.isMetaMask)
+    if (window.ethereum.providers) {
+      let metamask = window.ethereum.providers.find((p: any) => p?.isMetaMask && !p?.isPhantom)
       if (metamask) {
         return metamask
       }
     }
+    if (window?.ethereum?.isMetaMask && !window?.ethereum?.isPhantom) {
+      return window.ethereum
+    }
+
     throw new Error('Please install the Metamask wallet extension')
   }
   async getEthereumChainId(): Promise<string> {
