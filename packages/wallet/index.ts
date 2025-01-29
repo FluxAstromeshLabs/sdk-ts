@@ -1,5 +1,5 @@
 import { Wallet } from './types'
-import { EthereumChainId, getEthereumAddress } from '../utils'
+import { EthereumChainId, toHexAddress } from '../utils'
 import { Keplr, Metamask, Phantom } from './wallets'
 export * from './types'
 export interface WalletStrategyEthereumOptions {
@@ -89,16 +89,16 @@ export default class WalletStrategy {
     }
     throw new Error('This wallet does not support getPubkeyFromSignature')
   }
-  async signEip712TypedData(eip712json: string, address: string, prefix?: string): Promise<string> {
+  async signEip712TypedData(eip712json: string, address: string): Promise<string> {
     if (this.wallet === Wallet.Metamask) {
-      let ethAddress = getEthereumAddress(address, prefix)
+      let ethAddress = toHexAddress(address)
       return this.getProvider().signEip712TypedData(eip712json, ethAddress)
     }
     throw new Error('This wallet does not support signEip712TypedData')
   }
   async signPersonal(address: string, message: any) {
     if (this.wallet === Wallet.Metamask) {
-      let ethAddress = getEthereumAddress(address)
+      let ethAddress = toHexAddress(address)
       return this.getProvider().signPersonal(ethAddress, message)
     }
     if (this.wallet === Wallet.Keplr) {

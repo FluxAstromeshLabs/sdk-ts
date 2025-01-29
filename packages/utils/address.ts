@@ -103,8 +103,11 @@ export const toBech32Address = (hex: string, prefix: string = PREFIX): string =>
   }
 }
 
-export const toHexAddress = (bech: string, prefix: string = PREFIX): string => {
+export const toHexAddress = (bech: string): string => {
   try {
+    if (bech.startsWith('0x')) {
+      return bech
+    }
     return `0x${Buffer.from(bech32.fromWords(bech32.decode(bech).words)).toString('hex')}`
   } catch (e) {
     throw new Error(e as any)
