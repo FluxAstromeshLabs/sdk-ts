@@ -1,15 +1,33 @@
 import { Wallet } from './types'
-import { getEthereumAddress } from '../utils'
+import { EthereumChainId, getEthereumAddress } from '../utils'
 import { Keplr, Metamask, Phantom } from './wallets'
 export * from './types'
-
+export interface WalletStrategyEthereumOptions {
+  ethereumChainId: EthereumChainId
+  rpcUrl?: string
+}
+export interface WalletStrategyOptions {
+  wallet?: Wallet
+  ethereumOptions?: WalletStrategyEthereumOptions
+  chainId: string
+}
 export default class WalletStrategy {
   public provider: any
   public chainId: string
   public wallet: Wallet
-  constructor({ wallet, chainId }: { wallet?: Wallet; chainId: string }) {
+  public ethereumOptions?: WalletStrategyEthereumOptions
+  constructor({
+    wallet,
+    chainId,
+    ethereumOptions
+  }: {
+    wallet?: Wallet
+    chainId: string
+    ethereumOptions?: WalletStrategyEthereumOptions
+  }) {
     this.chainId = chainId
     this.wallet = wallet
+    this.ethereumOptions = ethereumOptions
     try {
       this.initProvider()
     } catch (e) {}
@@ -33,7 +51,9 @@ export default class WalletStrategy {
           this.provider = new Keplr({ chainId: this.chainId })
           break
         case Wallet.Metamask:
-          this.provider = new Metamask({ chainId: this.chainId })
+          this.provider = new Metamask({
+            chainId: this.ethereumOptions?.ethereumChainId
+          })
           break
         case Wallet.Phantom:
           this.provider = new Phantom({ chainId: this.chainId })
@@ -69,9 +89,9 @@ export default class WalletStrategy {
     }
     throw new Error('This wallet does not support getPubkeyFromSignature')
   }
-  async signEip712TypedData(eip712json: string, address: string): Promise<string> {
+  async signEip712TypedData(eip712json: string, address: string, prefix?: string): Promise<string> {
     if (this.wallet === Wallet.Metamask) {
-      let ethAddress = getEthereumAddress(address)
+      let ethAddress = getEthereumAddress(address, prefix)
       return this.getProvider().signEip712TypedData(eip712json, ethAddress)
     }
     throw new Error('This wallet does not support signEip712TypedData')

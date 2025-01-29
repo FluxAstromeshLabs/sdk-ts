@@ -1,6 +1,7 @@
 import * as ethcrypto from 'eth-crypto'
 import * as ethutil from '@ethereumjs/util'
 import * as metamaskutil from '@metamask/eth-sig-util'
+import { EthereumChainId } from '../../utils'
 declare global {
   interface Window {
     ethereum?: any
@@ -8,8 +9,8 @@ declare global {
   }
 }
 export default class Metamask {
-  private chainId: string
-  constructor(args: { chainId: string }) {
+  chainId: EthereumChainId
+  constructor(args: { chainId: EthereumChainId }) {
     this.chainId = args.chainId
   }
   async getAddresses(): Promise<string[]> {

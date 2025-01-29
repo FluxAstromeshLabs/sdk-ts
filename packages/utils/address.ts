@@ -1,7 +1,7 @@
 import { Address } from 'ethereumjs-util'
 import { bech32 } from 'bech32'
 import { PublicKey } from '@solana/web3.js'
-import keccak256 from 'keccak256'
+export const PREFIX = 'lux'
 /**
  * Get flux address from Ethereum hex address
  *
@@ -47,11 +47,11 @@ export const getSvmAddressFromLux = (luxBech32: string): PublicKey => {
  * @param luxAddress string
  * @returns string
  */
-export const getEthereumAddress = (luxAddress: string): string => {
+export const getEthereumAddress = (luxAddress: string, prefix: string = PREFIX): string => {
   if (luxAddress.startsWith('0x')) {
     return luxAddress
   }
-  if (!luxAddress.startsWith('lux')) {
+  if (!luxAddress.startsWith(prefix)) {
     return luxAddress
   }
   return `0x${Buffer.from(bech32.fromWords(bech32.decode(luxAddress).words)).toString('hex')}`
@@ -89,5 +89,24 @@ export const validateWASMAddress = (address: string): boolean => {
     return true
   } catch {
     return false
+  }
+}
+
+export const toBech32Address = (hex: string, prefix: string = PREFIX): string => {
+  try {
+    const addressHex = hex.startsWith('0x') ? hex : `0x${hex}`
+    const addressBuffer = Address.fromString(addressHex.toString()).toBuffer()
+    const bech32Address = bech32.encode(prefix, bech32.toWords(addressBuffer))
+    return bech32Address
+  } catch (e) {
+    throw new Error(e as any)
+  }
+}
+
+export const toHexAddress = (bech: string, prefix: string = PREFIX): string => {
+  try {
+    return `0x${Buffer.from(bech32.fromWords(bech32.decode(bech).words)).toString('hex')}`
+  } catch (e) {
+    throw new Error(e as any)
   }
 }
