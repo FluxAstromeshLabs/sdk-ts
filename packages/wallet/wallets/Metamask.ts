@@ -32,7 +32,7 @@ export default class Metamask {
     )
   }
   async getEthereum() {
-    if (window.ethereum.providers) {
+    if (window?.ethereum?.providers) {
       let metamask = window.ethereum.providers.find((p: any) => p?.isMetaMask && !p?.isPhantom)
       if (metamask) {
         return metamask
