@@ -21,6 +21,7 @@ export interface ListProjectsRequest {
   /** ordering for leaderboard */
   sort_by_fields: string[];
   camp_type: string;
+  tags: string[];
 }
 
 export interface ListProjectsResponse {
@@ -30,6 +31,8 @@ export interface ListProjectsResponse {
 
 export interface StreamProjectRequest {
   camp_denom: string;
+  camp_type: string;
+  tags: string[];
 }
 
 export interface StreamProjectResponse {
@@ -76,6 +79,7 @@ export interface ListTradesResponse {
 export interface StreamTradesRequest {
   camp_denom: string;
   user_address: string;
+  camp_type: string;
 }
 
 export interface StreamTradesResponse {
@@ -119,7 +123,7 @@ export interface StreamCommentsResponse {
 }
 
 function createBaseListProjectsRequest(): ListProjectsRequest {
-  return { pagination: undefined, camp_denom: "", search: "", sort_by_fields: [], camp_type: "" };
+  return { pagination: undefined, camp_denom: "", search: "", sort_by_fields: [], camp_type: "", tags: [] };
 }
 
 export const ListProjectsRequest = {
@@ -140,6 +144,9 @@ export const ListProjectsRequest = {
     }
     if (message.camp_type !== "") {
       writer.uint32(42).string(message.camp_type);
+    }
+    for (const v of message.tags) {
+      writer.uint32(50).string(v!);
     }
     return writer;
   },
@@ -186,6 +193,13 @@ export const ListProjectsRequest = {
 
           message.camp_type = reader.string();
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.tags.push(reader.string());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -204,6 +218,7 @@ export const ListProjectsRequest = {
         ? object.sort_by_fields.map((e: any) => globalThis.String(e))
         : [],
       camp_type: isSet(object.camp_type) ? globalThis.String(object.camp_type) : "",
+      tags: globalThis.Array.isArray(object?.tags) ? object.tags.map((e: any) => globalThis.String(e)) : [],
     };
   },
 
@@ -224,6 +239,9 @@ export const ListProjectsRequest = {
     if (message.camp_type !== undefined) {
       obj.camp_type = message.camp_type;
     }
+    if (message.tags?.length) {
+      obj.tags = message.tags;
+    }
     return obj;
   },
 
@@ -239,6 +257,7 @@ export const ListProjectsRequest = {
     message.search = object.search ?? "";
     message.sort_by_fields = object.sort_by_fields?.map((e) => e) || [];
     message.camp_type = object.camp_type ?? "";
+    message.tags = object.tags?.map((e) => e) || [];
     return message;
   },
 };
@@ -322,7 +341,7 @@ export const ListProjectsResponse = {
 };
 
 function createBaseStreamProjectRequest(): StreamProjectRequest {
-  return { camp_denom: "" };
+  return { camp_denom: "", camp_type: "", tags: [] };
 }
 
 export const StreamProjectRequest = {
@@ -331,6 +350,12 @@ export const StreamProjectRequest = {
   encode(message: StreamProjectRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.camp_denom !== "") {
       writer.uint32(10).string(message.camp_denom);
+    }
+    if (message.camp_type !== "") {
+      writer.uint32(18).string(message.camp_type);
+    }
+    for (const v of message.tags) {
+      writer.uint32(26).string(v!);
     }
     return writer;
   },
@@ -349,6 +374,20 @@ export const StreamProjectRequest = {
 
           message.camp_denom = reader.string();
           continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.camp_type = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.tags.push(reader.string());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -359,13 +398,23 @@ export const StreamProjectRequest = {
   },
 
   fromJSON(object: any): StreamProjectRequest {
-    return { camp_denom: isSet(object.camp_denom) ? globalThis.String(object.camp_denom) : "" };
+    return {
+      camp_denom: isSet(object.camp_denom) ? globalThis.String(object.camp_denom) : "",
+      camp_type: isSet(object.camp_type) ? globalThis.String(object.camp_type) : "",
+      tags: globalThis.Array.isArray(object?.tags) ? object.tags.map((e: any) => globalThis.String(e)) : [],
+    };
   },
 
   toJSON(message: StreamProjectRequest): unknown {
     const obj: any = {};
     if (message.camp_denom !== undefined) {
       obj.camp_denom = message.camp_denom;
+    }
+    if (message.camp_type !== undefined) {
+      obj.camp_type = message.camp_type;
+    }
+    if (message.tags?.length) {
+      obj.tags = message.tags;
     }
     return obj;
   },
@@ -376,6 +425,8 @@ export const StreamProjectRequest = {
   fromPartial(object: DeepPartial<StreamProjectRequest>): StreamProjectRequest {
     const message = createBaseStreamProjectRequest();
     message.camp_denom = object.camp_denom ?? "";
+    message.camp_type = object.camp_type ?? "";
+    message.tags = object.tags?.map((e) => e) || [];
     return message;
   },
 };
@@ -1002,7 +1053,7 @@ export const ListTradesResponse = {
 };
 
 function createBaseStreamTradesRequest(): StreamTradesRequest {
-  return { camp_denom: "", user_address: "" };
+  return { camp_denom: "", user_address: "", camp_type: "" };
 }
 
 export const StreamTradesRequest = {
@@ -1014,6 +1065,9 @@ export const StreamTradesRequest = {
     }
     if (message.user_address !== "") {
       writer.uint32(18).string(message.user_address);
+    }
+    if (message.camp_type !== "") {
+      writer.uint32(26).string(message.camp_type);
     }
     return writer;
   },
@@ -1039,6 +1093,13 @@ export const StreamTradesRequest = {
 
           message.user_address = reader.string();
           continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.camp_type = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1052,6 +1113,7 @@ export const StreamTradesRequest = {
     return {
       camp_denom: isSet(object.camp_denom) ? globalThis.String(object.camp_denom) : "",
       user_address: isSet(object.user_address) ? globalThis.String(object.user_address) : "",
+      camp_type: isSet(object.camp_type) ? globalThis.String(object.camp_type) : "",
     };
   },
 
@@ -1063,6 +1125,9 @@ export const StreamTradesRequest = {
     if (message.user_address !== undefined) {
       obj.user_address = message.user_address;
     }
+    if (message.camp_type !== undefined) {
+      obj.camp_type = message.camp_type;
+    }
     return obj;
   },
 
@@ -1073,6 +1138,7 @@ export const StreamTradesRequest = {
     const message = createBaseStreamTradesRequest();
     message.camp_denom = object.camp_denom ?? "";
     message.user_address = object.user_address ?? "";
+    message.camp_type = object.camp_type ?? "";
     return message;
   },
 };
