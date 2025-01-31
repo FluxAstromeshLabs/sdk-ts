@@ -53,10 +53,22 @@ export default class Metamask {
       throw e
     }
   }
-
-  async signEip712TypedData(eip712json: string, address: string): Promise<string> {
+  async switchEthereumChain(chainId: EthereumChainId) {
     const ethereum = await this.getEthereum()
-
+    await ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: `0x${chainId.toString(16)}` }]
+    })
+  }
+  async signEip712TypedData(
+    eip712json: string,
+    address: string,
+    chainId?: EthereumChainId
+  ): Promise<string> {
+    const ethereum = await this.getEthereum()
+    if (chainId) {
+      await this.switchEthereumChain(chainId)
+    }
     try {
       return await ethereum.request({
         method: 'eth_signTypedData_v4',

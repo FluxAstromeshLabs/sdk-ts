@@ -89,10 +89,14 @@ export default class WalletStrategy {
     }
     throw new Error('This wallet does not support getPubkeyFromSignature')
   }
-  async signEip712TypedData(eip712json: string, address: string): Promise<string> {
+  async signEip712TypedData(
+    eip712json: string,
+    address: string,
+    chainId?: EthereumChainId
+  ): Promise<string> {
     if (this.wallet === Wallet.Metamask) {
       let ethAddress = toHexAddress(address)
-      return this.getProvider().signEip712TypedData(eip712json, ethAddress)
+      return this.getProvider().signEip712TypedData(eip712json, ethAddress, chainId)
     }
     throw new Error('This wallet does not support signEip712TypedData')
   }
