@@ -20,6 +20,7 @@ export interface ListProjectsRequest {
   search: string;
   /** ordering for leaderboard */
   sort_by_fields: string[];
+  camp_type: string;
 }
 
 export interface ListProjectsResponse {
@@ -118,7 +119,7 @@ export interface StreamCommentsResponse {
 }
 
 function createBaseListProjectsRequest(): ListProjectsRequest {
-  return { pagination: undefined, camp_denom: "", search: "", sort_by_fields: [] };
+  return { pagination: undefined, camp_denom: "", search: "", sort_by_fields: [], camp_type: "" };
 }
 
 export const ListProjectsRequest = {
@@ -136,6 +137,9 @@ export const ListProjectsRequest = {
     }
     for (const v of message.sort_by_fields) {
       writer.uint32(34).string(v!);
+    }
+    if (message.camp_type !== "") {
+      writer.uint32(42).string(message.camp_type);
     }
     return writer;
   },
@@ -175,6 +179,13 @@ export const ListProjectsRequest = {
 
           message.sort_by_fields.push(reader.string());
           continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.camp_type = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -192,6 +203,7 @@ export const ListProjectsRequest = {
       sort_by_fields: globalThis.Array.isArray(object?.sort_by_fields)
         ? object.sort_by_fields.map((e: any) => globalThis.String(e))
         : [],
+      camp_type: isSet(object.camp_type) ? globalThis.String(object.camp_type) : "",
     };
   },
 
@@ -209,6 +221,9 @@ export const ListProjectsRequest = {
     if (message.sort_by_fields?.length) {
       obj.sort_by_fields = message.sort_by_fields;
     }
+    if (message.camp_type !== undefined) {
+      obj.camp_type = message.camp_type;
+    }
     return obj;
   },
 
@@ -223,6 +238,7 @@ export const ListProjectsRequest = {
     message.camp_denom = object.camp_denom ?? "";
     message.search = object.search ?? "";
     message.sort_by_fields = object.sort_by_fields?.map((e) => e) || [];
+    message.camp_type = object.camp_type ?? "";
     return message;
   },
 };
