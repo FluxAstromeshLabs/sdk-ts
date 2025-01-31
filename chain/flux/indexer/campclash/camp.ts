@@ -102,6 +102,8 @@ export interface Project {
   updated_height: string;
   metadata: string;
   metrics: Metrics | undefined;
+  metadata_object: MetadataObject | undefined;
+  created_at: string;
 }
 
 /** Metrics structure */
@@ -142,6 +144,16 @@ export interface Trade {
   price: string;
   height: string;
   timestamp: string;
+}
+
+export interface MetadataObject {
+  description: string;
+  camp_type: string;
+  website: string;
+  twitter: string;
+  telegram: string;
+  agent_id: string;
+  tags: string[];
 }
 
 function createBaseCampEvent(): CampEvent {
@@ -453,6 +465,8 @@ function createBaseProject(): Project {
     updated_height: "0",
     metadata: "",
     metrics: undefined,
+    metadata_object: undefined,
+    created_at: "0",
   };
 }
 
@@ -516,6 +530,12 @@ export const Project = {
     }
     if (message.metrics !== undefined) {
       Metrics.encode(message.metrics, writer.uint32(154).fork()).ldelim();
+    }
+    if (message.metadata_object !== undefined) {
+      MetadataObject.encode(message.metadata_object, writer.uint32(162).fork()).ldelim();
+    }
+    if (message.created_at !== "0") {
+      writer.uint32(168).int64(message.created_at);
     }
     return writer;
   },
@@ -660,6 +680,20 @@ export const Project = {
 
           message.metrics = Metrics.decode(reader, reader.uint32());
           continue;
+        case 20:
+          if (tag !== 162) {
+            break;
+          }
+
+          message.metadata_object = MetadataObject.decode(reader, reader.uint32());
+          continue;
+        case 21:
+          if (tag !== 168) {
+            break;
+          }
+
+          message.created_at = longToString(reader.int64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -690,6 +724,8 @@ export const Project = {
       updated_height: isSet(object.updated_height) ? globalThis.String(object.updated_height) : "0",
       metadata: isSet(object.metadata) ? globalThis.String(object.metadata) : "",
       metrics: isSet(object.metrics) ? Metrics.fromJSON(object.metrics) : undefined,
+      metadata_object: isSet(object.metadata_object) ? MetadataObject.fromJSON(object.metadata_object) : undefined,
+      created_at: isSet(object.created_at) ? globalThis.String(object.created_at) : "0",
     };
   },
 
@@ -752,6 +788,12 @@ export const Project = {
     if (message.metrics !== undefined) {
       obj.metrics = Metrics.toJSON(message.metrics);
     }
+    if (message.metadata_object !== undefined) {
+      obj.metadata_object = MetadataObject.toJSON(message.metadata_object);
+    }
+    if (message.created_at !== undefined) {
+      obj.created_at = message.created_at;
+    }
     return obj;
   },
 
@@ -781,6 +823,10 @@ export const Project = {
     message.metrics = (object.metrics !== undefined && object.metrics !== null)
       ? Metrics.fromPartial(object.metrics)
       : undefined;
+    message.metadata_object = (object.metadata_object !== undefined && object.metadata_object !== null)
+      ? MetadataObject.fromPartial(object.metadata_object)
+      : undefined;
+    message.created_at = object.created_at ?? "0";
     return message;
   },
 };
@@ -1335,6 +1381,157 @@ export const Trade = {
     message.price = object.price ?? "";
     message.height = object.height ?? "0";
     message.timestamp = object.timestamp ?? "0";
+    return message;
+  },
+};
+
+function createBaseMetadataObject(): MetadataObject {
+  return { description: "", camp_type: "", website: "", twitter: "", telegram: "", agent_id: "", tags: [] };
+}
+
+export const MetadataObject = {
+  $type: "flux.indexer.campclash.MetadataObject" as const,
+
+  encode(message: MetadataObject, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.description !== "") {
+      writer.uint32(10).string(message.description);
+    }
+    if (message.camp_type !== "") {
+      writer.uint32(18).string(message.camp_type);
+    }
+    if (message.website !== "") {
+      writer.uint32(26).string(message.website);
+    }
+    if (message.twitter !== "") {
+      writer.uint32(34).string(message.twitter);
+    }
+    if (message.telegram !== "") {
+      writer.uint32(42).string(message.telegram);
+    }
+    if (message.agent_id !== "") {
+      writer.uint32(50).string(message.agent_id);
+    }
+    for (const v of message.tags) {
+      writer.uint32(58).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MetadataObject {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMetadataObject();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.camp_type = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.website = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.twitter = reader.string();
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.telegram = reader.string();
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.agent_id = reader.string();
+          continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.tags.push(reader.string());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MetadataObject {
+    return {
+      description: isSet(object.description) ? globalThis.String(object.description) : "",
+      camp_type: isSet(object.camp_type) ? globalThis.String(object.camp_type) : "",
+      website: isSet(object.website) ? globalThis.String(object.website) : "",
+      twitter: isSet(object.twitter) ? globalThis.String(object.twitter) : "",
+      telegram: isSet(object.telegram) ? globalThis.String(object.telegram) : "",
+      agent_id: isSet(object.agent_id) ? globalThis.String(object.agent_id) : "",
+      tags: globalThis.Array.isArray(object?.tags) ? object.tags.map((e: any) => globalThis.String(e)) : [],
+    };
+  },
+
+  toJSON(message: MetadataObject): unknown {
+    const obj: any = {};
+    if (message.description !== undefined) {
+      obj.description = message.description;
+    }
+    if (message.camp_type !== undefined) {
+      obj.camp_type = message.camp_type;
+    }
+    if (message.website !== undefined) {
+      obj.website = message.website;
+    }
+    if (message.twitter !== undefined) {
+      obj.twitter = message.twitter;
+    }
+    if (message.telegram !== undefined) {
+      obj.telegram = message.telegram;
+    }
+    if (message.agent_id !== undefined) {
+      obj.agent_id = message.agent_id;
+    }
+    if (message.tags?.length) {
+      obj.tags = message.tags;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<MetadataObject>): MetadataObject {
+    return MetadataObject.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<MetadataObject>): MetadataObject {
+    const message = createBaseMetadataObject();
+    message.description = object.description ?? "";
+    message.camp_type = object.camp_type ?? "";
+    message.website = object.website ?? "";
+    message.twitter = object.twitter ?? "";
+    message.telegram = object.telegram ?? "";
+    message.agent_id = object.agent_id ?? "";
+    message.tags = object.tags?.map((e) => e) || [];
     return message;
   },
 };
