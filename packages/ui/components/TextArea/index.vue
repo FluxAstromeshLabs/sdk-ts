@@ -32,6 +32,10 @@ defineProps({
   value: {
     type: String,
     default: ''
+  },
+  required: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -51,6 +55,7 @@ const containerClick = () => {
   <div class="base-text-area" :class="[errorMessage ? 'invalid' : '', containerClass].join(' ')">
     <p class="label" :class="labelClass" v-if="label">
       {{ label }}
+      <span v-if="required">&ast;</span>
     </p>
     <div class="relative w-full flex-1">
       <textarea
