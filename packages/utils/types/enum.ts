@@ -6,7 +6,8 @@ export enum EthereumChainId {
   Kovan = 42,
   Injective = 888,
   Ganache = 1337,
-  HardHat = 31337
+  HardHat = 31337,
+  Sepolia = 11155111
 }
 
 export enum ChainId {

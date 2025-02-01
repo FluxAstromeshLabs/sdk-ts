@@ -255,13 +255,22 @@ export const createMessageJSON = (message: any, messageWrapper: any) => {
 export const createWeb3Extension = ({
   ethereumChainId,
   feePayer,
-  feePayerSig
+  feePayerSig,
+  isInjective
 }: {
   ethereumChainId: EthereumChainId
   feePayer?: string
   feePayerSig?: Uint8Array
+  isInjective?: boolean
 }) => {
-  const web3Extension = FluxTypesV1TxExt.ExtensionOptionsWeb3Tx.create()
+  const injExtensionOptionsWeb3Tx = {
+    ...FluxTypesV1TxExt.ExtensionOptionsWeb3Tx,
+    $type: 'injective.types.v1beta1.ExtensionOptionsWeb3Tx'
+  }
+  const extensionOptionsWeb3Tx = isInjective
+    ? injExtensionOptionsWeb3Tx
+    : FluxTypesV1TxExt.ExtensionOptionsWeb3Tx
+  const web3Extension = extensionOptionsWeb3Tx.create()
   web3Extension.typedDataChainID = ethereumChainId.toString()
 
   if (feePayer) {
@@ -273,8 +282,8 @@ export const createWeb3Extension = ({
   }
 
   const extOptsAny: GoogleProtobufAny.Any = {
-    type_url: '/' + FluxTypesV1TxExt.ExtensionOptionsWeb3Tx.$type,
-    value: FluxTypesV1TxExt.ExtensionOptionsWeb3Tx.encode(web3Extension).finish()
+    type_url: '/' + extensionOptionsWeb3Tx.$type,
+    value: extensionOptionsWeb3Tx.encode(web3Extension).finish()
   }
   return extOptsAny
 }

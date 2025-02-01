@@ -1,6 +1,7 @@
 import * as ethcrypto from 'eth-crypto'
 import * as ethutil from '@ethereumjs/util'
 import * as metamaskutil from '@metamask/eth-sig-util'
+import { EthereumChainId } from '../../utils'
 declare global {
   interface Window {
     ethereum?: any
@@ -8,17 +9,17 @@ declare global {
   }
 }
 export default class Metamask {
-  private chainId: string
-  constructor(args: { chainId: string }) {
+  chainId: EthereumChainId
+  constructor(args: { chainId: EthereumChainId }) {
     this.chainId = args.chainId
   }
   async getAddresses(): Promise<string[]> {
     const ethereum = await this.getEthereum()
-
     try {
-      return await ethereum.request({
+      const res = await ethereum.request({
         method: 'eth_requestAccounts'
       })
+      return res
     } catch (e: unknown) {
       throw e
     }
@@ -31,16 +32,16 @@ export default class Metamask {
     )
   }
   async getEthereum() {
-    if (window?.ethereum?.isMetaMask) {
-      return window.ethereum
-    }
-
-    if (window.providers) {
-      let metamask = window.providers.find((p: any) => p?.isMetaMask)
+    if (window?.ethereum?.providers) {
+      let metamask = window.ethereum.providers.find((p: any) => p?.isMetaMask && !p?.isPhantom)
       if (metamask) {
         return metamask
       }
     }
+    if (window?.ethereum?.isMetaMask && !window?.ethereum?.isPhantom) {
+      return window.ethereum
+    }
+
     throw new Error('Please install the Metamask wallet extension')
   }
   async getEthereumChainId(): Promise<string> {
@@ -52,10 +53,22 @@ export default class Metamask {
       throw e
     }
   }
-
-  async signEip712TypedData(eip712json: string, address: string): Promise<string> {
+  async switchEthereumChain(chainId: EthereumChainId) {
     const ethereum = await this.getEthereum()
-
+    await ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: `0x${chainId.toString(16)}` }]
+    })
+  }
+  async signEip712TypedData(
+    eip712json: string,
+    address: string,
+    chainId?: EthereumChainId
+  ): Promise<string> {
+    const ethereum = await this.getEthereum()
+    if (chainId) {
+      await this.switchEthereumChain(chainId)
+    }
     try {
       return await ethereum.request({
         method: 'eth_signTypedData_v4',

@@ -7,7 +7,7 @@ defineProps({
   modelValue: String,
   label: {
     type: String,
-    required: true
+    required: false
   },
   errorMessage: {
     type: String,
@@ -57,7 +57,7 @@ const containerClick = () => {
       {{ label }}
       <span v-if="required">&ast;</span>
     </p>
-    <div class="relative w-full h-full">
+    <div class="relative w-full flex-1">
       <textarea
         class="input h-full"
         type="text"
