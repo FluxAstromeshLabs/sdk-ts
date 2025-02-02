@@ -2,7 +2,7 @@
   @apply relative overflow-hidden;
 }
 .base-avatar img {
-  @apply w-full h-full relative z-[1] object-cover;
+  @apply w-full h-full relative z-[1] object-contain;
 }
 .base-avatar.sm {
   @apply w-6 h-6 min-w-6 max-w-6 max-h-6 rounded-[8px];
@@ -28,3 +28,4 @@
 .base-avatar.background-4 {
   @apply bg-gradient-to-b from-rose-100 to-rose-400;
 }
+
