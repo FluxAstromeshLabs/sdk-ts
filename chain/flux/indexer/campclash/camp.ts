@@ -122,6 +122,10 @@ export interface Metrics {
   followers: string;
   smart_followers: string;
   top_tweets: string[];
+  /** Cast to math.Int */
+  volume_24h: string;
+  /** Cast to math.Int */
+  total_volume: string;
 }
 
 /** User structure */
@@ -848,6 +852,8 @@ function createBaseMetrics(): Metrics {
     followers: "0",
     smart_followers: "0",
     top_tweets: [],
+    volume_24h: "",
+    total_volume: "",
   };
 }
 
@@ -878,6 +884,12 @@ export const Metrics = {
     }
     for (const v of message.top_tweets) {
       writer.uint32(66).string(v!);
+    }
+    if (message.volume_24h !== "") {
+      writer.uint32(74).string(message.volume_24h);
+    }
+    if (message.total_volume !== "") {
+      writer.uint32(82).string(message.total_volume);
     }
     return writer;
   },
@@ -945,6 +957,20 @@ export const Metrics = {
 
           message.top_tweets.push(reader.string());
           continue;
+        case 9:
+          if (tag !== 74) {
+            break;
+          }
+
+          message.volume_24h = reader.string();
+          continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.total_volume = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -966,6 +992,8 @@ export const Metrics = {
       top_tweets: globalThis.Array.isArray(object?.top_tweets)
         ? object.top_tweets.map((e: any) => globalThis.String(e))
         : [],
+      volume_24h: isSet(object.volume_24h) ? globalThis.String(object.volume_24h) : "",
+      total_volume: isSet(object.total_volume) ? globalThis.String(object.total_volume) : "",
     };
   },
 
@@ -995,6 +1023,12 @@ export const Metrics = {
     if (message.top_tweets?.length) {
       obj.top_tweets = message.top_tweets;
     }
+    if (message.volume_24h !== undefined) {
+      obj.volume_24h = message.volume_24h;
+    }
+    if (message.total_volume !== undefined) {
+      obj.total_volume = message.total_volume;
+    }
     return obj;
   },
 
@@ -1011,6 +1045,8 @@ export const Metrics = {
     message.followers = object.followers ?? "0";
     message.smart_followers = object.smart_followers ?? "0";
     message.top_tweets = object.top_tweets?.map((e) => e) || [];
+    message.volume_24h = object.volume_24h ?? "";
+    message.total_volume = object.total_volume ?? "";
     return message;
   },
 };
