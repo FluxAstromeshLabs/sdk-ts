@@ -13,6 +13,7 @@ import { Coin } from "../../../cosmos/base/v1beta1/coin";
 export enum Ops {
   OpCreateCamp = 0,
   OpGraduateCamp = 1,
+  OpUpdateCamp = 2,
   UNRECOGNIZED = -1,
 }
 
@@ -24,6 +25,9 @@ export function opsFromJSON(object: any): Ops {
     case 1:
     case "OpGraduateCamp":
       return Ops.OpGraduateCamp;
+    case 2:
+    case "OpUpdateCamp":
+      return Ops.OpUpdateCamp;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -37,6 +41,8 @@ export function opsToJSON(object: Ops): string {
       return "OpCreateCamp";
     case Ops.OpGraduateCamp:
       return "OpGraduateCamp";
+    case Ops.OpUpdateCamp:
+      return "OpUpdateCamp";
     case Ops.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -144,6 +150,7 @@ export interface Trade {
   price: string;
   height: string;
   timestamp: string;
+  camp_type: string;
 }
 
 export interface MetadataObject {
@@ -1201,6 +1208,7 @@ function createBaseTrade(): Trade {
     price: "",
     height: "0",
     timestamp: "0",
+    camp_type: "",
   };
 }
 
@@ -1234,6 +1242,9 @@ export const Trade = {
     }
     if (message.timestamp !== "0") {
       writer.uint32(72).int64(message.timestamp);
+    }
+    if (message.camp_type !== "") {
+      writer.uint32(82).string(message.camp_type);
     }
     return writer;
   },
@@ -1308,6 +1319,13 @@ export const Trade = {
 
           message.timestamp = longToString(reader.int64() as Long);
           continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.camp_type = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1328,6 +1346,7 @@ export const Trade = {
       price: isSet(object.price) ? globalThis.String(object.price) : "",
       height: isSet(object.height) ? globalThis.String(object.height) : "0",
       timestamp: isSet(object.timestamp) ? globalThis.String(object.timestamp) : "0",
+      camp_type: isSet(object.camp_type) ? globalThis.String(object.camp_type) : "",
     };
   },
 
@@ -1360,6 +1379,9 @@ export const Trade = {
     if (message.timestamp !== undefined) {
       obj.timestamp = message.timestamp;
     }
+    if (message.camp_type !== undefined) {
+      obj.camp_type = message.camp_type;
+    }
     return obj;
   },
 
@@ -1381,6 +1403,7 @@ export const Trade = {
     message.price = object.price ?? "";
     message.height = object.height ?? "0";
     message.timestamp = object.timestamp ?? "0";
+    message.camp_type = object.camp_type ?? "";
     return message;
   },
 };
