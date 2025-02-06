@@ -79,4 +79,11 @@ export class IndexerGrpcCampQuery extends BaseIndexerGrpc {
     const stream = this.client.StreamComments(request)
     return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
+  async getLeaderboard(
+    request: Partial<campclashQuery.GetLeaderboardRequest>
+  ): Promise<campclashQuery.GetLeaderboardResponse> {
+    console.log(request)
+    let response = await this.retry(() => this.client.GetLeaderboard(request))
+    return response as campclashQuery.GetLeaderboardResponse
+  }
 }

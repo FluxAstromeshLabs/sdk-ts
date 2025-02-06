@@ -122,6 +122,17 @@ export interface StreamCommentsResponse {
   comment: Comment | undefined;
 }
 
+export interface GetLeaderboardRequest {
+  pagination: PageRequest | undefined;
+  camp_type: string;
+  sort_by: string;
+}
+
+export interface GetLeaderboardResponse {
+  pagination: PageResponse | undefined;
+  projects: Project[];
+}
+
 function createBaseListProjectsRequest(): ListProjectsRequest {
   return { pagination: undefined, camp_denom: "", search: "", sort_by_fields: [], camp_type: "", tags: [] };
 }
@@ -1754,6 +1765,177 @@ export const StreamCommentsResponse = {
   },
 };
 
+function createBaseGetLeaderboardRequest(): GetLeaderboardRequest {
+  return { pagination: undefined, camp_type: "", sort_by: "" };
+}
+
+export const GetLeaderboardRequest = {
+  $type: "flux.indexer.campclash.GetLeaderboardRequest" as const,
+
+  encode(message: GetLeaderboardRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.camp_type !== "") {
+      writer.uint32(18).string(message.camp_type);
+    }
+    if (message.sort_by !== "") {
+      writer.uint32(26).string(message.sort_by);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetLeaderboardRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetLeaderboardRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.camp_type = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.sort_by = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetLeaderboardRequest {
+    return {
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
+      camp_type: isSet(object.camp_type) ? globalThis.String(object.camp_type) : "",
+      sort_by: isSet(object.sort_by) ? globalThis.String(object.sort_by) : "",
+    };
+  },
+
+  toJSON(message: GetLeaderboardRequest): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageRequest.toJSON(message.pagination);
+    }
+    if (message.camp_type !== undefined) {
+      obj.camp_type = message.camp_type;
+    }
+    if (message.sort_by !== undefined) {
+      obj.sort_by = message.sort_by;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GetLeaderboardRequest>): GetLeaderboardRequest {
+    return GetLeaderboardRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GetLeaderboardRequest>): GetLeaderboardRequest {
+    const message = createBaseGetLeaderboardRequest();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
+    message.camp_type = object.camp_type ?? "";
+    message.sort_by = object.sort_by ?? "";
+    return message;
+  },
+};
+
+function createBaseGetLeaderboardResponse(): GetLeaderboardResponse {
+  return { pagination: undefined, projects: [] };
+}
+
+export const GetLeaderboardResponse = {
+  $type: "flux.indexer.campclash.GetLeaderboardResponse" as const,
+
+  encode(message: GetLeaderboardResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    for (const v of message.projects) {
+      Project.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetLeaderboardResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetLeaderboardResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.projects.push(Project.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetLeaderboardResponse {
+    return {
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+      projects: globalThis.Array.isArray(object?.projects) ? object.projects.map((e: any) => Project.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: GetLeaderboardResponse): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageResponse.toJSON(message.pagination);
+    }
+    if (message.projects?.length) {
+      obj.projects = message.projects.map((e) => Project.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GetLeaderboardResponse>): GetLeaderboardResponse {
+    return GetLeaderboardResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GetLeaderboardResponse>): GetLeaderboardResponse {
+    const message = createBaseGetLeaderboardResponse();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
+    message.projects = object.projects?.map((e) => Project.fromPartial(e)) || [];
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface CampclashQuery {
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse>;
@@ -1774,6 +1956,10 @@ export interface CampclashQuery {
     request: DeepPartial<StreamCommentsRequest>,
     metadata?: grpc.Metadata,
   ): Observable<StreamCommentsResponse>;
+  GetLeaderboard(
+    request: DeepPartial<GetLeaderboardRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetLeaderboardResponse>;
 }
 
 export class CampclashQueryClientImpl implements CampclashQuery {
@@ -1790,6 +1976,7 @@ export class CampclashQueryClientImpl implements CampclashQuery {
     this.PostComment = this.PostComment.bind(this);
     this.ListComments = this.ListComments.bind(this);
     this.StreamComments = this.StreamComments.bind(this);
+    this.GetLeaderboard = this.GetLeaderboard.bind(this);
   }
 
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse> {
@@ -1835,6 +2022,13 @@ export class CampclashQueryClientImpl implements CampclashQuery {
     metadata?: grpc.Metadata,
   ): Observable<StreamCommentsResponse> {
     return this.rpc.invoke(CampclashQueryStreamCommentsDesc, StreamCommentsRequest.fromPartial(request), metadata);
+  }
+
+  GetLeaderboard(
+    request: DeepPartial<GetLeaderboardRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetLeaderboardResponse> {
+    return this.rpc.unary(CampclashQueryGetLeaderboardDesc, GetLeaderboardRequest.fromPartial(request), metadata);
   }
 }
 
@@ -2037,6 +2231,29 @@ export const CampclashQueryStreamCommentsDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = StreamCommentsResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQueryGetLeaderboardDesc: UnaryMethodDefinitionish = {
+  methodName: "GetLeaderboard",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetLeaderboardRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetLeaderboardResponse.decode(data);
       return {
         ...value,
         toObject() {

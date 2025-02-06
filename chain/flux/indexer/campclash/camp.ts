@@ -13,6 +13,7 @@ import { Coin } from "../../../cosmos/base/v1beta1/coin";
 export enum Ops {
   OpCreateCamp = 0,
   OpGraduateCamp = 1,
+  OpUpdateCamp = 2,
   UNRECOGNIZED = -1,
 }
 
@@ -24,6 +25,9 @@ export function opsFromJSON(object: any): Ops {
     case 1:
     case "OpGraduateCamp":
       return Ops.OpGraduateCamp;
+    case 2:
+    case "OpUpdateCamp":
+      return Ops.OpUpdateCamp;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -37,6 +41,8 @@ export function opsToJSON(object: Ops): string {
       return "OpCreateCamp";
     case Ops.OpGraduateCamp:
       return "OpGraduateCamp";
+    case Ops.OpUpdateCamp:
+      return "OpUpdateCamp";
     case Ops.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -116,6 +122,11 @@ export interface Metrics {
   followers: string;
   smart_followers: string;
   top_tweets: string[];
+  /** Cast to math.Int */
+  volume_24h: string;
+  /** Cast to math.Int */
+  total_volume: string;
+  updated_at: string;
 }
 
 /** User structure */
@@ -125,6 +136,7 @@ export interface UserBalance {
   /** Cast to math.Int */
   amount: string;
   updated_height: string;
+  logo: string;
 }
 
 /** Agent structure */
@@ -144,6 +156,7 @@ export interface Trade {
   price: string;
   height: string;
   timestamp: string;
+  camp_type: string;
 }
 
 export interface MetadataObject {
@@ -841,6 +854,9 @@ function createBaseMetrics(): Metrics {
     followers: "0",
     smart_followers: "0",
     top_tweets: [],
+    volume_24h: "",
+    total_volume: "",
+    updated_at: "0",
   };
 }
 
@@ -871,6 +887,15 @@ export const Metrics = {
     }
     for (const v of message.top_tweets) {
       writer.uint32(66).string(v!);
+    }
+    if (message.volume_24h !== "") {
+      writer.uint32(74).string(message.volume_24h);
+    }
+    if (message.total_volume !== "") {
+      writer.uint32(82).string(message.total_volume);
+    }
+    if (message.updated_at !== "0") {
+      writer.uint32(88).int64(message.updated_at);
     }
     return writer;
   },
@@ -938,6 +963,27 @@ export const Metrics = {
 
           message.top_tweets.push(reader.string());
           continue;
+        case 9:
+          if (tag !== 74) {
+            break;
+          }
+
+          message.volume_24h = reader.string();
+          continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.total_volume = reader.string();
+          continue;
+        case 11:
+          if (tag !== 88) {
+            break;
+          }
+
+          message.updated_at = longToString(reader.int64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -959,6 +1005,9 @@ export const Metrics = {
       top_tweets: globalThis.Array.isArray(object?.top_tweets)
         ? object.top_tweets.map((e: any) => globalThis.String(e))
         : [],
+      volume_24h: isSet(object.volume_24h) ? globalThis.String(object.volume_24h) : "",
+      total_volume: isSet(object.total_volume) ? globalThis.String(object.total_volume) : "",
+      updated_at: isSet(object.updated_at) ? globalThis.String(object.updated_at) : "0",
     };
   },
 
@@ -988,6 +1037,15 @@ export const Metrics = {
     if (message.top_tweets?.length) {
       obj.top_tweets = message.top_tweets;
     }
+    if (message.volume_24h !== undefined) {
+      obj.volume_24h = message.volume_24h;
+    }
+    if (message.total_volume !== undefined) {
+      obj.total_volume = message.total_volume;
+    }
+    if (message.updated_at !== undefined) {
+      obj.updated_at = message.updated_at;
+    }
     return obj;
   },
 
@@ -1004,12 +1062,15 @@ export const Metrics = {
     message.followers = object.followers ?? "0";
     message.smart_followers = object.smart_followers ?? "0";
     message.top_tweets = object.top_tweets?.map((e) => e) || [];
+    message.volume_24h = object.volume_24h ?? "";
+    message.total_volume = object.total_volume ?? "";
+    message.updated_at = object.updated_at ?? "0";
     return message;
   },
 };
 
 function createBaseUserBalance(): UserBalance {
-  return { address: "", camp_denom: "", amount: "", updated_height: "0" };
+  return { address: "", camp_denom: "", amount: "", updated_height: "0", logo: "" };
 }
 
 export const UserBalance = {
@@ -1027,6 +1088,9 @@ export const UserBalance = {
     }
     if (message.updated_height !== "0") {
       writer.uint32(32).uint64(message.updated_height);
+    }
+    if (message.logo !== "") {
+      writer.uint32(42).string(message.logo);
     }
     return writer;
   },
@@ -1066,6 +1130,13 @@ export const UserBalance = {
 
           message.updated_height = longToString(reader.uint64() as Long);
           continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.logo = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1081,6 +1152,7 @@ export const UserBalance = {
       camp_denom: isSet(object.camp_denom) ? globalThis.String(object.camp_denom) : "",
       amount: isSet(object.amount) ? globalThis.String(object.amount) : "",
       updated_height: isSet(object.updated_height) ? globalThis.String(object.updated_height) : "0",
+      logo: isSet(object.logo) ? globalThis.String(object.logo) : "",
     };
   },
 
@@ -1098,6 +1170,9 @@ export const UserBalance = {
     if (message.updated_height !== undefined) {
       obj.updated_height = message.updated_height;
     }
+    if (message.logo !== undefined) {
+      obj.logo = message.logo;
+    }
     return obj;
   },
 
@@ -1110,6 +1185,7 @@ export const UserBalance = {
     message.camp_denom = object.camp_denom ?? "";
     message.amount = object.amount ?? "";
     message.updated_height = object.updated_height ?? "0";
+    message.logo = object.logo ?? "";
     return message;
   },
 };
@@ -1201,6 +1277,7 @@ function createBaseTrade(): Trade {
     price: "",
     height: "0",
     timestamp: "0",
+    camp_type: "",
   };
 }
 
@@ -1234,6 +1311,9 @@ export const Trade = {
     }
     if (message.timestamp !== "0") {
       writer.uint32(72).int64(message.timestamp);
+    }
+    if (message.camp_type !== "") {
+      writer.uint32(82).string(message.camp_type);
     }
     return writer;
   },
@@ -1308,6 +1388,13 @@ export const Trade = {
 
           message.timestamp = longToString(reader.int64() as Long);
           continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.camp_type = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1328,6 +1415,7 @@ export const Trade = {
       price: isSet(object.price) ? globalThis.String(object.price) : "",
       height: isSet(object.height) ? globalThis.String(object.height) : "0",
       timestamp: isSet(object.timestamp) ? globalThis.String(object.timestamp) : "0",
+      camp_type: isSet(object.camp_type) ? globalThis.String(object.camp_type) : "",
     };
   },
 
@@ -1360,6 +1448,9 @@ export const Trade = {
     if (message.timestamp !== undefined) {
       obj.timestamp = message.timestamp;
     }
+    if (message.camp_type !== undefined) {
+      obj.camp_type = message.camp_type;
+    }
     return obj;
   },
 
@@ -1381,6 +1472,7 @@ export const Trade = {
     message.price = object.price ?? "";
     message.height = object.height ?? "0";
     message.timestamp = object.timestamp ?? "0";
+    message.camp_type = object.camp_type ?? "";
     return message;
   },
 };
