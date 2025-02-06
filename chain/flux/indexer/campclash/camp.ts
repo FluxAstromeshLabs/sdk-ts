@@ -136,7 +136,7 @@ export interface UserBalance {
   /** Cast to math.Int */
   amount: string;
   updated_height: string;
-  logo: string;
+  project: Project | undefined;
 }
 
 /** Agent structure */
@@ -1070,7 +1070,7 @@ export const Metrics = {
 };
 
 function createBaseUserBalance(): UserBalance {
-  return { address: "", camp_denom: "", amount: "", updated_height: "0", logo: "" };
+  return { address: "", camp_denom: "", amount: "", updated_height: "0", project: undefined };
 }
 
 export const UserBalance = {
@@ -1089,8 +1089,8 @@ export const UserBalance = {
     if (message.updated_height !== "0") {
       writer.uint32(32).uint64(message.updated_height);
     }
-    if (message.logo !== "") {
-      writer.uint32(42).string(message.logo);
+    if (message.project !== undefined) {
+      Project.encode(message.project, writer.uint32(42).fork()).ldelim();
     }
     return writer;
   },
@@ -1135,7 +1135,7 @@ export const UserBalance = {
             break;
           }
 
-          message.logo = reader.string();
+          message.project = Project.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -1152,7 +1152,7 @@ export const UserBalance = {
       camp_denom: isSet(object.camp_denom) ? globalThis.String(object.camp_denom) : "",
       amount: isSet(object.amount) ? globalThis.String(object.amount) : "",
       updated_height: isSet(object.updated_height) ? globalThis.String(object.updated_height) : "0",
-      logo: isSet(object.logo) ? globalThis.String(object.logo) : "",
+      project: isSet(object.project) ? Project.fromJSON(object.project) : undefined,
     };
   },
 
@@ -1170,8 +1170,8 @@ export const UserBalance = {
     if (message.updated_height !== undefined) {
       obj.updated_height = message.updated_height;
     }
-    if (message.logo !== undefined) {
-      obj.logo = message.logo;
+    if (message.project !== undefined) {
+      obj.project = Project.toJSON(message.project);
     }
     return obj;
   },
@@ -1185,7 +1185,9 @@ export const UserBalance = {
     message.camp_denom = object.camp_denom ?? "";
     message.amount = object.amount ?? "";
     message.updated_height = object.updated_height ?? "0";
-    message.logo = object.logo ?? "";
+    message.project = (object.project !== undefined && object.project !== null)
+      ? Project.fromPartial(object.project)
+      : undefined;
     return message;
   },
 };
