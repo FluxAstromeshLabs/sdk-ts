@@ -112,16 +112,29 @@ export interface Project {
   created_at: string;
 }
 
+export interface Tweet {
+  /** Tweet URL */
+  tweet_url: string;
+  /** Tweet author profile image URL */
+  tweet_author_profile_image_url: string;
+  /** Tweet author display name */
+  tweet_author_display_name: string;
+  /** Smart engagement points */
+  smart_engagement_points: number;
+  /** Impressions count */
+  impressions_count: number;
+}
+
 /** Metrics structure */
 export interface Metrics {
-  mind_share: string;
+  mind_share: number;
   inferences: string;
   holders: string;
-  impressions: string;
-  engagement: string;
+  impressions: number;
+  engagement: number;
   followers: string;
   smart_followers: string;
-  top_tweets: string[];
+  top_tweets: Tweet[];
   /** Cast to math.Int */
   volume_24h: string;
   /** Cast to math.Int */
@@ -844,13 +857,146 @@ export const Project = {
   },
 };
 
+function createBaseTweet(): Tweet {
+  return {
+    tweet_url: "",
+    tweet_author_profile_image_url: "",
+    tweet_author_display_name: "",
+    smart_engagement_points: 0,
+    impressions_count: 0,
+  };
+}
+
+export const Tweet = {
+  $type: "flux.indexer.campclash.Tweet" as const,
+
+  encode(message: Tweet, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.tweet_url !== "") {
+      writer.uint32(10).string(message.tweet_url);
+    }
+    if (message.tweet_author_profile_image_url !== "") {
+      writer.uint32(18).string(message.tweet_author_profile_image_url);
+    }
+    if (message.tweet_author_display_name !== "") {
+      writer.uint32(26).string(message.tweet_author_display_name);
+    }
+    if (message.smart_engagement_points !== 0) {
+      writer.uint32(32).int32(message.smart_engagement_points);
+    }
+    if (message.impressions_count !== 0) {
+      writer.uint32(40).int32(message.impressions_count);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Tweet {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTweet();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.tweet_url = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.tweet_author_profile_image_url = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.tweet_author_display_name = reader.string();
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.smart_engagement_points = reader.int32();
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.impressions_count = reader.int32();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Tweet {
+    return {
+      tweet_url: isSet(object.tweet_url) ? globalThis.String(object.tweet_url) : "",
+      tweet_author_profile_image_url: isSet(object.tweet_author_profile_image_url)
+        ? globalThis.String(object.tweet_author_profile_image_url)
+        : "",
+      tweet_author_display_name: isSet(object.tweet_author_display_name)
+        ? globalThis.String(object.tweet_author_display_name)
+        : "",
+      smart_engagement_points: isSet(object.smart_engagement_points)
+        ? globalThis.Number(object.smart_engagement_points)
+        : 0,
+      impressions_count: isSet(object.impressions_count) ? globalThis.Number(object.impressions_count) : 0,
+    };
+  },
+
+  toJSON(message: Tweet): unknown {
+    const obj: any = {};
+    if (message.tweet_url !== undefined) {
+      obj.tweet_url = message.tweet_url;
+    }
+    if (message.tweet_author_profile_image_url !== undefined) {
+      obj.tweet_author_profile_image_url = message.tweet_author_profile_image_url;
+    }
+    if (message.tweet_author_display_name !== undefined) {
+      obj.tweet_author_display_name = message.tweet_author_display_name;
+    }
+    if (message.smart_engagement_points !== undefined) {
+      obj.smart_engagement_points = Math.round(message.smart_engagement_points);
+    }
+    if (message.impressions_count !== undefined) {
+      obj.impressions_count = Math.round(message.impressions_count);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Tweet>): Tweet {
+    return Tweet.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Tweet>): Tweet {
+    const message = createBaseTweet();
+    message.tweet_url = object.tweet_url ?? "";
+    message.tweet_author_profile_image_url = object.tweet_author_profile_image_url ?? "";
+    message.tweet_author_display_name = object.tweet_author_display_name ?? "";
+    message.smart_engagement_points = object.smart_engagement_points ?? 0;
+    message.impressions_count = object.impressions_count ?? 0;
+    return message;
+  },
+};
+
 function createBaseMetrics(): Metrics {
   return {
-    mind_share: "0",
+    mind_share: 0,
     inferences: "0",
     holders: "0",
-    impressions: "0",
-    engagement: "0",
+    impressions: 0,
+    engagement: 0,
     followers: "0",
     smart_followers: "0",
     top_tweets: [],
@@ -864,8 +1010,8 @@ export const Metrics = {
   $type: "flux.indexer.campclash.Metrics" as const,
 
   encode(message: Metrics, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.mind_share !== "0") {
-      writer.uint32(8).int64(message.mind_share);
+    if (message.mind_share !== 0) {
+      writer.uint32(9).double(message.mind_share);
     }
     if (message.inferences !== "0") {
       writer.uint32(16).int64(message.inferences);
@@ -873,11 +1019,11 @@ export const Metrics = {
     if (message.holders !== "0") {
       writer.uint32(24).int64(message.holders);
     }
-    if (message.impressions !== "0") {
-      writer.uint32(32).int64(message.impressions);
+    if (message.impressions !== 0) {
+      writer.uint32(33).double(message.impressions);
     }
-    if (message.engagement !== "0") {
-      writer.uint32(40).int64(message.engagement);
+    if (message.engagement !== 0) {
+      writer.uint32(41).double(message.engagement);
     }
     if (message.followers !== "0") {
       writer.uint32(48).int64(message.followers);
@@ -886,7 +1032,7 @@ export const Metrics = {
       writer.uint32(56).int64(message.smart_followers);
     }
     for (const v of message.top_tweets) {
-      writer.uint32(66).string(v!);
+      Tweet.encode(v!, writer.uint32(66).fork()).ldelim();
     }
     if (message.volume_24h !== "") {
       writer.uint32(74).string(message.volume_24h);
@@ -908,11 +1054,11 @@ export const Metrics = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 8) {
+          if (tag !== 9) {
             break;
           }
 
-          message.mind_share = longToString(reader.int64() as Long);
+          message.mind_share = reader.double();
           continue;
         case 2:
           if (tag !== 16) {
@@ -929,18 +1075,18 @@ export const Metrics = {
           message.holders = longToString(reader.int64() as Long);
           continue;
         case 4:
-          if (tag !== 32) {
+          if (tag !== 33) {
             break;
           }
 
-          message.impressions = longToString(reader.int64() as Long);
+          message.impressions = reader.double();
           continue;
         case 5:
-          if (tag !== 40) {
+          if (tag !== 41) {
             break;
           }
 
-          message.engagement = longToString(reader.int64() as Long);
+          message.engagement = reader.double();
           continue;
         case 6:
           if (tag !== 48) {
@@ -961,7 +1107,7 @@ export const Metrics = {
             break;
           }
 
-          message.top_tweets.push(reader.string());
+          message.top_tweets.push(Tweet.decode(reader, reader.uint32()));
           continue;
         case 9:
           if (tag !== 74) {
@@ -995,15 +1141,15 @@ export const Metrics = {
 
   fromJSON(object: any): Metrics {
     return {
-      mind_share: isSet(object.mind_share) ? globalThis.String(object.mind_share) : "0",
+      mind_share: isSet(object.mind_share) ? globalThis.Number(object.mind_share) : 0,
       inferences: isSet(object.inferences) ? globalThis.String(object.inferences) : "0",
       holders: isSet(object.holders) ? globalThis.String(object.holders) : "0",
-      impressions: isSet(object.impressions) ? globalThis.String(object.impressions) : "0",
-      engagement: isSet(object.engagement) ? globalThis.String(object.engagement) : "0",
+      impressions: isSet(object.impressions) ? globalThis.Number(object.impressions) : 0,
+      engagement: isSet(object.engagement) ? globalThis.Number(object.engagement) : 0,
       followers: isSet(object.followers) ? globalThis.String(object.followers) : "0",
       smart_followers: isSet(object.smart_followers) ? globalThis.String(object.smart_followers) : "0",
       top_tweets: globalThis.Array.isArray(object?.top_tweets)
-        ? object.top_tweets.map((e: any) => globalThis.String(e))
+        ? object.top_tweets.map((e: any) => Tweet.fromJSON(e))
         : [],
       volume_24h: isSet(object.volume_24h) ? globalThis.String(object.volume_24h) : "",
       total_volume: isSet(object.total_volume) ? globalThis.String(object.total_volume) : "",
@@ -1035,7 +1181,7 @@ export const Metrics = {
       obj.smart_followers = message.smart_followers;
     }
     if (message.top_tweets?.length) {
-      obj.top_tweets = message.top_tweets;
+      obj.top_tweets = message.top_tweets.map((e) => Tweet.toJSON(e));
     }
     if (message.volume_24h !== undefined) {
       obj.volume_24h = message.volume_24h;
@@ -1054,14 +1200,14 @@ export const Metrics = {
   },
   fromPartial(object: DeepPartial<Metrics>): Metrics {
     const message = createBaseMetrics();
-    message.mind_share = object.mind_share ?? "0";
+    message.mind_share = object.mind_share ?? 0;
     message.inferences = object.inferences ?? "0";
     message.holders = object.holders ?? "0";
-    message.impressions = object.impressions ?? "0";
-    message.engagement = object.engagement ?? "0";
+    message.impressions = object.impressions ?? 0;
+    message.engagement = object.engagement ?? 0;
     message.followers = object.followers ?? "0";
     message.smart_followers = object.smart_followers ?? "0";
-    message.top_tweets = object.top_tweets?.map((e) => e) || [];
+    message.top_tweets = object.top_tweets?.map((e) => Tweet.fromPartial(e)) || [];
     message.volume_24h = object.volume_24h ?? "";
     message.total_volume = object.total_volume ?? "";
     message.updated_at = object.updated_at ?? "0";
