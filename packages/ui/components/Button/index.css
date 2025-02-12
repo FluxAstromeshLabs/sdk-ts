@@ -67,11 +67,11 @@
 }
 
 .btn.secondary {
-  @apply bg-blueGray-light-100 text-blueGray-50;
+  @apply dark:bg-blueGray-light-100 dark:text-blueGray-50;
 }
 
 .btn.tertiary {
-  @apply bg-blueGray-50 text-blueGray-900;
+  @apply dark:bg-blueGray-50 dark:text-blueGray-900 bg-black text-white;
 }
 
 .btn.tertiary:not(:disabled):hover::before {

@@ -10,7 +10,7 @@
   transition: border-color 0.3s ease;
 }
 .base-text-area .input::placeholder {
-  @apply dark:text-blueGray-light-500 text-[#0A0A0A99];
+  @apply dark:text-blueGray-light-500 text-dark-alpha-600;
 }
 .base-text-area .input:hover {
   @apply dark:border-blueGray-50 border-blueGray-800;

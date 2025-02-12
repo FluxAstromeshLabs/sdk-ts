@@ -82,7 +82,6 @@ export class IndexerGrpcCampQuery extends BaseIndexerGrpc {
   async getLeaderboard(
     request: Partial<campclashQuery.GetLeaderboardRequest>
   ): Promise<campclashQuery.GetLeaderboardResponse> {
-    console.log(request)
     let response = await this.retry(() => this.client.GetLeaderboard(request))
     return response as campclashQuery.GetLeaderboardResponse
   }
