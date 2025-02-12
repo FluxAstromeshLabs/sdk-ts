@@ -152,6 +152,40 @@ export const green = {
     600: '#4ADE80CC'
   }
 }
+export const dark={
+  primary:'#0A0A0A',
+  secondary:'#171717',
+  tertiary:'#262626',
+  quaternary:'#404040',
+  quinary:'#525252',
+  alpha:{
+    // base is #f8fafc0d
+    50:'#f8fafc0d', //#f8fafc + 5%
+    100:'#f8fafc1a', //#f8fafc + 10%
+    200:'#f8fafc33', //#f8fafc + 20%
+    300:'#f8fafc4d', //#f8fafc + 30%
+    400:'#f8fafc66', //#f8fafc + 40%
+    500:'#f8fafc80', //#f8fafc + 50%
+    600:'#f8fafc99', //#f8fafc + 60%
+  }
+}
+export const light={
+  primary:'#FFFFFF',
+  secondary:'#FAFAFA',
+  tertiary:'#E5E5E5',
+  quaternary:'#D4D4D4',
+  quinary:'#A3A3A3',
+  alpha:{  
+    // base is #0f172a
+    50:'#0f172a0d', //#0f172a + 5%
+    100:'#0f172a1a', //#0f172a + 10%
+    200:'#0f172a33', //#0f172a + 20%
+    300:'#0f172a4d', //#0f172a + 30%
+    400:'#0f172a66', //#0f172a + 40%
+    500:'#0f172a80', //#0f172a + 50%
+    600:'#0f172a99', //#0f172a + 60%
+   }
+}
 
 export const primary = orange
 export const secondary = lime
