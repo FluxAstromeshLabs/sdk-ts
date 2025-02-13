@@ -142,6 +142,8 @@ export interface ListChallengeRequest {
   pagination: PageRequest | undefined;
   challenge_id: string;
   status: string;
+  challenger_denom: string;
+  challenged_denom: string;
 }
 
 export interface ListChallengeResponse {
@@ -157,6 +159,7 @@ export interface StreamChallengeRequest {
 export interface StreamChallengeResponse {
   deleted: string;
   challenge: Challenge | undefined;
+  stream_operation: string;
 }
 
 export interface Claimable {
@@ -2033,7 +2036,7 @@ export const GetLeaderboardResponse = {
 };
 
 function createBaseListChallengeRequest(): ListChallengeRequest {
-  return { pagination: undefined, challenge_id: "0", status: "" };
+  return { pagination: undefined, challenge_id: "0", status: "", challenger_denom: "", challenged_denom: "" };
 }
 
 export const ListChallengeRequest = {
@@ -2048,6 +2051,12 @@ export const ListChallengeRequest = {
     }
     if (message.status !== "") {
       writer.uint32(26).string(message.status);
+    }
+    if (message.challenger_denom !== "") {
+      writer.uint32(34).string(message.challenger_denom);
+    }
+    if (message.challenged_denom !== "") {
+      writer.uint32(42).string(message.challenged_denom);
     }
     return writer;
   },
@@ -2080,6 +2089,20 @@ export const ListChallengeRequest = {
 
           message.status = reader.string();
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.challenger_denom = reader.string();
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.challenged_denom = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2094,6 +2117,8 @@ export const ListChallengeRequest = {
       pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
       challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
       status: isSet(object.status) ? globalThis.String(object.status) : "",
+      challenger_denom: isSet(object.challenger_denom) ? globalThis.String(object.challenger_denom) : "",
+      challenged_denom: isSet(object.challenged_denom) ? globalThis.String(object.challenged_denom) : "",
     };
   },
 
@@ -2108,6 +2133,12 @@ export const ListChallengeRequest = {
     if (message.status !== undefined) {
       obj.status = message.status;
     }
+    if (message.challenger_denom !== undefined) {
+      obj.challenger_denom = message.challenger_denom;
+    }
+    if (message.challenged_denom !== undefined) {
+      obj.challenged_denom = message.challenged_denom;
+    }
     return obj;
   },
 
@@ -2121,6 +2152,8 @@ export const ListChallengeRequest = {
       : undefined;
     message.challenge_id = object.challenge_id ?? "0";
     message.status = object.status ?? "";
+    message.challenger_denom = object.challenger_denom ?? "";
+    message.challenged_denom = object.challenged_denom ?? "";
     return message;
   },
 };
@@ -2265,7 +2298,7 @@ export const StreamChallengeRequest = {
 };
 
 function createBaseStreamChallengeResponse(): StreamChallengeResponse {
-  return { deleted: "0", challenge: undefined };
+  return { deleted: "0", challenge: undefined, stream_operation: "" };
 }
 
 export const StreamChallengeResponse = {
@@ -2277,6 +2310,9 @@ export const StreamChallengeResponse = {
     }
     if (message.challenge !== undefined) {
       Challenge.encode(message.challenge, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.stream_operation !== "") {
+      writer.uint32(26).string(message.stream_operation);
     }
     return writer;
   },
@@ -2302,6 +2338,13 @@ export const StreamChallengeResponse = {
 
           message.challenge = Challenge.decode(reader, reader.uint32());
           continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.stream_operation = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2315,6 +2358,7 @@ export const StreamChallengeResponse = {
     return {
       deleted: isSet(object.deleted) ? globalThis.String(object.deleted) : "0",
       challenge: isSet(object.challenge) ? Challenge.fromJSON(object.challenge) : undefined,
+      stream_operation: isSet(object.stream_operation) ? globalThis.String(object.stream_operation) : "",
     };
   },
 
@@ -2325,6 +2369,9 @@ export const StreamChallengeResponse = {
     }
     if (message.challenge !== undefined) {
       obj.challenge = Challenge.toJSON(message.challenge);
+    }
+    if (message.stream_operation !== undefined) {
+      obj.stream_operation = message.stream_operation;
     }
     return obj;
   },
@@ -2338,6 +2385,7 @@ export const StreamChallengeResponse = {
     message.challenge = (object.challenge !== undefined && object.challenge !== null)
       ? Challenge.fromPartial(object.challenge)
       : undefined;
+    message.stream_operation = object.stream_operation ?? "";
     return message;
   },
 };

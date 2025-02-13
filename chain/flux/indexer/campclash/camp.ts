@@ -132,6 +132,8 @@ export interface Challenge {
   match_start_time: string;
   winner: string;
   reward_coin: Coin | undefined;
+  challenge_id: string;
+  updated_height: string;
 }
 
 function createBaseProject(): Project {
@@ -1537,6 +1539,8 @@ function createBaseChallenge(): Challenge {
     match_start_time: "0",
     winner: "",
     reward_coin: undefined,
+    challenge_id: "0",
+    updated_height: "0",
   };
 }
 
@@ -1585,6 +1589,12 @@ export const Challenge = {
     }
     if (message.reward_coin !== undefined) {
       Coin.encode(message.reward_coin, writer.uint32(114).fork()).ldelim();
+    }
+    if (message.challenge_id !== "0") {
+      writer.uint32(120).uint64(message.challenge_id);
+    }
+    if (message.updated_height !== "0") {
+      writer.uint32(128).uint64(message.updated_height);
     }
     return writer;
   },
@@ -1694,6 +1704,20 @@ export const Challenge = {
 
           message.reward_coin = Coin.decode(reader, reader.uint32());
           continue;
+        case 15:
+          if (tag !== 120) {
+            break;
+          }
+
+          message.challenge_id = longToString(reader.uint64() as Long);
+          continue;
+        case 16:
+          if (tag !== 128) {
+            break;
+          }
+
+          message.updated_height = longToString(reader.uint64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1725,6 +1749,8 @@ export const Challenge = {
       match_start_time: isSet(object.match_start_time) ? globalThis.String(object.match_start_time) : "0",
       winner: isSet(object.winner) ? globalThis.String(object.winner) : "",
       reward_coin: isSet(object.reward_coin) ? Coin.fromJSON(object.reward_coin) : undefined,
+      challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
+      updated_height: isSet(object.updated_height) ? globalThis.String(object.updated_height) : "0",
     };
   },
 
@@ -1772,6 +1798,12 @@ export const Challenge = {
     if (message.reward_coin !== undefined) {
       obj.reward_coin = Coin.toJSON(message.reward_coin);
     }
+    if (message.challenge_id !== undefined) {
+      obj.challenge_id = message.challenge_id;
+    }
+    if (message.updated_height !== undefined) {
+      obj.updated_height = message.updated_height;
+    }
     return obj;
   },
 
@@ -1796,6 +1828,8 @@ export const Challenge = {
     message.reward_coin = (object.reward_coin !== undefined && object.reward_coin !== null)
       ? Coin.fromPartial(object.reward_coin)
       : undefined;
+    message.challenge_id = object.challenge_id ?? "0";
+    message.updated_height = object.updated_height ?? "0";
     return message;
   },
 };
