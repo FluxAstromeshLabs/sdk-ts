@@ -1,6 +1,6 @@
-import BaseIndexerGrpc from '../../BaseIndexerGrpc'
-import * as campclashQuery from '../../../../chain/flux/indexer/campclash/camp_query'
 import { Subscription } from 'rxjs'
+import * as campclashQuery from '../../../../chain/flux/indexer/campclash/camp_query'
+import BaseIndexerGrpc from '../../BaseIndexerGrpc'
 export class IndexerGrpcCampQuery extends BaseIndexerGrpc {
   protected client: campclashQuery.CampclashQueryClientImpl
   constructor(endpoint: string) {
@@ -91,7 +91,6 @@ export class IndexerGrpcCampQuery extends BaseIndexerGrpc {
     let response = await this.retry(() => this.client.ListChallenge(request))
     return response as campclashQuery.ListChallengeResponse
   }
-  // StreamChallengeRequest
   async streamChallenge(
     request: Partial<campclashQuery.StreamChallengeRequest>,
     callback: (value: campclashQuery.StreamChallengeResponse) => void,
@@ -101,14 +100,12 @@ export class IndexerGrpcCampQuery extends BaseIndexerGrpc {
     const stream = this.client.StreamChallenge(request)
     return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
-  // ListChallengeClaimableRequest
   async listChallengeClaimable(
     request: Partial<campclashQuery.ListChallengeClaimableRequest>
   ): Promise<campclashQuery.ListChallengeClaimableResponse> {
     let response = await this.retry(() => this.client.ListChallengeClaimable(request))
     return response as campclashQuery.ListChallengeClaimableResponse
   }
-  // StreamChallengeClaimableRequest
   async streamChallengeClaimable(
     request: Partial<campclashQuery.StreamChallengeClaimableRequest>,
     callback: (value: campclashQuery.StreamChallengeClaimableResponse) => void,
@@ -116,6 +113,15 @@ export class IndexerGrpcCampQuery extends BaseIndexerGrpc {
     onStatusCallback?: () => void
   ): Promise<Subscription> {
     const stream = this.client.StreamChallengeClaimable(request)
+    return stream.subscribe(callback, onEndCallback, onStatusCallback)
+  }
+  async streamChallengeVote(
+    request: Partial<campclashQuery.StreamChallengeVoteRequest>,
+    callback: (value: campclashQuery.StreamChallengeVoteResponse) => void,
+    onEndCallback?: (err: any) => void,
+    onStatusCallback?: () => void
+  ): Promise<Subscription> {
+    const stream = this.client.StreamChallengeVote(request)
     return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
 }
