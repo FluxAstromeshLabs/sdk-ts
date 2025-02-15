@@ -85,4 +85,37 @@ export class IndexerGrpcCampQuery extends BaseIndexerGrpc {
     let response = await this.retry(() => this.client.GetLeaderboard(request))
     return response as campclashQuery.GetLeaderboardResponse
   }
+  async listChallenge(
+    request: Partial<campclashQuery.ListChallengeRequest>
+  ): Promise<campclashQuery.ListChallengeResponse> {
+    let response = await this.retry(() => this.client.ListChallenge(request))
+    return response as campclashQuery.ListChallengeResponse
+  }
+  // StreamChallengeRequest
+  async streamChallenge(
+    request: Partial<campclashQuery.StreamChallengeRequest>,
+    callback: (value: campclashQuery.StreamChallengeResponse) => void,
+    onEndCallback?: (err: any) => void,
+    onStatusCallback?: () => void
+  ): Promise<Subscription> {
+    const stream = this.client.StreamChallenge(request)
+    return stream.subscribe(callback, onEndCallback, onStatusCallback)
+  }
+  // ListChallengeClaimableRequest
+  async listChallengeClaimable(
+    request: Partial<campclashQuery.ListChallengeClaimableRequest>
+  ): Promise<campclashQuery.ListChallengeClaimableResponse> {
+    let response = await this.retry(() => this.client.ListChallengeClaimable(request))
+    return response as campclashQuery.ListChallengeClaimableResponse
+  }
+  // StreamChallengeClaimableRequest
+  async streamChallengeClaimable(
+    request: Partial<campclashQuery.StreamChallengeClaimableRequest>,
+    callback: (value: campclashQuery.StreamChallengeClaimableResponse) => void,
+    onEndCallback?: (err: any) => void,
+    onStatusCallback?: () => void
+  ): Promise<Subscription> {
+    const stream = this.client.StreamChallengeClaimable(request)
+    return stream.subscribe(callback, onEndCallback, onStatusCallback)
+  }
 }
