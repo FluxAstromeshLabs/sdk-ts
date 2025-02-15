@@ -13,7 +13,7 @@ import { Observable } from "rxjs";
 import { share } from "rxjs/operators";
 import { PageRequest, PageResponse } from "../../../cosmos/base/query/v1beta1/pagination";
 import { Coin } from "../../../cosmos/base/v1beta1/coin";
-import { Challenge, Project, Trade, UserBalance } from "./camp";
+import { Challenge, ChallengeVote, Project, Trade, UserBalance } from "./camp";
 
 export interface ListProjectsRequest {
   pagination: PageRequest | undefined;
@@ -52,11 +52,14 @@ export interface ListBalancesRequest {
   sort_by: string;
   /** effective if sort_by != "" */
   sort_asc: boolean;
+  /** include votes for a challenge, given the challenge non-zero id */
+  vote_challenge_id: string;
 }
 
 export interface ListBalancesResponse {
   pagination: PageResponse | undefined;
   user_balance: UserBalance[];
+  challenge_id: string;
 }
 
 export interface StreamBalancesRequest {
@@ -163,8 +166,10 @@ export interface StreamChallengeResponse {
 }
 
 export interface Claimable {
+  contract_address: string;
+  challenge_id: string;
   address: string;
-  coins: Coin | undefined;
+  coins: Coin[];
   is_claimed: boolean;
   height: string;
 }
@@ -174,6 +179,7 @@ export interface ListChallengeClaimableRequest {
   challenge_id: string;
   /** only list claimable on single side */
   camp_denom: string;
+  address: string;
 }
 
 export interface ListChallengeClaimableResponse {
@@ -192,6 +198,15 @@ export interface StreamChallengeClaimableRequest {
 export interface StreamChallengeClaimableResponse {
   deleted: boolean;
   entry: Claimable | undefined;
+}
+
+export interface StreamChallengeVoteRequest {
+  challenge_id: string;
+}
+
+export interface StreamChallengeVoteResponse {
+  deleted: boolean;
+  vote: ChallengeVote | undefined;
 }
 
 function createBaseListProjectsRequest(): ListProjectsRequest {
@@ -635,7 +650,14 @@ export const StreamProjectResponse = {
 };
 
 function createBaseListBalancesRequest(): ListBalancesRequest {
-  return { pagination: undefined, camp_denom: "", user_address: "", sort_by: "", sort_asc: false };
+  return {
+    pagination: undefined,
+    camp_denom: "",
+    user_address: "",
+    sort_by: "",
+    sort_asc: false,
+    vote_challenge_id: "0",
+  };
 }
 
 export const ListBalancesRequest = {
@@ -656,6 +678,9 @@ export const ListBalancesRequest = {
     }
     if (message.sort_asc !== false) {
       writer.uint32(40).bool(message.sort_asc);
+    }
+    if (message.vote_challenge_id !== "0") {
+      writer.uint32(48).uint64(message.vote_challenge_id);
     }
     return writer;
   },
@@ -702,6 +727,13 @@ export const ListBalancesRequest = {
 
           message.sort_asc = reader.bool();
           continue;
+        case 6:
+          if (tag !== 48) {
+            break;
+          }
+
+          message.vote_challenge_id = longToString(reader.uint64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -718,6 +750,7 @@ export const ListBalancesRequest = {
       user_address: isSet(object.user_address) ? globalThis.String(object.user_address) : "",
       sort_by: isSet(object.sort_by) ? globalThis.String(object.sort_by) : "",
       sort_asc: isSet(object.sort_asc) ? globalThis.Boolean(object.sort_asc) : false,
+      vote_challenge_id: isSet(object.vote_challenge_id) ? globalThis.String(object.vote_challenge_id) : "0",
     };
   },
 
@@ -738,6 +771,9 @@ export const ListBalancesRequest = {
     if (message.sort_asc !== undefined) {
       obj.sort_asc = message.sort_asc;
     }
+    if (message.vote_challenge_id !== undefined) {
+      obj.vote_challenge_id = message.vote_challenge_id;
+    }
     return obj;
   },
 
@@ -753,12 +789,13 @@ export const ListBalancesRequest = {
     message.user_address = object.user_address ?? "";
     message.sort_by = object.sort_by ?? "";
     message.sort_asc = object.sort_asc ?? false;
+    message.vote_challenge_id = object.vote_challenge_id ?? "0";
     return message;
   },
 };
 
 function createBaseListBalancesResponse(): ListBalancesResponse {
-  return { pagination: undefined, user_balance: [] };
+  return { pagination: undefined, user_balance: [], challenge_id: "0" };
 }
 
 export const ListBalancesResponse = {
@@ -770,6 +807,9 @@ export const ListBalancesResponse = {
     }
     for (const v of message.user_balance) {
       UserBalance.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.challenge_id !== "0") {
+      writer.uint32(24).uint64(message.challenge_id);
     }
     return writer;
   },
@@ -795,6 +835,13 @@ export const ListBalancesResponse = {
 
           message.user_balance.push(UserBalance.decode(reader, reader.uint32()));
           continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.challenge_id = longToString(reader.uint64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -810,6 +857,7 @@ export const ListBalancesResponse = {
       user_balance: globalThis.Array.isArray(object?.user_balance)
         ? object.user_balance.map((e: any) => UserBalance.fromJSON(e))
         : [],
+      challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
     };
   },
 
@@ -820,6 +868,9 @@ export const ListBalancesResponse = {
     }
     if (message.user_balance?.length) {
       obj.user_balance = message.user_balance.map((e) => UserBalance.toJSON(e));
+    }
+    if (message.challenge_id !== undefined) {
+      obj.challenge_id = message.challenge_id;
     }
     return obj;
   },
@@ -833,6 +884,7 @@ export const ListBalancesResponse = {
       ? PageResponse.fromPartial(object.pagination)
       : undefined;
     message.user_balance = object.user_balance?.map((e) => UserBalance.fromPartial(e)) || [];
+    message.challenge_id = object.challenge_id ?? "0";
     return message;
   },
 };
@@ -2391,24 +2443,30 @@ export const StreamChallengeResponse = {
 };
 
 function createBaseClaimable(): Claimable {
-  return { address: "", coins: undefined, is_claimed: false, height: "0" };
+  return { contract_address: "", challenge_id: "", address: "", coins: [], is_claimed: false, height: "0" };
 }
 
 export const Claimable = {
   $type: "flux.indexer.campclash.Claimable" as const,
 
   encode(message: Claimable, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.address !== "") {
-      writer.uint32(10).string(message.address);
+    if (message.contract_address !== "") {
+      writer.uint32(10).string(message.contract_address);
     }
-    if (message.coins !== undefined) {
-      Coin.encode(message.coins, writer.uint32(18).fork()).ldelim();
+    if (message.challenge_id !== "") {
+      writer.uint32(18).string(message.challenge_id);
+    }
+    if (message.address !== "") {
+      writer.uint32(26).string(message.address);
+    }
+    for (const v of message.coins) {
+      Coin.encode(v!, writer.uint32(34).fork()).ldelim();
     }
     if (message.is_claimed !== false) {
-      writer.uint32(24).bool(message.is_claimed);
+      writer.uint32(40).bool(message.is_claimed);
     }
     if (message.height !== "0") {
-      writer.uint32(32).uint64(message.height);
+      writer.uint32(48).uint64(message.height);
     }
     return writer;
   },
@@ -2425,24 +2483,38 @@ export const Claimable = {
             break;
           }
 
-          message.address = reader.string();
+          message.contract_address = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.coins = Coin.decode(reader, reader.uint32());
+          message.challenge_id = reader.string();
           continue;
         case 3:
-          if (tag !== 24) {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.address = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.coins.push(Coin.decode(reader, reader.uint32()));
+          continue;
+        case 5:
+          if (tag !== 40) {
             break;
           }
 
           message.is_claimed = reader.bool();
           continue;
-        case 4:
-          if (tag !== 32) {
+        case 6:
+          if (tag !== 48) {
             break;
           }
 
@@ -2459,8 +2531,10 @@ export const Claimable = {
 
   fromJSON(object: any): Claimable {
     return {
+      contract_address: isSet(object.contract_address) ? globalThis.String(object.contract_address) : "",
+      challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "",
       address: isSet(object.address) ? globalThis.String(object.address) : "",
-      coins: isSet(object.coins) ? Coin.fromJSON(object.coins) : undefined,
+      coins: globalThis.Array.isArray(object?.coins) ? object.coins.map((e: any) => Coin.fromJSON(e)) : [],
       is_claimed: isSet(object.is_claimed) ? globalThis.Boolean(object.is_claimed) : false,
       height: isSet(object.height) ? globalThis.String(object.height) : "0",
     };
@@ -2468,11 +2542,17 @@ export const Claimable = {
 
   toJSON(message: Claimable): unknown {
     const obj: any = {};
+    if (message.contract_address !== undefined) {
+      obj.contract_address = message.contract_address;
+    }
+    if (message.challenge_id !== undefined) {
+      obj.challenge_id = message.challenge_id;
+    }
     if (message.address !== undefined) {
       obj.address = message.address;
     }
-    if (message.coins !== undefined) {
-      obj.coins = Coin.toJSON(message.coins);
+    if (message.coins?.length) {
+      obj.coins = message.coins.map((e) => Coin.toJSON(e));
     }
     if (message.is_claimed !== undefined) {
       obj.is_claimed = message.is_claimed;
@@ -2488,8 +2568,10 @@ export const Claimable = {
   },
   fromPartial(object: DeepPartial<Claimable>): Claimable {
     const message = createBaseClaimable();
+    message.contract_address = object.contract_address ?? "";
+    message.challenge_id = object.challenge_id ?? "";
     message.address = object.address ?? "";
-    message.coins = (object.coins !== undefined && object.coins !== null) ? Coin.fromPartial(object.coins) : undefined;
+    message.coins = object.coins?.map((e) => Coin.fromPartial(e)) || [];
     message.is_claimed = object.is_claimed ?? false;
     message.height = object.height ?? "0";
     return message;
@@ -2497,7 +2579,7 @@ export const Claimable = {
 };
 
 function createBaseListChallengeClaimableRequest(): ListChallengeClaimableRequest {
-  return { pagination: undefined, challenge_id: "0", camp_denom: "" };
+  return { pagination: undefined, challenge_id: "0", camp_denom: "", address: "" };
 }
 
 export const ListChallengeClaimableRequest = {
@@ -2512,6 +2594,9 @@ export const ListChallengeClaimableRequest = {
     }
     if (message.camp_denom !== "") {
       writer.uint32(26).string(message.camp_denom);
+    }
+    if (message.address !== "") {
+      writer.uint32(34).string(message.address);
     }
     return writer;
   },
@@ -2544,6 +2629,13 @@ export const ListChallengeClaimableRequest = {
 
           message.camp_denom = reader.string();
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.address = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2558,6 +2650,7 @@ export const ListChallengeClaimableRequest = {
       pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
       challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
       camp_denom: isSet(object.camp_denom) ? globalThis.String(object.camp_denom) : "",
+      address: isSet(object.address) ? globalThis.String(object.address) : "",
     };
   },
 
@@ -2572,6 +2665,9 @@ export const ListChallengeClaimableRequest = {
     if (message.camp_denom !== undefined) {
       obj.camp_denom = message.camp_denom;
     }
+    if (message.address !== undefined) {
+      obj.address = message.address;
+    }
     return obj;
   },
 
@@ -2585,6 +2681,7 @@ export const ListChallengeClaimableRequest = {
       : undefined;
     message.challenge_id = object.challenge_id ?? "0";
     message.camp_denom = object.camp_denom ?? "";
+    message.address = object.address ?? "";
     return message;
   },
 };
@@ -2836,6 +2933,143 @@ export const StreamChallengeClaimableResponse = {
   },
 };
 
+function createBaseStreamChallengeVoteRequest(): StreamChallengeVoteRequest {
+  return { challenge_id: "0" };
+}
+
+export const StreamChallengeVoteRequest = {
+  $type: "flux.indexer.campclash.StreamChallengeVoteRequest" as const,
+
+  encode(message: StreamChallengeVoteRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.challenge_id !== "0") {
+      writer.uint32(8).uint64(message.challenge_id);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamChallengeVoteRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamChallengeVoteRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.challenge_id = longToString(reader.uint64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamChallengeVoteRequest {
+    return { challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0" };
+  },
+
+  toJSON(message: StreamChallengeVoteRequest): unknown {
+    const obj: any = {};
+    if (message.challenge_id !== undefined) {
+      obj.challenge_id = message.challenge_id;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamChallengeVoteRequest>): StreamChallengeVoteRequest {
+    return StreamChallengeVoteRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamChallengeVoteRequest>): StreamChallengeVoteRequest {
+    const message = createBaseStreamChallengeVoteRequest();
+    message.challenge_id = object.challenge_id ?? "0";
+    return message;
+  },
+};
+
+function createBaseStreamChallengeVoteResponse(): StreamChallengeVoteResponse {
+  return { deleted: false, vote: undefined };
+}
+
+export const StreamChallengeVoteResponse = {
+  $type: "flux.indexer.campclash.StreamChallengeVoteResponse" as const,
+
+  encode(message: StreamChallengeVoteResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.deleted !== false) {
+      writer.uint32(8).bool(message.deleted);
+    }
+    if (message.vote !== undefined) {
+      ChallengeVote.encode(message.vote, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamChallengeVoteResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamChallengeVoteResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.deleted = reader.bool();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.vote = ChallengeVote.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamChallengeVoteResponse {
+    return {
+      deleted: isSet(object.deleted) ? globalThis.Boolean(object.deleted) : false,
+      vote: isSet(object.vote) ? ChallengeVote.fromJSON(object.vote) : undefined,
+    };
+  },
+
+  toJSON(message: StreamChallengeVoteResponse): unknown {
+    const obj: any = {};
+    if (message.deleted !== undefined) {
+      obj.deleted = message.deleted;
+    }
+    if (message.vote !== undefined) {
+      obj.vote = ChallengeVote.toJSON(message.vote);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamChallengeVoteResponse>): StreamChallengeVoteResponse {
+    return StreamChallengeVoteResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamChallengeVoteResponse>): StreamChallengeVoteResponse {
+    const message = createBaseStreamChallengeVoteResponse();
+    message.deleted = object.deleted ?? false;
+    message.vote = (object.vote !== undefined && object.vote !== null)
+      ? ChallengeVote.fromPartial(object.vote)
+      : undefined;
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface CampclashQuery {
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse>;
@@ -2873,6 +3107,10 @@ export interface CampclashQuery {
     request: DeepPartial<StreamChallengeClaimableRequest>,
     metadata?: grpc.Metadata,
   ): Observable<StreamChallengeClaimableResponse>;
+  StreamChallengeVote(
+    request: DeepPartial<StreamChallengeVoteRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamChallengeVoteResponse>;
 }
 
 export class CampclashQueryClientImpl implements CampclashQuery {
@@ -2894,6 +3132,7 @@ export class CampclashQueryClientImpl implements CampclashQuery {
     this.StreamChallenge = this.StreamChallenge.bind(this);
     this.ListChallengeClaimable = this.ListChallengeClaimable.bind(this);
     this.StreamChallengeClaimable = this.StreamChallengeClaimable.bind(this);
+    this.StreamChallengeVote = this.StreamChallengeVote.bind(this);
   }
 
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse> {
@@ -2977,6 +3216,17 @@ export class CampclashQueryClientImpl implements CampclashQuery {
     return this.rpc.invoke(
       CampclashQueryStreamChallengeClaimableDesc,
       StreamChallengeClaimableRequest.fromPartial(request),
+      metadata,
+    );
+  }
+
+  StreamChallengeVote(
+    request: DeepPartial<StreamChallengeVoteRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamChallengeVoteResponse> {
+    return this.rpc.invoke(
+      CampclashQueryStreamChallengeVoteDesc,
+      StreamChallengeVoteRequest.fromPartial(request),
       metadata,
     );
   }
@@ -3296,6 +3546,29 @@ export const CampclashQueryStreamChallengeClaimableDesc: UnaryMethodDefinitionis
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = StreamChallengeClaimableResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQueryStreamChallengeVoteDesc: UnaryMethodDefinitionish = {
+  methodName: "StreamChallengeVote",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: true,
+  requestType: {
+    serializeBinary() {
+      return StreamChallengeVoteRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = StreamChallengeVoteResponse.decode(data);
       return {
         ...value,
         toObject() {
