@@ -12,7 +12,8 @@ import _m0 from "protobufjs/minimal";
 import { Observable } from "rxjs";
 import { share } from "rxjs/operators";
 import { PageRequest, PageResponse } from "../../../cosmos/base/query/v1beta1/pagination";
-import { Project, Trade, UserBalance } from "./camp";
+import { Coin } from "../../../cosmos/base/v1beta1/coin";
+import { Challenge, Project, Trade, UserBalance } from "./camp";
 
 export interface ListProjectsRequest {
   pagination: PageRequest | undefined;
@@ -22,6 +23,8 @@ export interface ListProjectsRequest {
   sort_by_fields: string[];
   camp_type: string;
   tags: string[];
+  /** for listing challengable projects */
+  only_challengeable: boolean;
 }
 
 export interface ListProjectsResponse {
@@ -39,6 +42,7 @@ export interface StreamProjectResponse {
   deleted: string;
   height: string;
   project: Project | undefined;
+  stream_operation: string;
 }
 
 export interface ListBalancesRequest {
@@ -133,8 +137,73 @@ export interface GetLeaderboardResponse {
   projects: Project[];
 }
 
+/** Define the ListChallenge request and response */
+export interface ListChallengeRequest {
+  pagination: PageRequest | undefined;
+  challenge_id: string;
+  status: string;
+  challenger_denom: string;
+  challenged_denom: string;
+}
+
+export interface ListChallengeResponse {
+  pagination: PageResponse | undefined;
+  challenges: Challenge[];
+}
+
+/** Define the StreamChallenge request and response */
+export interface StreamChallengeRequest {
+  challenge_id: string;
+}
+
+export interface StreamChallengeResponse {
+  deleted: string;
+  challenge: Challenge | undefined;
+  stream_operation: string;
+}
+
+export interface Claimable {
+  address: string;
+  coins: Coin | undefined;
+  is_claimed: boolean;
+  height: string;
+}
+
+export interface ListChallengeClaimableRequest {
+  pagination: PageRequest | undefined;
+  challenge_id: string;
+  /** only list claimable on single side */
+  camp_denom: string;
+}
+
+export interface ListChallengeClaimableResponse {
+  pagination: PageResponse | undefined;
+  challenge_id: string;
+  entries: Claimable[];
+}
+
+/** Define the StreamChallengeClaimable request and response */
+export interface StreamChallengeClaimableRequest {
+  challenge_id: string;
+  /** only list claimable on single side */
+  camp_denom: string;
+}
+
+export interface StreamChallengeClaimableResponse {
+  deleted: boolean;
+  entry: Claimable | undefined;
+}
+
 function createBaseListProjectsRequest(): ListProjectsRequest {
-  return { pagination: undefined, camp_denom: "", search: "", sort_by_fields: [], camp_type: "", tags: [] };
+  return {
+    pagination: undefined,
+    camp_denom: "",
+    search: "",
+    sort_by_fields: [],
+    camp_type: "",
+    tags: [],
+    only_challengeable: false,
+  };
 }
 
 export const ListProjectsRequest = {
@@ -158,6 +227,9 @@ export const ListProjectsRequest = {
     }
     for (const v of message.tags) {
       writer.uint32(50).string(v!);
+    }
+    if (message.only_challengeable !== false) {
+      writer.uint32(56).bool(message.only_challengeable);
     }
     return writer;
   },
@@ -211,6 +283,13 @@ export const ListProjectsRequest = {
 
           message.tags.push(reader.string());
           continue;
+        case 7:
+          if (tag !== 56) {
+            break;
+          }
+
+          message.only_challengeable = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -230,6 +309,7 @@ export const ListProjectsRequest = {
         : [],
       camp_type: isSet(object.camp_type) ? globalThis.String(object.camp_type) : "",
       tags: globalThis.Array.isArray(object?.tags) ? object.tags.map((e: any) => globalThis.String(e)) : [],
+      only_challengeable: isSet(object.only_challengeable) ? globalThis.Boolean(object.only_challengeable) : false,
     };
   },
 
@@ -253,6 +333,9 @@ export const ListProjectsRequest = {
     if (message.tags?.length) {
       obj.tags = message.tags;
     }
+    if (message.only_challengeable !== undefined) {
+      obj.only_challengeable = message.only_challengeable;
+    }
     return obj;
   },
 
@@ -269,6 +352,7 @@ export const ListProjectsRequest = {
     message.sort_by_fields = object.sort_by_fields?.map((e) => e) || [];
     message.camp_type = object.camp_type ?? "";
     message.tags = object.tags?.map((e) => e) || [];
+    message.only_challengeable = object.only_challengeable ?? false;
     return message;
   },
 };
@@ -443,7 +527,7 @@ export const StreamProjectRequest = {
 };
 
 function createBaseStreamProjectResponse(): StreamProjectResponse {
-  return { deleted: "0", height: "0", project: undefined };
+  return { deleted: "0", height: "0", project: undefined, stream_operation: "" };
 }
 
 export const StreamProjectResponse = {
@@ -458,6 +542,9 @@ export const StreamProjectResponse = {
     }
     if (message.project !== undefined) {
       Project.encode(message.project, writer.uint32(26).fork()).ldelim();
+    }
+    if (message.stream_operation !== "") {
+      writer.uint32(34).string(message.stream_operation);
     }
     return writer;
   },
@@ -490,6 +577,13 @@ export const StreamProjectResponse = {
 
           message.project = Project.decode(reader, reader.uint32());
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.stream_operation = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -504,6 +598,7 @@ export const StreamProjectResponse = {
       deleted: isSet(object.deleted) ? globalThis.String(object.deleted) : "0",
       height: isSet(object.height) ? globalThis.String(object.height) : "0",
       project: isSet(object.project) ? Project.fromJSON(object.project) : undefined,
+      stream_operation: isSet(object.stream_operation) ? globalThis.String(object.stream_operation) : "",
     };
   },
 
@@ -518,6 +613,9 @@ export const StreamProjectResponse = {
     if (message.project !== undefined) {
       obj.project = Project.toJSON(message.project);
     }
+    if (message.stream_operation !== undefined) {
+      obj.stream_operation = message.stream_operation;
+    }
     return obj;
   },
 
@@ -531,6 +629,7 @@ export const StreamProjectResponse = {
     message.project = (object.project !== undefined && object.project !== null)
       ? Project.fromPartial(object.project)
       : undefined;
+    message.stream_operation = object.stream_operation ?? "";
     return message;
   },
 };
@@ -1936,6 +2035,807 @@ export const GetLeaderboardResponse = {
   },
 };
 
+function createBaseListChallengeRequest(): ListChallengeRequest {
+  return { pagination: undefined, challenge_id: "0", status: "", challenger_denom: "", challenged_denom: "" };
+}
+
+export const ListChallengeRequest = {
+  $type: "flux.indexer.campclash.ListChallengeRequest" as const,
+
+  encode(message: ListChallengeRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.challenge_id !== "0") {
+      writer.uint32(16).uint64(message.challenge_id);
+    }
+    if (message.status !== "") {
+      writer.uint32(26).string(message.status);
+    }
+    if (message.challenger_denom !== "") {
+      writer.uint32(34).string(message.challenger_denom);
+    }
+    if (message.challenged_denom !== "") {
+      writer.uint32(42).string(message.challenged_denom);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListChallengeRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListChallengeRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.challenge_id = longToString(reader.uint64() as Long);
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.status = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.challenger_denom = reader.string();
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.challenged_denom = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListChallengeRequest {
+    return {
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
+      challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
+      status: isSet(object.status) ? globalThis.String(object.status) : "",
+      challenger_denom: isSet(object.challenger_denom) ? globalThis.String(object.challenger_denom) : "",
+      challenged_denom: isSet(object.challenged_denom) ? globalThis.String(object.challenged_denom) : "",
+    };
+  },
+
+  toJSON(message: ListChallengeRequest): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageRequest.toJSON(message.pagination);
+    }
+    if (message.challenge_id !== undefined) {
+      obj.challenge_id = message.challenge_id;
+    }
+    if (message.status !== undefined) {
+      obj.status = message.status;
+    }
+    if (message.challenger_denom !== undefined) {
+      obj.challenger_denom = message.challenger_denom;
+    }
+    if (message.challenged_denom !== undefined) {
+      obj.challenged_denom = message.challenged_denom;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListChallengeRequest>): ListChallengeRequest {
+    return ListChallengeRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListChallengeRequest>): ListChallengeRequest {
+    const message = createBaseListChallengeRequest();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
+    message.challenge_id = object.challenge_id ?? "0";
+    message.status = object.status ?? "";
+    message.challenger_denom = object.challenger_denom ?? "";
+    message.challenged_denom = object.challenged_denom ?? "";
+    return message;
+  },
+};
+
+function createBaseListChallengeResponse(): ListChallengeResponse {
+  return { pagination: undefined, challenges: [] };
+}
+
+export const ListChallengeResponse = {
+  $type: "flux.indexer.campclash.ListChallengeResponse" as const,
+
+  encode(message: ListChallengeResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    for (const v of message.challenges) {
+      Challenge.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListChallengeResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListChallengeResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.challenges.push(Challenge.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListChallengeResponse {
+    return {
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+      challenges: globalThis.Array.isArray(object?.challenges)
+        ? object.challenges.map((e: any) => Challenge.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: ListChallengeResponse): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageResponse.toJSON(message.pagination);
+    }
+    if (message.challenges?.length) {
+      obj.challenges = message.challenges.map((e) => Challenge.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListChallengeResponse>): ListChallengeResponse {
+    return ListChallengeResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListChallengeResponse>): ListChallengeResponse {
+    const message = createBaseListChallengeResponse();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
+    message.challenges = object.challenges?.map((e) => Challenge.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseStreamChallengeRequest(): StreamChallengeRequest {
+  return { challenge_id: "0" };
+}
+
+export const StreamChallengeRequest = {
+  $type: "flux.indexer.campclash.StreamChallengeRequest" as const,
+
+  encode(message: StreamChallengeRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.challenge_id !== "0") {
+      writer.uint32(8).uint64(message.challenge_id);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamChallengeRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamChallengeRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.challenge_id = longToString(reader.uint64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamChallengeRequest {
+    return { challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0" };
+  },
+
+  toJSON(message: StreamChallengeRequest): unknown {
+    const obj: any = {};
+    if (message.challenge_id !== undefined) {
+      obj.challenge_id = message.challenge_id;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamChallengeRequest>): StreamChallengeRequest {
+    return StreamChallengeRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamChallengeRequest>): StreamChallengeRequest {
+    const message = createBaseStreamChallengeRequest();
+    message.challenge_id = object.challenge_id ?? "0";
+    return message;
+  },
+};
+
+function createBaseStreamChallengeResponse(): StreamChallengeResponse {
+  return { deleted: "0", challenge: undefined, stream_operation: "" };
+}
+
+export const StreamChallengeResponse = {
+  $type: "flux.indexer.campclash.StreamChallengeResponse" as const,
+
+  encode(message: StreamChallengeResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.deleted !== "0") {
+      writer.uint32(8).uint64(message.deleted);
+    }
+    if (message.challenge !== undefined) {
+      Challenge.encode(message.challenge, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.stream_operation !== "") {
+      writer.uint32(26).string(message.stream_operation);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamChallengeResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamChallengeResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.deleted = longToString(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.challenge = Challenge.decode(reader, reader.uint32());
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.stream_operation = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamChallengeResponse {
+    return {
+      deleted: isSet(object.deleted) ? globalThis.String(object.deleted) : "0",
+      challenge: isSet(object.challenge) ? Challenge.fromJSON(object.challenge) : undefined,
+      stream_operation: isSet(object.stream_operation) ? globalThis.String(object.stream_operation) : "",
+    };
+  },
+
+  toJSON(message: StreamChallengeResponse): unknown {
+    const obj: any = {};
+    if (message.deleted !== undefined) {
+      obj.deleted = message.deleted;
+    }
+    if (message.challenge !== undefined) {
+      obj.challenge = Challenge.toJSON(message.challenge);
+    }
+    if (message.stream_operation !== undefined) {
+      obj.stream_operation = message.stream_operation;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamChallengeResponse>): StreamChallengeResponse {
+    return StreamChallengeResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamChallengeResponse>): StreamChallengeResponse {
+    const message = createBaseStreamChallengeResponse();
+    message.deleted = object.deleted ?? "0";
+    message.challenge = (object.challenge !== undefined && object.challenge !== null)
+      ? Challenge.fromPartial(object.challenge)
+      : undefined;
+    message.stream_operation = object.stream_operation ?? "";
+    return message;
+  },
+};
+
+function createBaseClaimable(): Claimable {
+  return { address: "", coins: undefined, is_claimed: false, height: "0" };
+}
+
+export const Claimable = {
+  $type: "flux.indexer.campclash.Claimable" as const,
+
+  encode(message: Claimable, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.address !== "") {
+      writer.uint32(10).string(message.address);
+    }
+    if (message.coins !== undefined) {
+      Coin.encode(message.coins, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.is_claimed !== false) {
+      writer.uint32(24).bool(message.is_claimed);
+    }
+    if (message.height !== "0") {
+      writer.uint32(32).uint64(message.height);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Claimable {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseClaimable();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.address = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.coins = Coin.decode(reader, reader.uint32());
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.is_claimed = reader.bool();
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.height = longToString(reader.uint64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Claimable {
+    return {
+      address: isSet(object.address) ? globalThis.String(object.address) : "",
+      coins: isSet(object.coins) ? Coin.fromJSON(object.coins) : undefined,
+      is_claimed: isSet(object.is_claimed) ? globalThis.Boolean(object.is_claimed) : false,
+      height: isSet(object.height) ? globalThis.String(object.height) : "0",
+    };
+  },
+
+  toJSON(message: Claimable): unknown {
+    const obj: any = {};
+    if (message.address !== undefined) {
+      obj.address = message.address;
+    }
+    if (message.coins !== undefined) {
+      obj.coins = Coin.toJSON(message.coins);
+    }
+    if (message.is_claimed !== undefined) {
+      obj.is_claimed = message.is_claimed;
+    }
+    if (message.height !== undefined) {
+      obj.height = message.height;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Claimable>): Claimable {
+    return Claimable.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Claimable>): Claimable {
+    const message = createBaseClaimable();
+    message.address = object.address ?? "";
+    message.coins = (object.coins !== undefined && object.coins !== null) ? Coin.fromPartial(object.coins) : undefined;
+    message.is_claimed = object.is_claimed ?? false;
+    message.height = object.height ?? "0";
+    return message;
+  },
+};
+
+function createBaseListChallengeClaimableRequest(): ListChallengeClaimableRequest {
+  return { pagination: undefined, challenge_id: "0", camp_denom: "" };
+}
+
+export const ListChallengeClaimableRequest = {
+  $type: "flux.indexer.campclash.ListChallengeClaimableRequest" as const,
+
+  encode(message: ListChallengeClaimableRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.challenge_id !== "0") {
+      writer.uint32(16).uint64(message.challenge_id);
+    }
+    if (message.camp_denom !== "") {
+      writer.uint32(26).string(message.camp_denom);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListChallengeClaimableRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListChallengeClaimableRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.challenge_id = longToString(reader.uint64() as Long);
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.camp_denom = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListChallengeClaimableRequest {
+    return {
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
+      challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
+      camp_denom: isSet(object.camp_denom) ? globalThis.String(object.camp_denom) : "",
+    };
+  },
+
+  toJSON(message: ListChallengeClaimableRequest): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageRequest.toJSON(message.pagination);
+    }
+    if (message.challenge_id !== undefined) {
+      obj.challenge_id = message.challenge_id;
+    }
+    if (message.camp_denom !== undefined) {
+      obj.camp_denom = message.camp_denom;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListChallengeClaimableRequest>): ListChallengeClaimableRequest {
+    return ListChallengeClaimableRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListChallengeClaimableRequest>): ListChallengeClaimableRequest {
+    const message = createBaseListChallengeClaimableRequest();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
+    message.challenge_id = object.challenge_id ?? "0";
+    message.camp_denom = object.camp_denom ?? "";
+    return message;
+  },
+};
+
+function createBaseListChallengeClaimableResponse(): ListChallengeClaimableResponse {
+  return { pagination: undefined, challenge_id: "0", entries: [] };
+}
+
+export const ListChallengeClaimableResponse = {
+  $type: "flux.indexer.campclash.ListChallengeClaimableResponse" as const,
+
+  encode(message: ListChallengeClaimableResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.challenge_id !== "0") {
+      writer.uint32(16).uint64(message.challenge_id);
+    }
+    for (const v of message.entries) {
+      Claimable.encode(v!, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListChallengeClaimableResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListChallengeClaimableResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.challenge_id = longToString(reader.uint64() as Long);
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.entries.push(Claimable.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListChallengeClaimableResponse {
+    return {
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+      challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
+      entries: globalThis.Array.isArray(object?.entries) ? object.entries.map((e: any) => Claimable.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: ListChallengeClaimableResponse): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageResponse.toJSON(message.pagination);
+    }
+    if (message.challenge_id !== undefined) {
+      obj.challenge_id = message.challenge_id;
+    }
+    if (message.entries?.length) {
+      obj.entries = message.entries.map((e) => Claimable.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListChallengeClaimableResponse>): ListChallengeClaimableResponse {
+    return ListChallengeClaimableResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListChallengeClaimableResponse>): ListChallengeClaimableResponse {
+    const message = createBaseListChallengeClaimableResponse();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
+    message.challenge_id = object.challenge_id ?? "0";
+    message.entries = object.entries?.map((e) => Claimable.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseStreamChallengeClaimableRequest(): StreamChallengeClaimableRequest {
+  return { challenge_id: "0", camp_denom: "" };
+}
+
+export const StreamChallengeClaimableRequest = {
+  $type: "flux.indexer.campclash.StreamChallengeClaimableRequest" as const,
+
+  encode(message: StreamChallengeClaimableRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.challenge_id !== "0") {
+      writer.uint32(8).uint64(message.challenge_id);
+    }
+    if (message.camp_denom !== "") {
+      writer.uint32(18).string(message.camp_denom);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamChallengeClaimableRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamChallengeClaimableRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.challenge_id = longToString(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.camp_denom = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamChallengeClaimableRequest {
+    return {
+      challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
+      camp_denom: isSet(object.camp_denom) ? globalThis.String(object.camp_denom) : "",
+    };
+  },
+
+  toJSON(message: StreamChallengeClaimableRequest): unknown {
+    const obj: any = {};
+    if (message.challenge_id !== undefined) {
+      obj.challenge_id = message.challenge_id;
+    }
+    if (message.camp_denom !== undefined) {
+      obj.camp_denom = message.camp_denom;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamChallengeClaimableRequest>): StreamChallengeClaimableRequest {
+    return StreamChallengeClaimableRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamChallengeClaimableRequest>): StreamChallengeClaimableRequest {
+    const message = createBaseStreamChallengeClaimableRequest();
+    message.challenge_id = object.challenge_id ?? "0";
+    message.camp_denom = object.camp_denom ?? "";
+    return message;
+  },
+};
+
+function createBaseStreamChallengeClaimableResponse(): StreamChallengeClaimableResponse {
+  return { deleted: false, entry: undefined };
+}
+
+export const StreamChallengeClaimableResponse = {
+  $type: "flux.indexer.campclash.StreamChallengeClaimableResponse" as const,
+
+  encode(message: StreamChallengeClaimableResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.deleted !== false) {
+      writer.uint32(8).bool(message.deleted);
+    }
+    if (message.entry !== undefined) {
+      Claimable.encode(message.entry, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamChallengeClaimableResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamChallengeClaimableResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.deleted = reader.bool();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.entry = Claimable.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamChallengeClaimableResponse {
+    return {
+      deleted: isSet(object.deleted) ? globalThis.Boolean(object.deleted) : false,
+      entry: isSet(object.entry) ? Claimable.fromJSON(object.entry) : undefined,
+    };
+  },
+
+  toJSON(message: StreamChallengeClaimableResponse): unknown {
+    const obj: any = {};
+    if (message.deleted !== undefined) {
+      obj.deleted = message.deleted;
+    }
+    if (message.entry !== undefined) {
+      obj.entry = Claimable.toJSON(message.entry);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamChallengeClaimableResponse>): StreamChallengeClaimableResponse {
+    return StreamChallengeClaimableResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamChallengeClaimableResponse>): StreamChallengeClaimableResponse {
+    const message = createBaseStreamChallengeClaimableResponse();
+    message.deleted = object.deleted ?? false;
+    message.entry = (object.entry !== undefined && object.entry !== null)
+      ? Claimable.fromPartial(object.entry)
+      : undefined;
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface CampclashQuery {
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse>;
@@ -1960,6 +2860,19 @@ export interface CampclashQuery {
     request: DeepPartial<GetLeaderboardRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetLeaderboardResponse>;
+  ListChallenge(request: DeepPartial<ListChallengeRequest>, metadata?: grpc.Metadata): Promise<ListChallengeResponse>;
+  StreamChallenge(
+    request: DeepPartial<StreamChallengeRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamChallengeResponse>;
+  ListChallengeClaimable(
+    request: DeepPartial<ListChallengeClaimableRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ListChallengeClaimableResponse>;
+  StreamChallengeClaimable(
+    request: DeepPartial<StreamChallengeClaimableRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamChallengeClaimableResponse>;
 }
 
 export class CampclashQueryClientImpl implements CampclashQuery {
@@ -1977,6 +2890,10 @@ export class CampclashQueryClientImpl implements CampclashQuery {
     this.ListComments = this.ListComments.bind(this);
     this.StreamComments = this.StreamComments.bind(this);
     this.GetLeaderboard = this.GetLeaderboard.bind(this);
+    this.ListChallenge = this.ListChallenge.bind(this);
+    this.StreamChallenge = this.StreamChallenge.bind(this);
+    this.ListChallengeClaimable = this.ListChallengeClaimable.bind(this);
+    this.StreamChallengeClaimable = this.StreamChallengeClaimable.bind(this);
   }
 
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse> {
@@ -2029,6 +2946,39 @@ export class CampclashQueryClientImpl implements CampclashQuery {
     metadata?: grpc.Metadata,
   ): Promise<GetLeaderboardResponse> {
     return this.rpc.unary(CampclashQueryGetLeaderboardDesc, GetLeaderboardRequest.fromPartial(request), metadata);
+  }
+
+  ListChallenge(request: DeepPartial<ListChallengeRequest>, metadata?: grpc.Metadata): Promise<ListChallengeResponse> {
+    return this.rpc.unary(CampclashQueryListChallengeDesc, ListChallengeRequest.fromPartial(request), metadata);
+  }
+
+  StreamChallenge(
+    request: DeepPartial<StreamChallengeRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamChallengeResponse> {
+    return this.rpc.invoke(CampclashQueryStreamChallengeDesc, StreamChallengeRequest.fromPartial(request), metadata);
+  }
+
+  ListChallengeClaimable(
+    request: DeepPartial<ListChallengeClaimableRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ListChallengeClaimableResponse> {
+    return this.rpc.unary(
+      CampclashQueryListChallengeClaimableDesc,
+      ListChallengeClaimableRequest.fromPartial(request),
+      metadata,
+    );
+  }
+
+  StreamChallengeClaimable(
+    request: DeepPartial<StreamChallengeClaimableRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamChallengeClaimableResponse> {
+    return this.rpc.invoke(
+      CampclashQueryStreamChallengeClaimableDesc,
+      StreamChallengeClaimableRequest.fromPartial(request),
+      metadata,
+    );
   }
 }
 
@@ -2254,6 +3204,98 @@ export const CampclashQueryGetLeaderboardDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = GetLeaderboardResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQueryListChallengeDesc: UnaryMethodDefinitionish = {
+  methodName: "ListChallenge",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ListChallengeRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ListChallengeResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQueryStreamChallengeDesc: UnaryMethodDefinitionish = {
+  methodName: "StreamChallenge",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: true,
+  requestType: {
+    serializeBinary() {
+      return StreamChallengeRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = StreamChallengeResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQueryListChallengeClaimableDesc: UnaryMethodDefinitionish = {
+  methodName: "ListChallengeClaimable",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ListChallengeClaimableRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ListChallengeClaimableResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQueryStreamChallengeClaimableDesc: UnaryMethodDefinitionish = {
+  methodName: "StreamChallengeClaimable",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: true,
+  requestType: {
+    serializeBinary() {
+      return StreamChallengeClaimableRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = StreamChallengeClaimableResponse.decode(data);
       return {
         ...value,
         toObject() {
