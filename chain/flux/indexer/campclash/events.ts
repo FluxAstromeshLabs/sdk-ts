@@ -138,15 +138,6 @@ export interface ChallengeEvent {
   challenge: Challenge | undefined;
 }
 
-/** Define the VoteEvent message */
-export interface ChallengeVoteEvent {
-  /** Contract address */
-  contract_address: string;
-  challenge_id: string;
-  voter: string;
-  coin: Coin | undefined;
-}
-
 /** Define the ChallengeClaimedEvent message */
 export interface ChallengeClaimedEvent {
   /** Contract address */
@@ -533,112 +524,6 @@ export const ChallengeEvent = {
     message.challenge = (object.challenge !== undefined && object.challenge !== null)
       ? Challenge.fromPartial(object.challenge)
       : undefined;
-    return message;
-  },
-};
-
-function createBaseChallengeVoteEvent(): ChallengeVoteEvent {
-  return { contract_address: "", challenge_id: "0", voter: "", coin: undefined };
-}
-
-export const ChallengeVoteEvent = {
-  $type: "flux.indexer.campclash.ChallengeVoteEvent" as const,
-
-  encode(message: ChallengeVoteEvent, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.contract_address !== "") {
-      writer.uint32(10).string(message.contract_address);
-    }
-    if (message.challenge_id !== "0") {
-      writer.uint32(16).uint64(message.challenge_id);
-    }
-    if (message.voter !== "") {
-      writer.uint32(26).string(message.voter);
-    }
-    if (message.coin !== undefined) {
-      Coin.encode(message.coin, writer.uint32(34).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ChallengeVoteEvent {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseChallengeVoteEvent();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.contract_address = reader.string();
-          continue;
-        case 2:
-          if (tag !== 16) {
-            break;
-          }
-
-          message.challenge_id = longToString(reader.uint64() as Long);
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.voter = reader.string();
-          continue;
-        case 4:
-          if (tag !== 34) {
-            break;
-          }
-
-          message.coin = Coin.decode(reader, reader.uint32());
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ChallengeVoteEvent {
-    return {
-      contract_address: isSet(object.contract_address) ? globalThis.String(object.contract_address) : "",
-      challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
-      voter: isSet(object.voter) ? globalThis.String(object.voter) : "",
-      coin: isSet(object.coin) ? Coin.fromJSON(object.coin) : undefined,
-    };
-  },
-
-  toJSON(message: ChallengeVoteEvent): unknown {
-    const obj: any = {};
-    if (message.contract_address !== undefined) {
-      obj.contract_address = message.contract_address;
-    }
-    if (message.challenge_id !== undefined) {
-      obj.challenge_id = message.challenge_id;
-    }
-    if (message.voter !== undefined) {
-      obj.voter = message.voter;
-    }
-    if (message.coin !== undefined) {
-      obj.coin = Coin.toJSON(message.coin);
-    }
-    return obj;
-  },
-
-  create(base?: DeepPartial<ChallengeVoteEvent>): ChallengeVoteEvent {
-    return ChallengeVoteEvent.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<ChallengeVoteEvent>): ChallengeVoteEvent {
-    const message = createBaseChallengeVoteEvent();
-    message.contract_address = object.contract_address ?? "";
-    message.challenge_id = object.challenge_id ?? "0";
-    message.voter = object.voter ?? "";
-    message.coin = (object.coin !== undefined && object.coin !== null) ? Coin.fromPartial(object.coin) : undefined;
     return message;
   },
 };

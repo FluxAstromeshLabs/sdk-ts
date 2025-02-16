@@ -39,7 +39,6 @@ export interface Project {
   disable_buy: boolean;
   disable_sell: boolean;
   challenge_id: string;
-  challenge: Challenge | undefined;
 }
 
 export interface Tweet {
@@ -84,6 +83,8 @@ export interface UserBalance {
     | undefined;
   /** Amount of tokens that locked in camp contract, user still need to see */
   locked_amount: string;
+  /** this */
+  vote_type: string;
 }
 
 /** Agent structure */
@@ -116,14 +117,19 @@ export interface MetadataObject {
   tags: string[];
 }
 
+export interface VoteCount {
+  accept: string;
+  reject: string;
+}
+
 export interface Challenge {
   contract_address: string;
   challenger_denom: string;
   challenged_denom: string;
   /** ChallengeStatus as string */
   status: string;
-  challenger_vote: string;
-  challenged_vote: string;
+  challenger_vote: VoteCount | undefined;
+  challenged_vote: VoteCount | undefined;
   vote_duration: string;
   match_duration: string;
   challenger_vote_start_time: string;
@@ -134,6 +140,18 @@ export interface Challenge {
   reward_coin: Coin | undefined;
   challenge_id: string;
   updated_height: string;
+  finalized_reason: string;
+}
+
+/** Define the VoteEvent message */
+export interface ChallengeVote {
+  /** Contract address */
+  contract_address: string;
+  challenge_id: string;
+  voter: string;
+  coin: Coin | undefined;
+  vote_type: string;
+  height: string;
 }
 
 function createBaseProject(): Project {
@@ -162,7 +180,6 @@ function createBaseProject(): Project {
     disable_buy: false,
     disable_sell: false,
     challenge_id: "0",
-    challenge: undefined,
   };
 }
 
@@ -241,9 +258,6 @@ export const Project = {
     }
     if (message.challenge_id !== "0") {
       writer.uint32(192).uint64(message.challenge_id);
-    }
-    if (message.challenge !== undefined) {
-      Challenge.encode(message.challenge, writer.uint32(202).fork()).ldelim();
     }
     return writer;
   },
@@ -423,13 +437,6 @@ export const Project = {
 
           message.challenge_id = longToString(reader.uint64() as Long);
           continue;
-        case 25:
-          if (tag !== 202) {
-            break;
-          }
-
-          message.challenge = Challenge.decode(reader, reader.uint32());
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -465,7 +472,6 @@ export const Project = {
       disable_buy: isSet(object.disable_buy) ? globalThis.Boolean(object.disable_buy) : false,
       disable_sell: isSet(object.disable_sell) ? globalThis.Boolean(object.disable_sell) : false,
       challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
-      challenge: isSet(object.challenge) ? Challenge.fromJSON(object.challenge) : undefined,
     };
   },
 
@@ -543,9 +549,6 @@ export const Project = {
     if (message.challenge_id !== undefined) {
       obj.challenge_id = message.challenge_id;
     }
-    if (message.challenge !== undefined) {
-      obj.challenge = Challenge.toJSON(message.challenge);
-    }
     return obj;
   },
 
@@ -582,9 +585,6 @@ export const Project = {
     message.disable_buy = object.disable_buy ?? false;
     message.disable_sell = object.disable_sell ?? false;
     message.challenge_id = object.challenge_id ?? "0";
-    message.challenge = (object.challenge !== undefined && object.challenge !== null)
-      ? Challenge.fromPartial(object.challenge)
-      : undefined;
     return message;
   },
 };
@@ -948,7 +948,15 @@ export const Metrics = {
 };
 
 function createBaseUserBalance(): UserBalance {
-  return { address: "", camp_denom: "", amount: "", updated_height: "0", project: undefined, locked_amount: "" };
+  return {
+    address: "",
+    camp_denom: "",
+    amount: "",
+    updated_height: "0",
+    project: undefined,
+    locked_amount: "",
+    vote_type: "",
+  };
 }
 
 export const UserBalance = {
@@ -972,6 +980,9 @@ export const UserBalance = {
     }
     if (message.locked_amount !== "") {
       writer.uint32(50).string(message.locked_amount);
+    }
+    if (message.vote_type !== "") {
+      writer.uint32(58).string(message.vote_type);
     }
     return writer;
   },
@@ -1025,6 +1036,13 @@ export const UserBalance = {
 
           message.locked_amount = reader.string();
           continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.vote_type = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1042,6 +1060,7 @@ export const UserBalance = {
       updated_height: isSet(object.updated_height) ? globalThis.String(object.updated_height) : "0",
       project: isSet(object.project) ? Project.fromJSON(object.project) : undefined,
       locked_amount: isSet(object.locked_amount) ? globalThis.String(object.locked_amount) : "",
+      vote_type: isSet(object.vote_type) ? globalThis.String(object.vote_type) : "",
     };
   },
 
@@ -1065,6 +1084,9 @@ export const UserBalance = {
     if (message.locked_amount !== undefined) {
       obj.locked_amount = message.locked_amount;
     }
+    if (message.vote_type !== undefined) {
+      obj.vote_type = message.vote_type;
+    }
     return obj;
   },
 
@@ -1081,6 +1103,7 @@ export const UserBalance = {
       ? Project.fromPartial(object.project)
       : undefined;
     message.locked_amount = object.locked_amount ?? "";
+    message.vote_type = object.vote_type ?? "";
     return message;
   },
 };
@@ -1523,14 +1546,90 @@ export const MetadataObject = {
   },
 };
 
+function createBaseVoteCount(): VoteCount {
+  return { accept: "", reject: "" };
+}
+
+export const VoteCount = {
+  $type: "flux.indexer.campclash.VoteCount" as const,
+
+  encode(message: VoteCount, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.accept !== "") {
+      writer.uint32(10).string(message.accept);
+    }
+    if (message.reject !== "") {
+      writer.uint32(18).string(message.reject);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): VoteCount {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseVoteCount();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.accept = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.reject = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): VoteCount {
+    return {
+      accept: isSet(object.accept) ? globalThis.String(object.accept) : "",
+      reject: isSet(object.reject) ? globalThis.String(object.reject) : "",
+    };
+  },
+
+  toJSON(message: VoteCount): unknown {
+    const obj: any = {};
+    if (message.accept !== undefined) {
+      obj.accept = message.accept;
+    }
+    if (message.reject !== undefined) {
+      obj.reject = message.reject;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<VoteCount>): VoteCount {
+    return VoteCount.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<VoteCount>): VoteCount {
+    const message = createBaseVoteCount();
+    message.accept = object.accept ?? "";
+    message.reject = object.reject ?? "";
+    return message;
+  },
+};
+
 function createBaseChallenge(): Challenge {
   return {
     contract_address: "",
     challenger_denom: "",
     challenged_denom: "",
     status: "",
-    challenger_vote: "",
-    challenged_vote: "",
+    challenger_vote: undefined,
+    challenged_vote: undefined,
     vote_duration: "0",
     match_duration: "0",
     challenger_vote_start_time: "0",
@@ -1541,6 +1640,7 @@ function createBaseChallenge(): Challenge {
     reward_coin: undefined,
     challenge_id: "0",
     updated_height: "0",
+    finalized_reason: "",
   };
 }
 
@@ -1560,11 +1660,11 @@ export const Challenge = {
     if (message.status !== "") {
       writer.uint32(34).string(message.status);
     }
-    if (message.challenger_vote !== "") {
-      writer.uint32(42).string(message.challenger_vote);
+    if (message.challenger_vote !== undefined) {
+      VoteCount.encode(message.challenger_vote, writer.uint32(42).fork()).ldelim();
     }
-    if (message.challenged_vote !== "") {
-      writer.uint32(50).string(message.challenged_vote);
+    if (message.challenged_vote !== undefined) {
+      VoteCount.encode(message.challenged_vote, writer.uint32(50).fork()).ldelim();
     }
     if (message.vote_duration !== "0") {
       writer.uint32(56).uint64(message.vote_duration);
@@ -1595,6 +1695,9 @@ export const Challenge = {
     }
     if (message.updated_height !== "0") {
       writer.uint32(128).uint64(message.updated_height);
+    }
+    if (message.finalized_reason !== "") {
+      writer.uint32(138).string(message.finalized_reason);
     }
     return writer;
   },
@@ -1639,14 +1742,14 @@ export const Challenge = {
             break;
           }
 
-          message.challenger_vote = reader.string();
+          message.challenger_vote = VoteCount.decode(reader, reader.uint32());
           continue;
         case 6:
           if (tag !== 50) {
             break;
           }
 
-          message.challenged_vote = reader.string();
+          message.challenged_vote = VoteCount.decode(reader, reader.uint32());
           continue;
         case 7:
           if (tag !== 56) {
@@ -1718,6 +1821,13 @@ export const Challenge = {
 
           message.updated_height = longToString(reader.uint64() as Long);
           continue;
+        case 17:
+          if (tag !== 138) {
+            break;
+          }
+
+          message.finalized_reason = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1733,8 +1843,8 @@ export const Challenge = {
       challenger_denom: isSet(object.challenger_denom) ? globalThis.String(object.challenger_denom) : "",
       challenged_denom: isSet(object.challenged_denom) ? globalThis.String(object.challenged_denom) : "",
       status: isSet(object.status) ? globalThis.String(object.status) : "",
-      challenger_vote: isSet(object.challenger_vote) ? globalThis.String(object.challenger_vote) : "",
-      challenged_vote: isSet(object.challenged_vote) ? globalThis.String(object.challenged_vote) : "",
+      challenger_vote: isSet(object.challenger_vote) ? VoteCount.fromJSON(object.challenger_vote) : undefined,
+      challenged_vote: isSet(object.challenged_vote) ? VoteCount.fromJSON(object.challenged_vote) : undefined,
       vote_duration: isSet(object.vote_duration) ? globalThis.String(object.vote_duration) : "0",
       match_duration: isSet(object.match_duration) ? globalThis.String(object.match_duration) : "0",
       challenger_vote_start_time: isSet(object.challenger_vote_start_time)
@@ -1751,6 +1861,7 @@ export const Challenge = {
       reward_coin: isSet(object.reward_coin) ? Coin.fromJSON(object.reward_coin) : undefined,
       challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
       updated_height: isSet(object.updated_height) ? globalThis.String(object.updated_height) : "0",
+      finalized_reason: isSet(object.finalized_reason) ? globalThis.String(object.finalized_reason) : "",
     };
   },
 
@@ -1769,10 +1880,10 @@ export const Challenge = {
       obj.status = message.status;
     }
     if (message.challenger_vote !== undefined) {
-      obj.challenger_vote = message.challenger_vote;
+      obj.challenger_vote = VoteCount.toJSON(message.challenger_vote);
     }
     if (message.challenged_vote !== undefined) {
-      obj.challenged_vote = message.challenged_vote;
+      obj.challenged_vote = VoteCount.toJSON(message.challenged_vote);
     }
     if (message.vote_duration !== undefined) {
       obj.vote_duration = message.vote_duration;
@@ -1804,6 +1915,9 @@ export const Challenge = {
     if (message.updated_height !== undefined) {
       obj.updated_height = message.updated_height;
     }
+    if (message.finalized_reason !== undefined) {
+      obj.finalized_reason = message.finalized_reason;
+    }
     return obj;
   },
 
@@ -1816,8 +1930,12 @@ export const Challenge = {
     message.challenger_denom = object.challenger_denom ?? "";
     message.challenged_denom = object.challenged_denom ?? "";
     message.status = object.status ?? "";
-    message.challenger_vote = object.challenger_vote ?? "";
-    message.challenged_vote = object.challenged_vote ?? "";
+    message.challenger_vote = (object.challenger_vote !== undefined && object.challenger_vote !== null)
+      ? VoteCount.fromPartial(object.challenger_vote)
+      : undefined;
+    message.challenged_vote = (object.challenged_vote !== undefined && object.challenged_vote !== null)
+      ? VoteCount.fromPartial(object.challenged_vote)
+      : undefined;
     message.vote_duration = object.vote_duration ?? "0";
     message.match_duration = object.match_duration ?? "0";
     message.challenger_vote_start_time = object.challenger_vote_start_time ?? "0";
@@ -1830,6 +1948,143 @@ export const Challenge = {
       : undefined;
     message.challenge_id = object.challenge_id ?? "0";
     message.updated_height = object.updated_height ?? "0";
+    message.finalized_reason = object.finalized_reason ?? "";
+    return message;
+  },
+};
+
+function createBaseChallengeVote(): ChallengeVote {
+  return { contract_address: "", challenge_id: "0", voter: "", coin: undefined, vote_type: "", height: "0" };
+}
+
+export const ChallengeVote = {
+  $type: "flux.indexer.campclash.ChallengeVote" as const,
+
+  encode(message: ChallengeVote, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.contract_address !== "") {
+      writer.uint32(10).string(message.contract_address);
+    }
+    if (message.challenge_id !== "0") {
+      writer.uint32(16).uint64(message.challenge_id);
+    }
+    if (message.voter !== "") {
+      writer.uint32(26).string(message.voter);
+    }
+    if (message.coin !== undefined) {
+      Coin.encode(message.coin, writer.uint32(34).fork()).ldelim();
+    }
+    if (message.vote_type !== "") {
+      writer.uint32(42).string(message.vote_type);
+    }
+    if (message.height !== "0") {
+      writer.uint32(48).uint64(message.height);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ChallengeVote {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseChallengeVote();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.contract_address = reader.string();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.challenge_id = longToString(reader.uint64() as Long);
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.voter = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.coin = Coin.decode(reader, reader.uint32());
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.vote_type = reader.string();
+          continue;
+        case 6:
+          if (tag !== 48) {
+            break;
+          }
+
+          message.height = longToString(reader.uint64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ChallengeVote {
+    return {
+      contract_address: isSet(object.contract_address) ? globalThis.String(object.contract_address) : "",
+      challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
+      voter: isSet(object.voter) ? globalThis.String(object.voter) : "",
+      coin: isSet(object.coin) ? Coin.fromJSON(object.coin) : undefined,
+      vote_type: isSet(object.vote_type) ? globalThis.String(object.vote_type) : "",
+      height: isSet(object.height) ? globalThis.String(object.height) : "0",
+    };
+  },
+
+  toJSON(message: ChallengeVote): unknown {
+    const obj: any = {};
+    if (message.contract_address !== undefined) {
+      obj.contract_address = message.contract_address;
+    }
+    if (message.challenge_id !== undefined) {
+      obj.challenge_id = message.challenge_id;
+    }
+    if (message.voter !== undefined) {
+      obj.voter = message.voter;
+    }
+    if (message.coin !== undefined) {
+      obj.coin = Coin.toJSON(message.coin);
+    }
+    if (message.vote_type !== undefined) {
+      obj.vote_type = message.vote_type;
+    }
+    if (message.height !== undefined) {
+      obj.height = message.height;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ChallengeVote>): ChallengeVote {
+    return ChallengeVote.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ChallengeVote>): ChallengeVote {
+    const message = createBaseChallengeVote();
+    message.contract_address = object.contract_address ?? "";
+    message.challenge_id = object.challenge_id ?? "0";
+    message.voter = object.voter ?? "";
+    message.coin = (object.coin !== undefined && object.coin !== null) ? Coin.fromPartial(object.coin) : undefined;
+    message.vote_type = object.vote_type ?? "";
+    message.height = object.height ?? "0";
     return message;
   },
 };
