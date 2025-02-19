@@ -15,6 +15,7 @@ export enum CampEventOps {
   OpCreateCamp = 0,
   OpGraduateCamp = 1,
   OpUpdateCamp = 2,
+  OpUpdateChallenge = 3,
   UNRECOGNIZED = -1,
 }
 
@@ -29,6 +30,9 @@ export function campEventOpsFromJSON(object: any): CampEventOps {
     case 2:
     case "OpUpdateCamp":
       return CampEventOps.OpUpdateCamp;
+    case 3:
+    case "OpUpdateChallenge":
+      return CampEventOps.OpUpdateChallenge;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -44,6 +48,8 @@ export function campEventOpsToJSON(object: CampEventOps): string {
       return "OpGraduateCamp";
     case CampEventOps.OpUpdateCamp:
       return "OpUpdateCamp";
+    case CampEventOps.OpUpdateChallenge:
+      return "OpUpdateChallenge";
     case CampEventOps.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -128,6 +134,8 @@ export interface SwapEvent {
   /** Cast to math.Int */
   curve_camp_amount: string;
   trader: string;
+  output_locked: boolean;
+  challenge_id: string;
 }
 
 /** Define the ChallengeEvent message */
@@ -145,6 +153,7 @@ export interface ChallengeClaimedEvent {
   challenge_id: string;
   address: string;
   coins: Coin[];
+  unlocked_coins: Coin[];
 }
 
 function createBaseCampEvent(): CampEvent {
@@ -251,6 +260,8 @@ function createBaseSwapEvent(): SwapEvent {
     curve_quote_amount: "",
     curve_camp_amount: "",
     trader: "",
+    output_locked: false,
+    challenge_id: "0",
   };
 }
 
@@ -284,6 +295,12 @@ export const SwapEvent = {
     }
     if (message.trader !== "") {
       writer.uint32(74).string(message.trader);
+    }
+    if (message.output_locked !== false) {
+      writer.uint32(80).bool(message.output_locked);
+    }
+    if (message.challenge_id !== "0") {
+      writer.uint32(88).uint64(message.challenge_id);
     }
     return writer;
   },
@@ -358,6 +375,20 @@ export const SwapEvent = {
 
           message.trader = reader.string();
           continue;
+        case 10:
+          if (tag !== 80) {
+            break;
+          }
+
+          message.output_locked = reader.bool();
+          continue;
+        case 11:
+          if (tag !== 88) {
+            break;
+          }
+
+          message.challenge_id = longToString(reader.uint64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -378,6 +409,8 @@ export const SwapEvent = {
       curve_quote_amount: isSet(object.curve_quote_amount) ? globalThis.String(object.curve_quote_amount) : "",
       curve_camp_amount: isSet(object.curve_camp_amount) ? globalThis.String(object.curve_camp_amount) : "",
       trader: isSet(object.trader) ? globalThis.String(object.trader) : "",
+      output_locked: isSet(object.output_locked) ? globalThis.Boolean(object.output_locked) : false,
+      challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
     };
   },
 
@@ -410,6 +443,12 @@ export const SwapEvent = {
     if (message.trader !== undefined) {
       obj.trader = message.trader;
     }
+    if (message.output_locked !== undefined) {
+      obj.output_locked = message.output_locked;
+    }
+    if (message.challenge_id !== undefined) {
+      obj.challenge_id = message.challenge_id;
+    }
     return obj;
   },
 
@@ -431,6 +470,8 @@ export const SwapEvent = {
     message.curve_quote_amount = object.curve_quote_amount ?? "";
     message.curve_camp_amount = object.curve_camp_amount ?? "";
     message.trader = object.trader ?? "";
+    message.output_locked = object.output_locked ?? false;
+    message.challenge_id = object.challenge_id ?? "0";
     return message;
   },
 };
@@ -529,7 +570,7 @@ export const ChallengeEvent = {
 };
 
 function createBaseChallengeClaimedEvent(): ChallengeClaimedEvent {
-  return { contract_address: "", challenge_id: "0", address: "", coins: [] };
+  return { contract_address: "", challenge_id: "0", address: "", coins: [], unlocked_coins: [] };
 }
 
 export const ChallengeClaimedEvent = {
@@ -547,6 +588,9 @@ export const ChallengeClaimedEvent = {
     }
     for (const v of message.coins) {
       Coin.encode(v!, writer.uint32(34).fork()).ldelim();
+    }
+    for (const v of message.unlocked_coins) {
+      Coin.encode(v!, writer.uint32(42).fork()).ldelim();
     }
     return writer;
   },
@@ -586,6 +630,13 @@ export const ChallengeClaimedEvent = {
 
           message.coins.push(Coin.decode(reader, reader.uint32()));
           continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.unlocked_coins.push(Coin.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -601,6 +652,9 @@ export const ChallengeClaimedEvent = {
       challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
       address: isSet(object.address) ? globalThis.String(object.address) : "",
       coins: globalThis.Array.isArray(object?.coins) ? object.coins.map((e: any) => Coin.fromJSON(e)) : [],
+      unlocked_coins: globalThis.Array.isArray(object?.unlocked_coins)
+        ? object.unlocked_coins.map((e: any) => Coin.fromJSON(e))
+        : [],
     };
   },
 
@@ -618,6 +672,9 @@ export const ChallengeClaimedEvent = {
     if (message.coins?.length) {
       obj.coins = message.coins.map((e) => Coin.toJSON(e));
     }
+    if (message.unlocked_coins?.length) {
+      obj.unlocked_coins = message.unlocked_coins.map((e) => Coin.toJSON(e));
+    }
     return obj;
   },
 
@@ -630,6 +687,7 @@ export const ChallengeClaimedEvent = {
     message.challenge_id = object.challenge_id ?? "0";
     message.address = object.address ?? "";
     message.coins = object.coins?.map((e) => Coin.fromPartial(e)) || [];
+    message.unlocked_coins = object.unlocked_coins?.map((e) => Coin.fromPartial(e)) || [];
     return message;
   },
 };
