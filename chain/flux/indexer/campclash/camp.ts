@@ -142,6 +142,8 @@ export interface Challenge {
   updated_height: string;
   finalized_reason: string;
   user_claimable: Claimable | undefined;
+  challenger_project: Project | undefined;
+  challenged_project: Project | undefined;
 }
 
 /** Define the VoteEvent message */
@@ -1661,6 +1663,8 @@ function createBaseChallenge(): Challenge {
     updated_height: "0",
     finalized_reason: "",
     user_claimable: undefined,
+    challenger_project: undefined,
+    challenged_project: undefined,
   };
 }
 
@@ -1721,6 +1725,12 @@ export const Challenge = {
     }
     if (message.user_claimable !== undefined) {
       Claimable.encode(message.user_claimable, writer.uint32(146).fork()).ldelim();
+    }
+    if (message.challenger_project !== undefined) {
+      Project.encode(message.challenger_project, writer.uint32(154).fork()).ldelim();
+    }
+    if (message.challenged_project !== undefined) {
+      Project.encode(message.challenged_project, writer.uint32(162).fork()).ldelim();
     }
     return writer;
   },
@@ -1858,6 +1868,20 @@ export const Challenge = {
 
           message.user_claimable = Claimable.decode(reader, reader.uint32());
           continue;
+        case 19:
+          if (tag !== 154) {
+            break;
+          }
+
+          message.challenger_project = Project.decode(reader, reader.uint32());
+          continue;
+        case 20:
+          if (tag !== 162) {
+            break;
+          }
+
+          message.challenged_project = Project.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1893,6 +1917,8 @@ export const Challenge = {
       updated_height: isSet(object.updated_height) ? globalThis.String(object.updated_height) : "0",
       finalized_reason: isSet(object.finalized_reason) ? globalThis.String(object.finalized_reason) : "",
       user_claimable: isSet(object.user_claimable) ? Claimable.fromJSON(object.user_claimable) : undefined,
+      challenger_project: isSet(object.challenger_project) ? Project.fromJSON(object.challenger_project) : undefined,
+      challenged_project: isSet(object.challenged_project) ? Project.fromJSON(object.challenged_project) : undefined,
     };
   },
 
@@ -1952,6 +1978,12 @@ export const Challenge = {
     if (message.user_claimable !== undefined) {
       obj.user_claimable = Claimable.toJSON(message.user_claimable);
     }
+    if (message.challenger_project !== undefined) {
+      obj.challenger_project = Project.toJSON(message.challenger_project);
+    }
+    if (message.challenged_project !== undefined) {
+      obj.challenged_project = Project.toJSON(message.challenged_project);
+    }
     return obj;
   },
 
@@ -1985,6 +2017,12 @@ export const Challenge = {
     message.finalized_reason = object.finalized_reason ?? "";
     message.user_claimable = (object.user_claimable !== undefined && object.user_claimable !== null)
       ? Claimable.fromPartial(object.user_claimable)
+      : undefined;
+    message.challenger_project = (object.challenger_project !== undefined && object.challenger_project !== null)
+      ? Project.fromPartial(object.challenger_project)
+      : undefined;
+    message.challenged_project = (object.challenged_project !== undefined && object.challenged_project !== null)
+      ? Project.fromPartial(object.challenged_project)
       : undefined;
     return message;
   },
