@@ -12,7 +12,6 @@ export class ChainGrpcOracleQuery extends BaseGrpc {
       let response = await this.retry(() => this.client.SimpleEntry(request))
       return response as oracle.QuerySimpleEntryResponse
     } catch (e) {
-      console.log(e)
       throw e
     }
   }

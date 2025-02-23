@@ -27,7 +27,6 @@ export class IndexerStreamProvider extends BaseIndexerStream {
         onStatusCallback
       })
     } catch (e) {
-      console.log(e)
       throw e
     }
   }
@@ -52,7 +51,6 @@ export class IndexerStreamProvider extends BaseIndexerStream {
         onStatusCallback
       })
     } catch (e) {
-      console.log(e)
       throw e
     }
   }

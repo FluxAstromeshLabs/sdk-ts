@@ -30,7 +30,6 @@ export class IndexerStreamFnft extends BaseIndexerStream {
         onStatusCallback
       })
     } catch (e) {
-      console.log(e)
       throw e
     }
   }
@@ -54,7 +53,6 @@ export class IndexerStreamFnft extends BaseIndexerStream {
         onStatusCallback
       })
     } catch (e) {
-      console.log(e)
       throw e
     }
   }
@@ -78,7 +76,6 @@ export class IndexerStreamFnft extends BaseIndexerStream {
         onStatusCallback
       })
     } catch (e) {
-      console.log(e)
       throw e
     }
   }
