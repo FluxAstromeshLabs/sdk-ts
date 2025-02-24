@@ -39,6 +39,7 @@ export interface Project {
   disable_buy: boolean;
   disable_sell: boolean;
   challenge_id: string;
+  has_challenge: boolean;
 }
 
 export interface Tweet {
@@ -85,6 +86,10 @@ export interface UserBalance {
   locked_amount: string;
   /** this */
   vote_type: string;
+  challenge_id: string;
+  vote: string;
+  claimed: boolean;
+  created_height: string;
 }
 
 /** Agent structure */
@@ -144,6 +149,7 @@ export interface Challenge {
   user_claimable: Claimable | undefined;
   challenger_project: Project | undefined;
   challenged_project: Project | undefined;
+  created_height: string;
 }
 
 /** Define the VoteEvent message */
@@ -164,14 +170,6 @@ export interface Claimable {
   address: string;
   coins: Coin[];
   is_claimed: boolean;
-  height: string;
-}
-
-export interface LockedAsset {
-  contract_address: string;
-  challenge_id: string;
-  address: string;
-  locked_coins: Coin[];
   height: string;
 }
 
@@ -201,6 +199,7 @@ function createBaseProject(): Project {
     disable_buy: false,
     disable_sell: false,
     challenge_id: "0",
+    has_challenge: false,
   };
 }
 
@@ -279,6 +278,9 @@ export const Project = {
     }
     if (message.challenge_id !== "0") {
       writer.uint32(192).uint64(message.challenge_id);
+    }
+    if (message.has_challenge !== false) {
+      writer.uint32(200).bool(message.has_challenge);
     }
     return writer;
   },
@@ -458,6 +460,13 @@ export const Project = {
 
           message.challenge_id = longToString(reader.uint64() as Long);
           continue;
+        case 25:
+          if (tag !== 200) {
+            break;
+          }
+
+          message.has_challenge = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -493,6 +502,7 @@ export const Project = {
       disable_buy: isSet(object.disable_buy) ? globalThis.Boolean(object.disable_buy) : false,
       disable_sell: isSet(object.disable_sell) ? globalThis.Boolean(object.disable_sell) : false,
       challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
+      has_challenge: isSet(object.has_challenge) ? globalThis.Boolean(object.has_challenge) : false,
     };
   },
 
@@ -570,6 +580,9 @@ export const Project = {
     if (message.challenge_id !== undefined) {
       obj.challenge_id = message.challenge_id;
     }
+    if (message.has_challenge !== undefined) {
+      obj.has_challenge = message.has_challenge;
+    }
     return obj;
   },
 
@@ -606,6 +619,7 @@ export const Project = {
     message.disable_buy = object.disable_buy ?? false;
     message.disable_sell = object.disable_sell ?? false;
     message.challenge_id = object.challenge_id ?? "0";
+    message.has_challenge = object.has_challenge ?? false;
     return message;
   },
 };
@@ -977,6 +991,10 @@ function createBaseUserBalance(): UserBalance {
     project: undefined,
     locked_amount: "",
     vote_type: "",
+    challenge_id: "0",
+    vote: "",
+    claimed: false,
+    created_height: "0",
   };
 }
 
@@ -1004,6 +1022,18 @@ export const UserBalance = {
     }
     if (message.vote_type !== "") {
       writer.uint32(58).string(message.vote_type);
+    }
+    if (message.challenge_id !== "0") {
+      writer.uint32(64).uint64(message.challenge_id);
+    }
+    if (message.vote !== "") {
+      writer.uint32(74).string(message.vote);
+    }
+    if (message.claimed !== false) {
+      writer.uint32(80).bool(message.claimed);
+    }
+    if (message.created_height !== "0") {
+      writer.uint32(88).uint64(message.created_height);
     }
     return writer;
   },
@@ -1064,6 +1094,34 @@ export const UserBalance = {
 
           message.vote_type = reader.string();
           continue;
+        case 8:
+          if (tag !== 64) {
+            break;
+          }
+
+          message.challenge_id = longToString(reader.uint64() as Long);
+          continue;
+        case 9:
+          if (tag !== 74) {
+            break;
+          }
+
+          message.vote = reader.string();
+          continue;
+        case 10:
+          if (tag !== 80) {
+            break;
+          }
+
+          message.claimed = reader.bool();
+          continue;
+        case 11:
+          if (tag !== 88) {
+            break;
+          }
+
+          message.created_height = longToString(reader.uint64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1082,6 +1140,10 @@ export const UserBalance = {
       project: isSet(object.project) ? Project.fromJSON(object.project) : undefined,
       locked_amount: isSet(object.locked_amount) ? globalThis.String(object.locked_amount) : "",
       vote_type: isSet(object.vote_type) ? globalThis.String(object.vote_type) : "",
+      challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
+      vote: isSet(object.vote) ? globalThis.String(object.vote) : "",
+      claimed: isSet(object.claimed) ? globalThis.Boolean(object.claimed) : false,
+      created_height: isSet(object.created_height) ? globalThis.String(object.created_height) : "0",
     };
   },
 
@@ -1108,6 +1170,18 @@ export const UserBalance = {
     if (message.vote_type !== undefined) {
       obj.vote_type = message.vote_type;
     }
+    if (message.challenge_id !== undefined) {
+      obj.challenge_id = message.challenge_id;
+    }
+    if (message.vote !== undefined) {
+      obj.vote = message.vote;
+    }
+    if (message.claimed !== undefined) {
+      obj.claimed = message.claimed;
+    }
+    if (message.created_height !== undefined) {
+      obj.created_height = message.created_height;
+    }
     return obj;
   },
 
@@ -1125,6 +1199,10 @@ export const UserBalance = {
       : undefined;
     message.locked_amount = object.locked_amount ?? "";
     message.vote_type = object.vote_type ?? "";
+    message.challenge_id = object.challenge_id ?? "0";
+    message.vote = object.vote ?? "";
+    message.claimed = object.claimed ?? false;
+    message.created_height = object.created_height ?? "0";
     return message;
   },
 };
@@ -1665,6 +1743,7 @@ function createBaseChallenge(): Challenge {
     user_claimable: undefined,
     challenger_project: undefined,
     challenged_project: undefined,
+    created_height: "0",
   };
 }
 
@@ -1731,6 +1810,9 @@ export const Challenge = {
     }
     if (message.challenged_project !== undefined) {
       Project.encode(message.challenged_project, writer.uint32(162).fork()).ldelim();
+    }
+    if (message.created_height !== "0") {
+      writer.uint32(168).uint64(message.created_height);
     }
     return writer;
   },
@@ -1882,6 +1964,13 @@ export const Challenge = {
 
           message.challenged_project = Project.decode(reader, reader.uint32());
           continue;
+        case 21:
+          if (tag !== 168) {
+            break;
+          }
+
+          message.created_height = longToString(reader.uint64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1919,6 +2008,7 @@ export const Challenge = {
       user_claimable: isSet(object.user_claimable) ? Claimable.fromJSON(object.user_claimable) : undefined,
       challenger_project: isSet(object.challenger_project) ? Project.fromJSON(object.challenger_project) : undefined,
       challenged_project: isSet(object.challenged_project) ? Project.fromJSON(object.challenged_project) : undefined,
+      created_height: isSet(object.created_height) ? globalThis.String(object.created_height) : "0",
     };
   },
 
@@ -1984,6 +2074,9 @@ export const Challenge = {
     if (message.challenged_project !== undefined) {
       obj.challenged_project = Project.toJSON(message.challenged_project);
     }
+    if (message.created_height !== undefined) {
+      obj.created_height = message.created_height;
+    }
     return obj;
   },
 
@@ -2024,6 +2117,7 @@ export const Challenge = {
     message.challenged_project = (object.challenged_project !== undefined && object.challenged_project !== null)
       ? Project.fromPartial(object.challenged_project)
       : undefined;
+    message.created_height = object.created_height ?? "0";
     return message;
   },
 };
@@ -2190,7 +2284,7 @@ export const ChallengeVote = {
 };
 
 function createBaseClaimable(): Claimable {
-  return { contract_address: "", challenge_id: "", address: "", coins: [], is_claimed: false, height: "0" };
+  return { contract_address: "", challenge_id: "0", address: "", coins: [], is_claimed: false, height: "0" };
 }
 
 export const Claimable = {
@@ -2200,8 +2294,8 @@ export const Claimable = {
     if (message.contract_address !== "") {
       writer.uint32(10).string(message.contract_address);
     }
-    if (message.challenge_id !== "") {
-      writer.uint32(18).string(message.challenge_id);
+    if (message.challenge_id !== "0") {
+      writer.uint32(16).uint64(message.challenge_id);
     }
     if (message.address !== "") {
       writer.uint32(26).string(message.address);
@@ -2233,11 +2327,11 @@ export const Claimable = {
           message.contract_address = reader.string();
           continue;
         case 2:
-          if (tag !== 18) {
+          if (tag !== 16) {
             break;
           }
 
-          message.challenge_id = reader.string();
+          message.challenge_id = longToString(reader.uint64() as Long);
           continue;
         case 3:
           if (tag !== 26) {
@@ -2279,7 +2373,7 @@ export const Claimable = {
   fromJSON(object: any): Claimable {
     return {
       contract_address: isSet(object.contract_address) ? globalThis.String(object.contract_address) : "",
-      challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "",
+      challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
       address: isSet(object.address) ? globalThis.String(object.address) : "",
       coins: globalThis.Array.isArray(object?.coins) ? object.coins.map((e: any) => Coin.fromJSON(e)) : [],
       is_claimed: isSet(object.is_claimed) ? globalThis.Boolean(object.is_claimed) : false,
@@ -2316,133 +2410,10 @@ export const Claimable = {
   fromPartial(object: DeepPartial<Claimable>): Claimable {
     const message = createBaseClaimable();
     message.contract_address = object.contract_address ?? "";
-    message.challenge_id = object.challenge_id ?? "";
+    message.challenge_id = object.challenge_id ?? "0";
     message.address = object.address ?? "";
     message.coins = object.coins?.map((e) => Coin.fromPartial(e)) || [];
     message.is_claimed = object.is_claimed ?? false;
-    message.height = object.height ?? "0";
-    return message;
-  },
-};
-
-function createBaseLockedAsset(): LockedAsset {
-  return { contract_address: "", challenge_id: "", address: "", locked_coins: [], height: "0" };
-}
-
-export const LockedAsset = {
-  $type: "flux.indexer.campclash.LockedAsset" as const,
-
-  encode(message: LockedAsset, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.contract_address !== "") {
-      writer.uint32(10).string(message.contract_address);
-    }
-    if (message.challenge_id !== "") {
-      writer.uint32(18).string(message.challenge_id);
-    }
-    if (message.address !== "") {
-      writer.uint32(26).string(message.address);
-    }
-    for (const v of message.locked_coins) {
-      Coin.encode(v!, writer.uint32(34).fork()).ldelim();
-    }
-    if (message.height !== "0") {
-      writer.uint32(40).uint64(message.height);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): LockedAsset {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseLockedAsset();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.contract_address = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.challenge_id = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.address = reader.string();
-          continue;
-        case 4:
-          if (tag !== 34) {
-            break;
-          }
-
-          message.locked_coins.push(Coin.decode(reader, reader.uint32()));
-          continue;
-        case 5:
-          if (tag !== 40) {
-            break;
-          }
-
-          message.height = longToString(reader.uint64() as Long);
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): LockedAsset {
-    return {
-      contract_address: isSet(object.contract_address) ? globalThis.String(object.contract_address) : "",
-      challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "",
-      address: isSet(object.address) ? globalThis.String(object.address) : "",
-      locked_coins: globalThis.Array.isArray(object?.locked_coins)
-        ? object.locked_coins.map((e: any) => Coin.fromJSON(e))
-        : [],
-      height: isSet(object.height) ? globalThis.String(object.height) : "0",
-    };
-  },
-
-  toJSON(message: LockedAsset): unknown {
-    const obj: any = {};
-    if (message.contract_address !== undefined) {
-      obj.contract_address = message.contract_address;
-    }
-    if (message.challenge_id !== undefined) {
-      obj.challenge_id = message.challenge_id;
-    }
-    if (message.address !== undefined) {
-      obj.address = message.address;
-    }
-    if (message.locked_coins?.length) {
-      obj.locked_coins = message.locked_coins.map((e) => Coin.toJSON(e));
-    }
-    if (message.height !== undefined) {
-      obj.height = message.height;
-    }
-    return obj;
-  },
-
-  create(base?: DeepPartial<LockedAsset>): LockedAsset {
-    return LockedAsset.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<LockedAsset>): LockedAsset {
-    const message = createBaseLockedAsset();
-    message.contract_address = object.contract_address ?? "";
-    message.challenge_id = object.challenge_id ?? "";
-    message.address = object.address ?? "";
-    message.locked_coins = object.locked_coins?.map((e) => Coin.fromPartial(e)) || [];
     message.height = object.height ?? "0";
     return message;
   },
