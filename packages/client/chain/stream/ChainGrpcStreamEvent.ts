@@ -30,7 +30,6 @@ export class ChainGrpcStreamEvent {
       })
       return subscription
     } catch (e) {
-      console.log(e)
       throw e
     }
   }

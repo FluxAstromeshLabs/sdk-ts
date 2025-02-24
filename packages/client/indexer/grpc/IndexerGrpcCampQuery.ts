@@ -124,4 +124,10 @@ export class IndexerGrpcCampQuery extends BaseIndexerGrpc {
     const stream = this.client.StreamChallengeVote(request)
     return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
+  async getUserChallenges(
+    request: Partial<campclashQuery.GetUserChallengesRequest>
+  ): Promise<campclashQuery.GetUserChallengesResponse> {
+    let response = await this.retry(() => this.client.GetUserChallenges(request))
+    return response as campclashQuery.GetUserChallengesResponse
+  }
 }

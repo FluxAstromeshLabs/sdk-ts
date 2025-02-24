@@ -28,7 +28,6 @@ export class IndexerStreamBazaar extends BaseIndexerStream {
         onStatusCallback
       })
     } catch (e) {
-      console.log(e)
       throw e
     }
   }

@@ -15,7 +15,6 @@ export class ChainGrpcTxService extends BaseGrpc {
       let response = await this.retry(() => this.client.BroadcastTx(request))
       return response
     } catch (e) {
-      console.log(e)
       throw e
     }
   }
@@ -25,7 +24,6 @@ export class ChainGrpcTxService extends BaseGrpc {
       let response = await this.retry(() => this.client.Simulate(request), retries)
       return response as txservice.SimulateResponse
     } catch (e) {
-      console.log(e)
       throw e
     }
   }
