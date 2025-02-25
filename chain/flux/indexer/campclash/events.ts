@@ -156,6 +156,20 @@ export interface ChallengeClaimedEvent {
   unlocked_coins: Coin[];
 }
 
+export interface CampBalanceUpdate {
+  address: string;
+  amount: string;
+  vote: string;
+  challenge_id: string;
+}
+
+export interface CampBalanceEvent {
+  /** Contract address */
+  contract_address: string;
+  denom: string;
+  updates: CampBalanceUpdate[];
+}
+
 function createBaseCampEvent(): CampEvent {
   return { contract_address: "", op: 0, project: undefined };
 }
@@ -688,6 +702,205 @@ export const ChallengeClaimedEvent = {
     message.address = object.address ?? "";
     message.coins = object.coins?.map((e) => Coin.fromPartial(e)) || [];
     message.unlocked_coins = object.unlocked_coins?.map((e) => Coin.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseCampBalanceUpdate(): CampBalanceUpdate {
+  return { address: "", amount: "", vote: "", challenge_id: "0" };
+}
+
+export const CampBalanceUpdate = {
+  $type: "flux.indexer.campclash.CampBalanceUpdate" as const,
+
+  encode(message: CampBalanceUpdate, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.address !== "") {
+      writer.uint32(10).string(message.address);
+    }
+    if (message.amount !== "") {
+      writer.uint32(18).string(message.amount);
+    }
+    if (message.vote !== "") {
+      writer.uint32(26).string(message.vote);
+    }
+    if (message.challenge_id !== "0") {
+      writer.uint32(32).uint64(message.challenge_id);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CampBalanceUpdate {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCampBalanceUpdate();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.address = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.amount = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.vote = reader.string();
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.challenge_id = longToString(reader.uint64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CampBalanceUpdate {
+    return {
+      address: isSet(object.address) ? globalThis.String(object.address) : "",
+      amount: isSet(object.amount) ? globalThis.String(object.amount) : "",
+      vote: isSet(object.vote) ? globalThis.String(object.vote) : "",
+      challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
+    };
+  },
+
+  toJSON(message: CampBalanceUpdate): unknown {
+    const obj: any = {};
+    if (message.address !== undefined) {
+      obj.address = message.address;
+    }
+    if (message.amount !== undefined) {
+      obj.amount = message.amount;
+    }
+    if (message.vote !== undefined) {
+      obj.vote = message.vote;
+    }
+    if (message.challenge_id !== undefined) {
+      obj.challenge_id = message.challenge_id;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<CampBalanceUpdate>): CampBalanceUpdate {
+    return CampBalanceUpdate.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<CampBalanceUpdate>): CampBalanceUpdate {
+    const message = createBaseCampBalanceUpdate();
+    message.address = object.address ?? "";
+    message.amount = object.amount ?? "";
+    message.vote = object.vote ?? "";
+    message.challenge_id = object.challenge_id ?? "0";
+    return message;
+  },
+};
+
+function createBaseCampBalanceEvent(): CampBalanceEvent {
+  return { contract_address: "", denom: "", updates: [] };
+}
+
+export const CampBalanceEvent = {
+  $type: "flux.indexer.campclash.CampBalanceEvent" as const,
+
+  encode(message: CampBalanceEvent, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.contract_address !== "") {
+      writer.uint32(10).string(message.contract_address);
+    }
+    if (message.denom !== "") {
+      writer.uint32(18).string(message.denom);
+    }
+    for (const v of message.updates) {
+      CampBalanceUpdate.encode(v!, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CampBalanceEvent {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCampBalanceEvent();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.contract_address = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.denom = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.updates.push(CampBalanceUpdate.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CampBalanceEvent {
+    return {
+      contract_address: isSet(object.contract_address) ? globalThis.String(object.contract_address) : "",
+      denom: isSet(object.denom) ? globalThis.String(object.denom) : "",
+      updates: globalThis.Array.isArray(object?.updates)
+        ? object.updates.map((e: any) => CampBalanceUpdate.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: CampBalanceEvent): unknown {
+    const obj: any = {};
+    if (message.contract_address !== undefined) {
+      obj.contract_address = message.contract_address;
+    }
+    if (message.denom !== undefined) {
+      obj.denom = message.denom;
+    }
+    if (message.updates?.length) {
+      obj.updates = message.updates.map((e) => CampBalanceUpdate.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<CampBalanceEvent>): CampBalanceEvent {
+    return CampBalanceEvent.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<CampBalanceEvent>): CampBalanceEvent {
+    const message = createBaseCampBalanceEvent();
+    message.contract_address = object.contract_address ?? "";
+    message.denom = object.denom ?? "";
+    message.updates = object.updates?.map((e) => CampBalanceUpdate.fromPartial(e)) || [];
     return message;
   },
 };

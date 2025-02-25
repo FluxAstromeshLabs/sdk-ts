@@ -183,6 +183,8 @@ export interface StreamChallengeClaimableRequest {
   challenge_id: string;
   /** only list claimable on single side */
   camp_denom: string;
+  /** only stream claimed assets of this address */
+  addresss: string;
 }
 
 export interface StreamChallengeClaimableResponse {
@@ -200,7 +202,7 @@ export interface StreamChallengeVoteResponse {
 }
 
 export interface GetUserChallengesRequest {
-  pagination: PageResponse | undefined;
+  pagination: PageRequest | undefined;
   address: string;
   unclaimed_challenge: boolean;
 }
@@ -2638,7 +2640,7 @@ export const ListChallengeClaimableResponse = {
 };
 
 function createBaseStreamChallengeClaimableRequest(): StreamChallengeClaimableRequest {
-  return { challenge_id: "0", camp_denom: "" };
+  return { challenge_id: "0", camp_denom: "", addresss: "" };
 }
 
 export const StreamChallengeClaimableRequest = {
@@ -2650,6 +2652,9 @@ export const StreamChallengeClaimableRequest = {
     }
     if (message.camp_denom !== "") {
       writer.uint32(18).string(message.camp_denom);
+    }
+    if (message.addresss !== "") {
+      writer.uint32(26).string(message.addresss);
     }
     return writer;
   },
@@ -2675,6 +2680,13 @@ export const StreamChallengeClaimableRequest = {
 
           message.camp_denom = reader.string();
           continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.addresss = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2688,6 +2700,7 @@ export const StreamChallengeClaimableRequest = {
     return {
       challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
       camp_denom: isSet(object.camp_denom) ? globalThis.String(object.camp_denom) : "",
+      addresss: isSet(object.addresss) ? globalThis.String(object.addresss) : "",
     };
   },
 
@@ -2699,6 +2712,9 @@ export const StreamChallengeClaimableRequest = {
     if (message.camp_denom !== undefined) {
       obj.camp_denom = message.camp_denom;
     }
+    if (message.addresss !== undefined) {
+      obj.addresss = message.addresss;
+    }
     return obj;
   },
 
@@ -2709,6 +2725,7 @@ export const StreamChallengeClaimableRequest = {
     const message = createBaseStreamChallengeClaimableRequest();
     message.challenge_id = object.challenge_id ?? "0";
     message.camp_denom = object.camp_denom ?? "";
+    message.addresss = object.addresss ?? "";
     return message;
   },
 };
@@ -2937,7 +2954,7 @@ export const GetUserChallengesRequest = {
 
   encode(message: GetUserChallengesRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.pagination !== undefined) {
-      PageResponse.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+      PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
     }
     if (message.address !== "") {
       writer.uint32(18).string(message.address);
@@ -2960,7 +2977,7 @@ export const GetUserChallengesRequest = {
             break;
           }
 
-          message.pagination = PageResponse.decode(reader, reader.uint32());
+          message.pagination = PageRequest.decode(reader, reader.uint32());
           continue;
         case 2:
           if (tag !== 18) {
@@ -2987,7 +3004,7 @@ export const GetUserChallengesRequest = {
 
   fromJSON(object: any): GetUserChallengesRequest {
     return {
-      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
       address: isSet(object.address) ? globalThis.String(object.address) : "",
       unclaimed_challenge: isSet(object.unclaimed_challenge) ? globalThis.Boolean(object.unclaimed_challenge) : false,
     };
@@ -2996,7 +3013,7 @@ export const GetUserChallengesRequest = {
   toJSON(message: GetUserChallengesRequest): unknown {
     const obj: any = {};
     if (message.pagination !== undefined) {
-      obj.pagination = PageResponse.toJSON(message.pagination);
+      obj.pagination = PageRequest.toJSON(message.pagination);
     }
     if (message.address !== undefined) {
       obj.address = message.address;
@@ -3013,7 +3030,7 @@ export const GetUserChallengesRequest = {
   fromPartial(object: DeepPartial<GetUserChallengesRequest>): GetUserChallengesRequest {
     const message = createBaseGetUserChallengesRequest();
     message.pagination = (object.pagination !== undefined && object.pagination !== null)
-      ? PageResponse.fromPartial(object.pagination)
+      ? PageRequest.fromPartial(object.pagination)
       : undefined;
     message.address = object.address ?? "";
     message.unclaimed_challenge = object.unclaimed_challenge ?? false;
