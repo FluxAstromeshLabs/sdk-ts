@@ -20,11 +20,20 @@ const props = defineProps({
     validator: (value: number) => {
       return value >= 0 && value <= 4
     }
+  },
+  fallback: {
+    type: String,
+    default: ''
   }
 })
+const realSrc = ref(props.src)
 const loading = ref(true)
 const loadError = ref(false)
 const error = () => {
+  if (props.fallback) {
+    realSrc.value = props.fallback
+    return
+  }
   loading.value = !loading.value
   loadError.value = true
 }
@@ -34,7 +43,7 @@ const bgClass = computed(() => {
 </script>
 <template>
   <div class="base-avatar" :class="[size, bgClass].join(' ')">
-    <img :src="src" @load="loading = !loading" @error="error" v-show="!loading && !loadError" />
+    <img :src="realSrc" @load="loading = !loading" @error="error" v-show="!loading && !loadError" />
     <BaseSkeleton v-if="loading" type="avatar" class="!w-full !h-full absolute top-0 left-0" />
   </div>
 </template>
