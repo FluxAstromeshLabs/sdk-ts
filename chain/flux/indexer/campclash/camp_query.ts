@@ -213,6 +213,7 @@ export interface GetUserChallengesResponse {
 }
 
 export interface GetLogoPresignedURLRequest {
+  logo_size: string;
 }
 
 export interface GetLogoPresignedURLResponse {
@@ -3126,13 +3127,16 @@ export const GetUserChallengesResponse = {
 };
 
 function createBaseGetLogoPresignedURLRequest(): GetLogoPresignedURLRequest {
-  return {};
+  return { logo_size: "0" };
 }
 
 export const GetLogoPresignedURLRequest = {
   $type: "flux.indexer.campclash.GetLogoPresignedURLRequest" as const,
 
-  encode(_: GetLogoPresignedURLRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: GetLogoPresignedURLRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.logo_size !== "0") {
+      writer.uint32(8).int64(message.logo_size);
+    }
     return writer;
   },
 
@@ -3143,6 +3147,13 @@ export const GetLogoPresignedURLRequest = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.logo_size = longToString(reader.int64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3152,20 +3163,24 @@ export const GetLogoPresignedURLRequest = {
     return message;
   },
 
-  fromJSON(_: any): GetLogoPresignedURLRequest {
-    return {};
+  fromJSON(object: any): GetLogoPresignedURLRequest {
+    return { logo_size: isSet(object.logo_size) ? globalThis.String(object.logo_size) : "0" };
   },
 
-  toJSON(_: GetLogoPresignedURLRequest): unknown {
+  toJSON(message: GetLogoPresignedURLRequest): unknown {
     const obj: any = {};
+    if (message.logo_size !== undefined) {
+      obj.logo_size = message.logo_size;
+    }
     return obj;
   },
 
   create(base?: DeepPartial<GetLogoPresignedURLRequest>): GetLogoPresignedURLRequest {
     return GetLogoPresignedURLRequest.fromPartial(base ?? {});
   },
-  fromPartial(_: DeepPartial<GetLogoPresignedURLRequest>): GetLogoPresignedURLRequest {
+  fromPartial(object: DeepPartial<GetLogoPresignedURLRequest>): GetLogoPresignedURLRequest {
     const message = createBaseGetLogoPresignedURLRequest();
+    message.logo_size = object.logo_size ?? "0";
     return message;
   },
 };
