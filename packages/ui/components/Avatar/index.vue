@@ -27,7 +27,7 @@ const props = defineProps({
   },
   fallbackTimeout: {
     type: Number,
-    default: 1000
+    default: 5000
   }
 })
 const realSrc = ref(props.src)
