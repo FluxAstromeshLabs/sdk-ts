@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import BaseSkeleton from '../Skeleton/index.vue'
 
 const props = defineProps({
@@ -24,6 +24,10 @@ const props = defineProps({
   fallback: {
     type: String,
     default: ''
+  },
+  fallbackTimeout: {
+    type: Number,
+    default: 5000
   }
 })
 const realSrc = ref(props.src)
@@ -40,10 +44,29 @@ const error = () => {
 const bgClass = computed(() => {
   return `background-${props.number % 5}`
 })
+const timeout = ref<NodeJS.Timeout>()
+const imageRef = ref<HTMLImageElement>()
+
+onMounted(() => {
+  timeout.value = setTimeout(() => {
+    if (!imageRef.value?.complete) {
+      error()
+    }
+  }, props.fallbackTimeout)
+})
+onUnmounted(() => {
+  clearTimeout(timeout.value)
+})
 </script>
 <template>
   <div class="base-avatar" :class="[size, bgClass].join(' ')">
-    <img :src="realSrc" @load="loading = !loading" @error="error" v-show="!loading && !loadError" />
+    <img
+      :src="realSrc"
+      @load="loading = !loading"
+      @error="error"
+      v-show="!loading && !loadError"
+      ref="imageRef"
+    />
     <BaseSkeleton v-if="loading" type="avatar" class="!w-full !h-full absolute top-0 left-0" />
   </div>
 </template>
