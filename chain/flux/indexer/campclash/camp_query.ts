@@ -212,6 +212,14 @@ export interface GetUserChallengesResponse {
   challenges: Challenge[];
 }
 
+export interface GetLogoPresignedURLRequest {
+  logo_size: string;
+}
+
+export interface GetLogoPresignedURLResponse {
+  url: string;
+}
+
 function createBaseListProjectsRequest(): ListProjectsRequest {
   return {
     pagination: undefined,
@@ -3118,6 +3126,124 @@ export const GetUserChallengesResponse = {
   },
 };
 
+function createBaseGetLogoPresignedURLRequest(): GetLogoPresignedURLRequest {
+  return { logo_size: "0" };
+}
+
+export const GetLogoPresignedURLRequest = {
+  $type: "flux.indexer.campclash.GetLogoPresignedURLRequest" as const,
+
+  encode(message: GetLogoPresignedURLRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.logo_size !== "0") {
+      writer.uint32(8).int64(message.logo_size);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetLogoPresignedURLRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetLogoPresignedURLRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.logo_size = longToString(reader.int64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetLogoPresignedURLRequest {
+    return { logo_size: isSet(object.logo_size) ? globalThis.String(object.logo_size) : "0" };
+  },
+
+  toJSON(message: GetLogoPresignedURLRequest): unknown {
+    const obj: any = {};
+    if (message.logo_size !== undefined) {
+      obj.logo_size = message.logo_size;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GetLogoPresignedURLRequest>): GetLogoPresignedURLRequest {
+    return GetLogoPresignedURLRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GetLogoPresignedURLRequest>): GetLogoPresignedURLRequest {
+    const message = createBaseGetLogoPresignedURLRequest();
+    message.logo_size = object.logo_size ?? "0";
+    return message;
+  },
+};
+
+function createBaseGetLogoPresignedURLResponse(): GetLogoPresignedURLResponse {
+  return { url: "" };
+}
+
+export const GetLogoPresignedURLResponse = {
+  $type: "flux.indexer.campclash.GetLogoPresignedURLResponse" as const,
+
+  encode(message: GetLogoPresignedURLResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.url !== "") {
+      writer.uint32(10).string(message.url);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetLogoPresignedURLResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetLogoPresignedURLResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.url = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetLogoPresignedURLResponse {
+    return { url: isSet(object.url) ? globalThis.String(object.url) : "" };
+  },
+
+  toJSON(message: GetLogoPresignedURLResponse): unknown {
+    const obj: any = {};
+    if (message.url !== undefined) {
+      obj.url = message.url;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GetLogoPresignedURLResponse>): GetLogoPresignedURLResponse {
+    return GetLogoPresignedURLResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GetLogoPresignedURLResponse>): GetLogoPresignedURLResponse {
+    const message = createBaseGetLogoPresignedURLResponse();
+    message.url = object.url ?? "";
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface CampclashQuery {
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse>;
@@ -3163,6 +3289,10 @@ export interface CampclashQuery {
     request: DeepPartial<GetUserChallengesRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetUserChallengesResponse>;
+  GetLogoPresignedURL(
+    request: DeepPartial<GetLogoPresignedURLRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetLogoPresignedURLResponse>;
 }
 
 export class CampclashQueryClientImpl implements CampclashQuery {
@@ -3186,6 +3316,7 @@ export class CampclashQueryClientImpl implements CampclashQuery {
     this.StreamChallengeClaimable = this.StreamChallengeClaimable.bind(this);
     this.StreamChallengeVote = this.StreamChallengeVote.bind(this);
     this.GetUserChallenges = this.GetUserChallenges.bind(this);
+    this.GetLogoPresignedURL = this.GetLogoPresignedURL.bind(this);
   }
 
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse> {
@@ -3289,6 +3420,17 @@ export class CampclashQueryClientImpl implements CampclashQuery {
     metadata?: grpc.Metadata,
   ): Promise<GetUserChallengesResponse> {
     return this.rpc.unary(CampclashQueryGetUserChallengesDesc, GetUserChallengesRequest.fromPartial(request), metadata);
+  }
+
+  GetLogoPresignedURL(
+    request: DeepPartial<GetLogoPresignedURLRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetLogoPresignedURLResponse> {
+    return this.rpc.unary(
+      CampclashQueryGetLogoPresignedURLDesc,
+      GetLogoPresignedURLRequest.fromPartial(request),
+      metadata,
+    );
   }
 }
 
@@ -3652,6 +3794,29 @@ export const CampclashQueryGetUserChallengesDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = GetUserChallengesResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQueryGetLogoPresignedURLDesc: UnaryMethodDefinitionish = {
+  methodName: "GetLogoPresignedURL",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetLogoPresignedURLRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetLogoPresignedURLResponse.decode(data);
       return {
         ...value,
         toObject() {
