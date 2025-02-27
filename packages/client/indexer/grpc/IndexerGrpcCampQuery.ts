@@ -130,4 +130,10 @@ export class IndexerGrpcCampQuery extends BaseIndexerGrpc {
     let response = await this.retry(() => this.client.GetUserChallenges(request))
     return response as campclashQuery.GetUserChallengesResponse
   }
+  async getLogoPresignedURL(
+    request: Partial<campclashQuery.GetLogoPresignedURLRequest>
+  ): Promise<campclashQuery.GetLogoPresignedURLResponse> {
+    let response = await this.retry(() => this.client.GetLogoPresignedURL(request))
+    return response as campclashQuery.GetLogoPresignedURLResponse
+  }
 }

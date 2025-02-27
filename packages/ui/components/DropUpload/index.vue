@@ -2,7 +2,7 @@
 import { ref, defineProps } from 'vue'
 import BaseIcons from '../Icons/index.vue'
 defineProps({
-  modelValue: File,
+  modelValue: File | null,
   description: {
     type: String,
     default: ''
