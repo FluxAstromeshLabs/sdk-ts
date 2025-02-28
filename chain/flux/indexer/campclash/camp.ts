@@ -40,6 +40,8 @@ export interface Project {
   disable_sell: boolean;
   challenge_id: string;
   has_challenge: boolean;
+  /** helix market id */
+  market_id: string;
 }
 
 export interface Tweet {
@@ -200,6 +202,7 @@ function createBaseProject(): Project {
     disable_sell: false,
     challenge_id: "0",
     has_challenge: false,
+    market_id: "",
   };
 }
 
@@ -281,6 +284,9 @@ export const Project = {
     }
     if (message.has_challenge !== false) {
       writer.uint32(200).bool(message.has_challenge);
+    }
+    if (message.market_id !== "") {
+      writer.uint32(210).string(message.market_id);
     }
     return writer;
   },
@@ -467,6 +473,13 @@ export const Project = {
 
           message.has_challenge = reader.bool();
           continue;
+        case 26:
+          if (tag !== 210) {
+            break;
+          }
+
+          message.market_id = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -503,6 +516,7 @@ export const Project = {
       disable_sell: isSet(object.disable_sell) ? globalThis.Boolean(object.disable_sell) : false,
       challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
       has_challenge: isSet(object.has_challenge) ? globalThis.Boolean(object.has_challenge) : false,
+      market_id: isSet(object.market_id) ? globalThis.String(object.market_id) : "",
     };
   },
 
@@ -583,6 +597,9 @@ export const Project = {
     if (message.has_challenge !== undefined) {
       obj.has_challenge = message.has_challenge;
     }
+    if (message.market_id !== undefined) {
+      obj.market_id = message.market_id;
+    }
     return obj;
   },
 
@@ -620,6 +637,7 @@ export const Project = {
     message.disable_sell = object.disable_sell ?? false;
     message.challenge_id = object.challenge_id ?? "0";
     message.has_challenge = object.has_challenge ?? false;
+    message.market_id = object.market_id ?? "";
     return message;
   },
 };
