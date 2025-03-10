@@ -45,7 +45,6 @@ function compressPublicKey(uncompressedPublicKey: Buffer): Buffer {
         ]
     }
 
-    let timeoutHeight = 1000000000;
     let prepTx = {
         "chainID": 1,
         "eip712Wrapper": "v2",
@@ -63,7 +62,7 @@ function compressPublicKey(uncompressedPublicKey: Buffer): Buffer {
         "msgs": [Buffer.from(JSON.stringify(createOrderMsg)).toString('base64')],
         "sequence": parseInt(sequence),
         "signerAddress": '0x700CcCF6b49057D497473dAB0cCedd7e291c9ed6',
-        "timeoutHeight": 1000000000,
+        "timeoutHeight": 0,
     }
 
     let client = new axios.Axios({
@@ -71,7 +70,9 @@ function compressPublicKey(uncompressedPublicKey: Buffer): Buffer {
     })
 
     // prepare tx to estimate gas
+    let timeMarker = Date.now()
     let prepareTxRes = await client.post(`${baseWeb3gw}/api/exchange/gateway/v1/prepareTx`, JSON.stringify(prepTx))
+    console.log('prepare tx time (ms):', Date.now() - timeMarker)
     let resp = JSON.parse(prepareTxRes.data)
 
     let typedData = JSON.parse(resp.data)
@@ -80,9 +81,10 @@ function compressPublicKey(uncompressedPublicKey: Buffer): Buffer {
     const senderCosmosSig = Uint8Array.from(Buffer.concat([senderSig.r, senderSig.s, Buffer.from([0])]))
     const senderCosmosSigHex = '0x' + Buffer.from(senderCosmosSig).toString('hex')
     const { feePayer, feePayerSig } = resp
-    console.log('cosmos sig:', senderCosmosSigHex)
-    console.log('fee payer:', feePayer)
-    console.log('fee payer sig:', feePayerSig)
+    // console.log('cosmos sig:', senderCosmosSigHex)
+    // console.log('fee payer:', feePayer)
+    // console.log('timeout height:', typedData.message.context)
+    // console.log('fee payer sig:', feePayerSig)
     const txInfo = {
         'context': typedData.message.context,
         'msgs': null
@@ -102,6 +104,8 @@ function compressPublicKey(uncompressedPublicKey: Buffer): Buffer {
         "tx": Buffer.from(JSON.stringify(txInfo)).toString('base64')
     }
 
+    timeMarker = Date.now()
     let broadcastTxRes = await client.post(`${baseWeb3gw}/api/exchange/gateway/v1/broadcastTx`, JSON.stringify(broadcastTx))
+    console.log('broadcast tx time (ms):', Date.now() - timeMarker)
     console.log('broadcast tx res:', broadcastTxRes.data)
 })()
