@@ -4,7 +4,7 @@ import * as CosmosBaseV1Beta1Coin from '../../chain/cosmos/base/v1beta1/coin'
 import * as GoogleProtobufAny from '../../chain/google/protobuf/any'
 import * as CosmosTxSigningV1Beta1Signing from '../../chain/cosmos/tx/signing/v1beta1/signing'
 import { SignDoc } from 'cosmjs-types/cosmos/tx/v1beta1/tx'
-import { EthereumChainId, DEFAULT_STD_FEE } from '../utils'
+import { EthereumChainId, DEFAULT_STD_FEE, BigNumber } from '../utils'
 import * as FluxTypesV1TxExt from '../../chain/flux/types/v1beta1/tx_ext'
 import { DirectSignResponse } from '@cosmjs/proto-signing'
 import * as txtypes from '../../chain/cosmos/tx/v1beta1/tx'
@@ -363,13 +363,12 @@ export const createTransactionWithSigners = async ({
   const body = createBody({ message, memo, timeoutHeight, messageWrapper })
 
   let simulateRes = await simulate(txClient, body, [signer.sequence], fee, isInjective)
-
   const gasMultiplier = 4
-  let gasLimit = simulateRes
-    ? Math.ceil(Number(simulateRes?.gas_info?.gas_used) * gasMultiplier)
-    : fee.gas
+  const gasPrice = 500000000 // 500M
+  let gasLimit = Math.ceil(Number(simulateRes?.gas_info?.gas_used) * gasMultiplier)
+  const feeAmount = BigNumber(gasPrice).multipliedBy(Number(gasLimit))
   const feeMessage = createFee({
-    fee: fee.amount[0],
+    fee: { denom: fee.amount[0].denom, amount: feeAmount.toString() },
     payer: '',
     granter: '',
     gasLimit: Number(gasLimit)
