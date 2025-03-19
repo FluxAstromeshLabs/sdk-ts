@@ -29,6 +29,13 @@ export interface ListSymbolsResponse {
   symbols: string[];
 }
 
+export interface GetLatestHeightRequest {
+}
+
+export interface GetLatestHeightResponse {
+  height: string;
+}
+
 function createBaseQueryRequest(): QueryRequest {
   return { symbol: "", timeframe: "", limit: "0", start_epoch: "0", end_epoch: "0" };
 }
@@ -315,9 +322,117 @@ export const ListSymbolsResponse = {
   },
 };
 
+function createBaseGetLatestHeightRequest(): GetLatestHeightRequest {
+  return {};
+}
+
+export const GetLatestHeightRequest = {
+  $type: "flux.indexer.ohlcv.GetLatestHeightRequest" as const,
+
+  encode(_: GetLatestHeightRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetLatestHeightRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetLatestHeightRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): GetLatestHeightRequest {
+    return {};
+  },
+
+  toJSON(_: GetLatestHeightRequest): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<GetLatestHeightRequest>): GetLatestHeightRequest {
+    return GetLatestHeightRequest.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<GetLatestHeightRequest>): GetLatestHeightRequest {
+    const message = createBaseGetLatestHeightRequest();
+    return message;
+  },
+};
+
+function createBaseGetLatestHeightResponse(): GetLatestHeightResponse {
+  return { height: "0" };
+}
+
+export const GetLatestHeightResponse = {
+  $type: "flux.indexer.ohlcv.GetLatestHeightResponse" as const,
+
+  encode(message: GetLatestHeightResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.height !== "0") {
+      writer.uint32(8).int64(message.height);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetLatestHeightResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetLatestHeightResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.height = longToString(reader.int64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetLatestHeightResponse {
+    return { height: isSet(object.height) ? globalThis.String(object.height) : "0" };
+  },
+
+  toJSON(message: GetLatestHeightResponse): unknown {
+    const obj: any = {};
+    if (message.height !== undefined) {
+      obj.height = message.height;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GetLatestHeightResponse>): GetLatestHeightResponse {
+    return GetLatestHeightResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GetLatestHeightResponse>): GetLatestHeightResponse {
+    const message = createBaseGetLatestHeightResponse();
+    message.height = object.height ?? "0";
+    return message;
+  },
+};
+
 export interface API {
   Query(request: DeepPartial<QueryRequest>, metadata?: grpc.Metadata): Promise<QueryResponse>;
   ListSymbols(request: DeepPartial<ListSymbolsRequest>, metadata?: grpc.Metadata): Promise<ListSymbolsResponse>;
+  GetLatestHeight(
+    request: DeepPartial<GetLatestHeightRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetLatestHeightResponse>;
 }
 
 export class APIClientImpl implements API {
@@ -327,6 +442,7 @@ export class APIClientImpl implements API {
     this.rpc = rpc;
     this.Query = this.Query.bind(this);
     this.ListSymbols = this.ListSymbols.bind(this);
+    this.GetLatestHeight = this.GetLatestHeight.bind(this);
   }
 
   Query(request: DeepPartial<QueryRequest>, metadata?: grpc.Metadata): Promise<QueryResponse> {
@@ -335,6 +451,13 @@ export class APIClientImpl implements API {
 
   ListSymbols(request: DeepPartial<ListSymbolsRequest>, metadata?: grpc.Metadata): Promise<ListSymbolsResponse> {
     return this.rpc.unary(APIListSymbolsDesc, ListSymbolsRequest.fromPartial(request), metadata);
+  }
+
+  GetLatestHeight(
+    request: DeepPartial<GetLatestHeightRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetLatestHeightResponse> {
+    return this.rpc.unary(APIGetLatestHeightDesc, GetLatestHeightRequest.fromPartial(request), metadata);
   }
 }
 
@@ -376,6 +499,29 @@ export const APIListSymbolsDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = ListSymbolsResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const APIGetLatestHeightDesc: UnaryMethodDefinitionish = {
+  methodName: "GetLatestHeight",
+  service: APIDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetLatestHeightRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetLatestHeightResponse.decode(data);
       return {
         ...value,
         toObject() {

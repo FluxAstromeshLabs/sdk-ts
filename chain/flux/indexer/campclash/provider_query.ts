@@ -28,6 +28,13 @@ export interface QueryCampEventsResponse {
   events: ModuleEvents[];
 }
 
+export interface GetProviderLatestHeightRequest {
+}
+
+export interface GetProviderLatestHeightResponse {
+  height: string;
+}
+
 function createBaseProviderEvents(): ProviderEvents {
   return { height: "0", time: "0", events: [] };
 }
@@ -269,6 +276,110 @@ export const QueryCampEventsResponse = {
   },
 };
 
+function createBaseGetProviderLatestHeightRequest(): GetProviderLatestHeightRequest {
+  return {};
+}
+
+export const GetProviderLatestHeightRequest = {
+  $type: "flux.indexer.campclash.GetProviderLatestHeightRequest" as const,
+
+  encode(_: GetProviderLatestHeightRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetProviderLatestHeightRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetProviderLatestHeightRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): GetProviderLatestHeightRequest {
+    return {};
+  },
+
+  toJSON(_: GetProviderLatestHeightRequest): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<GetProviderLatestHeightRequest>): GetProviderLatestHeightRequest {
+    return GetProviderLatestHeightRequest.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<GetProviderLatestHeightRequest>): GetProviderLatestHeightRequest {
+    const message = createBaseGetProviderLatestHeightRequest();
+    return message;
+  },
+};
+
+function createBaseGetProviderLatestHeightResponse(): GetProviderLatestHeightResponse {
+  return { height: "0" };
+}
+
+export const GetProviderLatestHeightResponse = {
+  $type: "flux.indexer.campclash.GetProviderLatestHeightResponse" as const,
+
+  encode(message: GetProviderLatestHeightResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.height !== "0") {
+      writer.uint32(8).int64(message.height);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetProviderLatestHeightResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetProviderLatestHeightResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.height = longToString(reader.int64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetProviderLatestHeightResponse {
+    return { height: isSet(object.height) ? globalThis.String(object.height) : "0" };
+  },
+
+  toJSON(message: GetProviderLatestHeightResponse): unknown {
+    const obj: any = {};
+    if (message.height !== undefined) {
+      obj.height = message.height;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GetProviderLatestHeightResponse>): GetProviderLatestHeightResponse {
+    return GetProviderLatestHeightResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GetProviderLatestHeightResponse>): GetProviderLatestHeightResponse {
+    const message = createBaseGetProviderLatestHeightResponse();
+    message.height = object.height ?? "0";
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface ProviderQuery {
   /**
@@ -276,6 +387,10 @@ export interface ProviderQuery {
    * same as balanceOf in ERC721
    */
   CampEvents(request: DeepPartial<QueryCampEventsRequest>, metadata?: grpc.Metadata): Promise<QueryCampEventsResponse>;
+  GetProviderLatestHeight(
+    request: DeepPartial<GetProviderLatestHeightRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetProviderLatestHeightResponse>;
 }
 
 export class ProviderQueryClientImpl implements ProviderQuery {
@@ -284,10 +399,22 @@ export class ProviderQueryClientImpl implements ProviderQuery {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.CampEvents = this.CampEvents.bind(this);
+    this.GetProviderLatestHeight = this.GetProviderLatestHeight.bind(this);
   }
 
   CampEvents(request: DeepPartial<QueryCampEventsRequest>, metadata?: grpc.Metadata): Promise<QueryCampEventsResponse> {
     return this.rpc.unary(ProviderQueryCampEventsDesc, QueryCampEventsRequest.fromPartial(request), metadata);
+  }
+
+  GetProviderLatestHeight(
+    request: DeepPartial<GetProviderLatestHeightRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetProviderLatestHeightResponse> {
+    return this.rpc.unary(
+      ProviderQueryGetProviderLatestHeightDesc,
+      GetProviderLatestHeightRequest.fromPartial(request),
+      metadata,
+    );
   }
 }
 
@@ -306,6 +433,29 @@ export const ProviderQueryCampEventsDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = QueryCampEventsResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ProviderQueryGetProviderLatestHeightDesc: UnaryMethodDefinitionish = {
+  methodName: "GetProviderLatestHeight",
+  service: ProviderQueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetProviderLatestHeightRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetProviderLatestHeightResponse.decode(data);
       return {
         ...value,
         toObject() {
