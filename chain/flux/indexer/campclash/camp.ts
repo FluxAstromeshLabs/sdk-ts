@@ -9,6 +9,14 @@ import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { Coin } from "../../../cosmos/base/v1beta1/coin";
 
+export interface CurveConfig {
+  a: string;
+  b: string;
+  c: string;
+  graduation_threshold: string;
+  cap: string;
+}
+
 /** Camp structure */
 export interface Project {
   contract_address: string;
@@ -42,6 +50,8 @@ export interface Project {
   has_challenge: boolean;
   /** helix market id */
   market_id: string;
+  curve_config: CurveConfig | undefined;
+  defeated: boolean;
 }
 
 export interface Tweet {
@@ -175,6 +185,127 @@ export interface Claimable {
   height: string;
 }
 
+function createBaseCurveConfig(): CurveConfig {
+  return { a: "", b: "", c: "", graduation_threshold: "", cap: "" };
+}
+
+export const CurveConfig = {
+  $type: "flux.indexer.campclash.CurveConfig" as const,
+
+  encode(message: CurveConfig, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.a !== "") {
+      writer.uint32(10).string(message.a);
+    }
+    if (message.b !== "") {
+      writer.uint32(18).string(message.b);
+    }
+    if (message.c !== "") {
+      writer.uint32(26).string(message.c);
+    }
+    if (message.graduation_threshold !== "") {
+      writer.uint32(34).string(message.graduation_threshold);
+    }
+    if (message.cap !== "") {
+      writer.uint32(42).string(message.cap);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CurveConfig {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCurveConfig();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.a = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.b = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.c = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.graduation_threshold = reader.string();
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.cap = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CurveConfig {
+    return {
+      a: isSet(object.a) ? globalThis.String(object.a) : "",
+      b: isSet(object.b) ? globalThis.String(object.b) : "",
+      c: isSet(object.c) ? globalThis.String(object.c) : "",
+      graduation_threshold: isSet(object.graduation_threshold) ? globalThis.String(object.graduation_threshold) : "",
+      cap: isSet(object.cap) ? globalThis.String(object.cap) : "",
+    };
+  },
+
+  toJSON(message: CurveConfig): unknown {
+    const obj: any = {};
+    if (message.a !== undefined) {
+      obj.a = message.a;
+    }
+    if (message.b !== undefined) {
+      obj.b = message.b;
+    }
+    if (message.c !== undefined) {
+      obj.c = message.c;
+    }
+    if (message.graduation_threshold !== undefined) {
+      obj.graduation_threshold = message.graduation_threshold;
+    }
+    if (message.cap !== undefined) {
+      obj.cap = message.cap;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<CurveConfig>): CurveConfig {
+    return CurveConfig.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<CurveConfig>): CurveConfig {
+    const message = createBaseCurveConfig();
+    message.a = object.a ?? "";
+    message.b = object.b ?? "";
+    message.c = object.c ?? "";
+    message.graduation_threshold = object.graduation_threshold ?? "";
+    message.cap = object.cap ?? "";
+    return message;
+  },
+};
+
 function createBaseProject(): Project {
   return {
     contract_address: "",
@@ -203,6 +334,8 @@ function createBaseProject(): Project {
     challenge_id: "0",
     has_challenge: false,
     market_id: "",
+    curve_config: undefined,
+    defeated: false,
   };
 }
 
@@ -287,6 +420,12 @@ export const Project = {
     }
     if (message.market_id !== "") {
       writer.uint32(210).string(message.market_id);
+    }
+    if (message.curve_config !== undefined) {
+      CurveConfig.encode(message.curve_config, writer.uint32(218).fork()).ldelim();
+    }
+    if (message.defeated !== false) {
+      writer.uint32(224).bool(message.defeated);
     }
     return writer;
   },
@@ -480,6 +619,20 @@ export const Project = {
 
           message.market_id = reader.string();
           continue;
+        case 27:
+          if (tag !== 218) {
+            break;
+          }
+
+          message.curve_config = CurveConfig.decode(reader, reader.uint32());
+          continue;
+        case 28:
+          if (tag !== 224) {
+            break;
+          }
+
+          message.defeated = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -517,6 +670,8 @@ export const Project = {
       challenge_id: isSet(object.challenge_id) ? globalThis.String(object.challenge_id) : "0",
       has_challenge: isSet(object.has_challenge) ? globalThis.Boolean(object.has_challenge) : false,
       market_id: isSet(object.market_id) ? globalThis.String(object.market_id) : "",
+      curve_config: isSet(object.curve_config) ? CurveConfig.fromJSON(object.curve_config) : undefined,
+      defeated: isSet(object.defeated) ? globalThis.Boolean(object.defeated) : false,
     };
   },
 
@@ -600,6 +755,12 @@ export const Project = {
     if (message.market_id !== undefined) {
       obj.market_id = message.market_id;
     }
+    if (message.curve_config !== undefined) {
+      obj.curve_config = CurveConfig.toJSON(message.curve_config);
+    }
+    if (message.defeated !== undefined) {
+      obj.defeated = message.defeated;
+    }
     return obj;
   },
 
@@ -638,6 +799,10 @@ export const Project = {
     message.challenge_id = object.challenge_id ?? "0";
     message.has_challenge = object.has_challenge ?? false;
     message.market_id = object.market_id ?? "";
+    message.curve_config = (object.curve_config !== undefined && object.curve_config !== null)
+      ? CurveConfig.fromPartial(object.curve_config)
+      : undefined;
+    message.defeated = object.defeated ?? false;
     return message;
   },
 };
