@@ -3762,11 +3762,11 @@ export interface CampclashQuery {
   ): Promise<GetCampLatestHeightResponse>;
   /** stream API as we need to know when user close the browser tab as well */
   PushUserActivity(
-    request: Observable<DeepPartial<PushUserActivityRequest>>,
+    request: DeepPartial<PushUserActivityRequest>,
     metadata?: grpc.Metadata,
   ): Observable<PushUserActivityResponse>;
   SubscribeUserActivity(
-    request: Observable<DeepPartial<SubscribeUserActivityRequest>>,
+    request: DeepPartial<SubscribeUserActivityRequest>,
     metadata?: grpc.Metadata,
   ): Observable<SubscribeUserActivityResponse>;
 }
@@ -3924,17 +3924,21 @@ export class CampclashQueryClientImpl implements CampclashQuery {
   }
 
   PushUserActivity(
-    request: Observable<DeepPartial<PushUserActivityRequest>>,
+    request: DeepPartial<PushUserActivityRequest>,
     metadata?: grpc.Metadata,
   ): Observable<PushUserActivityResponse> {
-    throw new Error("ts-proto does not yet support client streaming!");
+    return this.rpc.invoke(CampclashQueryPushUserActivityDesc, PushUserActivityRequest.fromPartial(request), metadata);
   }
 
   SubscribeUserActivity(
-    request: Observable<DeepPartial<SubscribeUserActivityRequest>>,
+    request: DeepPartial<SubscribeUserActivityRequest>,
     metadata?: grpc.Metadata,
   ): Observable<SubscribeUserActivityResponse> {
-    throw new Error("ts-proto does not yet support client streaming!");
+    return this.rpc.invoke(
+      CampclashQuerySubscribeUserActivityDesc,
+      SubscribeUserActivityRequest.fromPartial(request),
+      metadata,
+    );
   }
 }
 
@@ -4344,6 +4348,52 @@ export const CampclashQueryGetCampLatestHeightDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = GetCampLatestHeightResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQueryPushUserActivityDesc: UnaryMethodDefinitionish = {
+  methodName: "PushUserActivity",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: true,
+  requestType: {
+    serializeBinary() {
+      return PushUserActivityRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = PushUserActivityResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQuerySubscribeUserActivityDesc: UnaryMethodDefinitionish = {
+  methodName: "SubscribeUserActivity",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: true,
+  requestType: {
+    serializeBinary() {
+      return SubscribeUserActivityRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = SubscribeUserActivityResponse.decode(data);
       return {
         ...value,
         toObject() {
