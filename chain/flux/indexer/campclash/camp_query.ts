@@ -14,7 +14,10 @@ import { share } from "rxjs/operators";
 import { PageRequest, PageResponse } from "../../../cosmos/base/query/v1beta1/pagination";
 import { Challenge, ChallengeVote, Claimable, Project, Trade, UserBalance } from "./camp";
 
-/** Define the Action enum */
+/**
+ * Define the Action enum
+ * TODO: Add more action here
+ */
 export enum Action {
   OPEN_PAGE = 0,
   CLOSE_PAGE = 1,
@@ -3757,12 +3760,13 @@ export interface CampclashQuery {
     request: DeepPartial<GetCampLatestHeightRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetCampLatestHeightResponse>;
+  /** stream API as we need to know when user close the browser tab as well */
   PushUserActivity(
     request: DeepPartial<PushUserActivityRequest>,
     metadata?: grpc.Metadata,
-  ): Promise<PushUserActivityResponse>;
+  ): Observable<PushUserActivityResponse>;
   SubscribeUserActivity(
-    request: Observable<DeepPartial<SubscribeUserActivityRequest>>,
+    request: DeepPartial<SubscribeUserActivityRequest>,
     metadata?: grpc.Metadata,
   ): Observable<SubscribeUserActivityResponse>;
 }
@@ -3922,15 +3926,19 @@ export class CampclashQueryClientImpl implements CampclashQuery {
   PushUserActivity(
     request: DeepPartial<PushUserActivityRequest>,
     metadata?: grpc.Metadata,
-  ): Promise<PushUserActivityResponse> {
-    return this.rpc.unary(CampclashQueryPushUserActivityDesc, PushUserActivityRequest.fromPartial(request), metadata);
+  ): Observable<PushUserActivityResponse> {
+    return this.rpc.invoke(CampclashQueryPushUserActivityDesc, PushUserActivityRequest.fromPartial(request), metadata);
   }
 
   SubscribeUserActivity(
-    request: Observable<DeepPartial<SubscribeUserActivityRequest>>,
+    request: DeepPartial<SubscribeUserActivityRequest>,
     metadata?: grpc.Metadata,
   ): Observable<SubscribeUserActivityResponse> {
-    throw new Error("ts-proto does not yet support client streaming!");
+    return this.rpc.invoke(
+      CampclashQuerySubscribeUserActivityDesc,
+      SubscribeUserActivityRequest.fromPartial(request),
+      metadata,
+    );
   }
 }
 
@@ -4354,7 +4362,7 @@ export const CampclashQueryPushUserActivityDesc: UnaryMethodDefinitionish = {
   methodName: "PushUserActivity",
   service: CampclashQueryDesc,
   requestStream: false,
-  responseStream: false,
+  responseStream: true,
   requestType: {
     serializeBinary() {
       return PushUserActivityRequest.encode(this).finish();
@@ -4363,6 +4371,29 @@ export const CampclashQueryPushUserActivityDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = PushUserActivityResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQuerySubscribeUserActivityDesc: UnaryMethodDefinitionish = {
+  methodName: "SubscribeUserActivity",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: true,
+  requestType: {
+    serializeBinary() {
+      return SubscribeUserActivityRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = SubscribeUserActivityResponse.decode(data);
       return {
         ...value,
         toObject() {

@@ -137,9 +137,12 @@ export class IndexerGrpcCampQuery extends BaseIndexerGrpc {
     return response as campclashQuery.GetLogoPresignedURLResponse
   }
   async pushUserActivity(
-    request: Partial<campclashQuery.PushUserActivityRequest>
-  ): Promise<campclashQuery.PushUserActivityResponse> {
-    const response = await this.retry(() => this.client.PushUserActivity(request))
-    return response
+    request: Partial<campclashQuery.PushUserActivityRequest>,
+    callback: (value: campclashQuery.PushUserActivityResponse) => void,
+    onEndCallback?: (err: any) => void,
+    onStatusCallback?: () => void
+  ): Promise<Subscription> {
+    const stream = this.client.PushUserActivity(request)
+    return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
 }
