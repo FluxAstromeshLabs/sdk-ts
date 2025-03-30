@@ -8,6 +8,7 @@ interface Option {
   value: string
   title: string
   disabled?: boolean
+  meta?: Record<string, unknown>
 }
 const emit = defineEmits(['update:modelValue'])
 const props = defineProps({
@@ -134,6 +135,7 @@ watch(
             {{ placeholder }}
           </p>
           <p class="value" v-else-if="!Array.isArray(internalValue)">
+            <slot name="prepend" v-if="$slots.prepend" :option="internalValue" />
             {{ internalValue?.title }}
           </p>
           <div v-else-if="Array.isArray(internalValue)" class="flex flex-wrap gap-2">
@@ -162,9 +164,11 @@ watch(
             class="content-popover__item"
             :class="[
               { ['disabled']: option.disabled },
-              { ['content-popover__item--selected']: isActive(option.value) }
+              { ['content-popover__item--selected']: isActive(option.value) },
+              'flex items-center'
             ]"
           >
+            <slot v-if="$slots.prepend" name="prepend" :option="option" /> {{ option.title }}
             {{ option.title }}
           </div>
           <CheckBox
@@ -176,7 +180,6 @@ watch(
             class="content-popover__item multiple"
             :class="[{ ['disabled']: option.disabled }]"
           >
-            {{ option.title }}
           </CheckBox>
         </div>
       </template>
