@@ -168,7 +168,7 @@ watch(
               'flex items-center'
             ]"
           >
-            <slot v-if="$slots.prepend" name="prepend" :option="option" /> {{ option.title }}
+            <slot v-if="$slots.prepend" name="prepend" :option="option" />
             {{ option.title }}
           </div>
           <CheckBox
