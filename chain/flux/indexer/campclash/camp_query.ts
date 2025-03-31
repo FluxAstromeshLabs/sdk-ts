@@ -14,43 +14,6 @@ import { share } from "rxjs/operators";
 import { PageRequest, PageResponse } from "../../../cosmos/base/query/v1beta1/pagination";
 import { Challenge, ChallengeVote, Claimable, Project, Trade, UserBalance } from "./camp";
 
-/**
- * Define the Action enum
- * TODO: Add more action here
- */
-export enum Action {
-  OPEN_PAGE = 0,
-  CLOSE_PAGE = 1,
-  UNRECOGNIZED = -1,
-}
-
-export function actionFromJSON(object: any): Action {
-  switch (object) {
-    case 0:
-    case "OPEN_PAGE":
-      return Action.OPEN_PAGE;
-    case 1:
-    case "CLOSE_PAGE":
-      return Action.CLOSE_PAGE;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return Action.UNRECOGNIZED;
-  }
-}
-
-export function actionToJSON(object: Action): string {
-  switch (object) {
-    case Action.OPEN_PAGE:
-      return "OPEN_PAGE";
-    case Action.CLOSE_PAGE:
-      return "CLOSE_PAGE";
-    case Action.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
-}
-
 export interface ListProjectsRequest {
   pagination: PageRequest | undefined;
   camp_denom: string;
@@ -168,6 +131,7 @@ export interface GetLeaderboardRequest {
   pagination: PageRequest | undefined;
   camp_type: string;
   sort_by: string;
+  include_graduated: boolean;
 }
 
 export interface GetLeaderboardResponse {
@@ -262,34 +226,6 @@ export interface GetCampLatestHeightRequest {
 
 export interface GetCampLatestHeightResponse {
   height: string;
-}
-
-/** PushUserActivity API: Stream user activity to the server */
-export interface PushUserActivityRequest {
-  /** Nullable string (use empty string for null) */
-  address: string;
-  /** URL the user is on */
-  url: string;
-  /** Action performed by the user */
-  action: Action;
-}
-
-export interface PushUserActivityResponse {
-}
-
-/** Empty input */
-export interface SubscribeUserActivityRequest {
-}
-
-export interface SubscribeUserActivityResponse {
-  /** IP address of the user */
-  ip: string;
-  /** Nullable string (use empty string for null) */
-  address: string;
-  /** URL the user is on */
-  url: string;
-  /** Action performed by the user */
-  action: Action;
 }
 
 function createBaseListProjectsRequest(): ListProjectsRequest {
@@ -1993,7 +1929,7 @@ export const StreamCommentsResponse = {
 };
 
 function createBaseGetLeaderboardRequest(): GetLeaderboardRequest {
-  return { pagination: undefined, camp_type: "", sort_by: "" };
+  return { pagination: undefined, camp_type: "", sort_by: "", include_graduated: false };
 }
 
 export const GetLeaderboardRequest = {
@@ -2008,6 +1944,9 @@ export const GetLeaderboardRequest = {
     }
     if (message.sort_by !== "") {
       writer.uint32(26).string(message.sort_by);
+    }
+    if (message.include_graduated !== false) {
+      writer.uint32(32).bool(message.include_graduated);
     }
     return writer;
   },
@@ -2040,6 +1979,13 @@ export const GetLeaderboardRequest = {
 
           message.sort_by = reader.string();
           continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.include_graduated = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2054,6 +2000,7 @@ export const GetLeaderboardRequest = {
       pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
       camp_type: isSet(object.camp_type) ? globalThis.String(object.camp_type) : "",
       sort_by: isSet(object.sort_by) ? globalThis.String(object.sort_by) : "",
+      include_graduated: isSet(object.include_graduated) ? globalThis.Boolean(object.include_graduated) : false,
     };
   },
 
@@ -2068,6 +2015,9 @@ export const GetLeaderboardRequest = {
     if (message.sort_by !== undefined) {
       obj.sort_by = message.sort_by;
     }
+    if (message.include_graduated !== undefined) {
+      obj.include_graduated = message.include_graduated;
+    }
     return obj;
   },
 
@@ -2081,6 +2031,7 @@ export const GetLeaderboardRequest = {
       : undefined;
     message.camp_type = object.camp_type ?? "";
     message.sort_by = object.sort_by ?? "";
+    message.include_graduated = object.include_graduated ?? false;
     return message;
   },
 };
@@ -3420,293 +3371,6 @@ export const GetCampLatestHeightResponse = {
   },
 };
 
-function createBasePushUserActivityRequest(): PushUserActivityRequest {
-  return { address: "", url: "", action: 0 };
-}
-
-export const PushUserActivityRequest = {
-  $type: "flux.indexer.campclash.PushUserActivityRequest" as const,
-
-  encode(message: PushUserActivityRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.address !== "") {
-      writer.uint32(10).string(message.address);
-    }
-    if (message.url !== "") {
-      writer.uint32(18).string(message.url);
-    }
-    if (message.action !== 0) {
-      writer.uint32(24).int32(message.action);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): PushUserActivityRequest {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBasePushUserActivityRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.address = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.url = reader.string();
-          continue;
-        case 3:
-          if (tag !== 24) {
-            break;
-          }
-
-          message.action = reader.int32() as any;
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): PushUserActivityRequest {
-    return {
-      address: isSet(object.address) ? globalThis.String(object.address) : "",
-      url: isSet(object.url) ? globalThis.String(object.url) : "",
-      action: isSet(object.action) ? actionFromJSON(object.action) : 0,
-    };
-  },
-
-  toJSON(message: PushUserActivityRequest): unknown {
-    const obj: any = {};
-    if (message.address !== undefined) {
-      obj.address = message.address;
-    }
-    if (message.url !== undefined) {
-      obj.url = message.url;
-    }
-    if (message.action !== undefined) {
-      obj.action = actionToJSON(message.action);
-    }
-    return obj;
-  },
-
-  create(base?: DeepPartial<PushUserActivityRequest>): PushUserActivityRequest {
-    return PushUserActivityRequest.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<PushUserActivityRequest>): PushUserActivityRequest {
-    const message = createBasePushUserActivityRequest();
-    message.address = object.address ?? "";
-    message.url = object.url ?? "";
-    message.action = object.action ?? 0;
-    return message;
-  },
-};
-
-function createBasePushUserActivityResponse(): PushUserActivityResponse {
-  return {};
-}
-
-export const PushUserActivityResponse = {
-  $type: "flux.indexer.campclash.PushUserActivityResponse" as const,
-
-  encode(_: PushUserActivityResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): PushUserActivityResponse {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBasePushUserActivityResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(_: any): PushUserActivityResponse {
-    return {};
-  },
-
-  toJSON(_: PushUserActivityResponse): unknown {
-    const obj: any = {};
-    return obj;
-  },
-
-  create(base?: DeepPartial<PushUserActivityResponse>): PushUserActivityResponse {
-    return PushUserActivityResponse.fromPartial(base ?? {});
-  },
-  fromPartial(_: DeepPartial<PushUserActivityResponse>): PushUserActivityResponse {
-    const message = createBasePushUserActivityResponse();
-    return message;
-  },
-};
-
-function createBaseSubscribeUserActivityRequest(): SubscribeUserActivityRequest {
-  return {};
-}
-
-export const SubscribeUserActivityRequest = {
-  $type: "flux.indexer.campclash.SubscribeUserActivityRequest" as const,
-
-  encode(_: SubscribeUserActivityRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): SubscribeUserActivityRequest {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseSubscribeUserActivityRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(_: any): SubscribeUserActivityRequest {
-    return {};
-  },
-
-  toJSON(_: SubscribeUserActivityRequest): unknown {
-    const obj: any = {};
-    return obj;
-  },
-
-  create(base?: DeepPartial<SubscribeUserActivityRequest>): SubscribeUserActivityRequest {
-    return SubscribeUserActivityRequest.fromPartial(base ?? {});
-  },
-  fromPartial(_: DeepPartial<SubscribeUserActivityRequest>): SubscribeUserActivityRequest {
-    const message = createBaseSubscribeUserActivityRequest();
-    return message;
-  },
-};
-
-function createBaseSubscribeUserActivityResponse(): SubscribeUserActivityResponse {
-  return { ip: "", address: "", url: "", action: 0 };
-}
-
-export const SubscribeUserActivityResponse = {
-  $type: "flux.indexer.campclash.SubscribeUserActivityResponse" as const,
-
-  encode(message: SubscribeUserActivityResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.ip !== "") {
-      writer.uint32(10).string(message.ip);
-    }
-    if (message.address !== "") {
-      writer.uint32(18).string(message.address);
-    }
-    if (message.url !== "") {
-      writer.uint32(26).string(message.url);
-    }
-    if (message.action !== 0) {
-      writer.uint32(32).int32(message.action);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): SubscribeUserActivityResponse {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseSubscribeUserActivityResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.ip = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.address = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.url = reader.string();
-          continue;
-        case 4:
-          if (tag !== 32) {
-            break;
-          }
-
-          message.action = reader.int32() as any;
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): SubscribeUserActivityResponse {
-    return {
-      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
-      address: isSet(object.address) ? globalThis.String(object.address) : "",
-      url: isSet(object.url) ? globalThis.String(object.url) : "",
-      action: isSet(object.action) ? actionFromJSON(object.action) : 0,
-    };
-  },
-
-  toJSON(message: SubscribeUserActivityResponse): unknown {
-    const obj: any = {};
-    if (message.ip !== undefined) {
-      obj.ip = message.ip;
-    }
-    if (message.address !== undefined) {
-      obj.address = message.address;
-    }
-    if (message.url !== undefined) {
-      obj.url = message.url;
-    }
-    if (message.action !== undefined) {
-      obj.action = actionToJSON(message.action);
-    }
-    return obj;
-  },
-
-  create(base?: DeepPartial<SubscribeUserActivityResponse>): SubscribeUserActivityResponse {
-    return SubscribeUserActivityResponse.fromPartial(base ?? {});
-  },
-  fromPartial(object: DeepPartial<SubscribeUserActivityResponse>): SubscribeUserActivityResponse {
-    const message = createBaseSubscribeUserActivityResponse();
-    message.ip = object.ip ?? "";
-    message.address = object.address ?? "";
-    message.url = object.url ?? "";
-    message.action = object.action ?? 0;
-    return message;
-  },
-};
-
 /** Query defines the gRPC querier service. */
 export interface CampclashQuery {
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse>;
@@ -3760,15 +3424,6 @@ export interface CampclashQuery {
     request: DeepPartial<GetCampLatestHeightRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetCampLatestHeightResponse>;
-  /** stream API as we need to know when user close the browser tab as well */
-  PushUserActivity(
-    request: DeepPartial<PushUserActivityRequest>,
-    metadata?: grpc.Metadata,
-  ): Observable<PushUserActivityResponse>;
-  SubscribeUserActivity(
-    request: DeepPartial<SubscribeUserActivityRequest>,
-    metadata?: grpc.Metadata,
-  ): Observable<SubscribeUserActivityResponse>;
 }
 
 export class CampclashQueryClientImpl implements CampclashQuery {
@@ -3794,8 +3449,6 @@ export class CampclashQueryClientImpl implements CampclashQuery {
     this.GetUserChallenges = this.GetUserChallenges.bind(this);
     this.GetLogoPresignedURL = this.GetLogoPresignedURL.bind(this);
     this.GetCampLatestHeight = this.GetCampLatestHeight.bind(this);
-    this.PushUserActivity = this.PushUserActivity.bind(this);
-    this.SubscribeUserActivity = this.SubscribeUserActivity.bind(this);
   }
 
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse> {
@@ -3919,24 +3572,6 @@ export class CampclashQueryClientImpl implements CampclashQuery {
     return this.rpc.unary(
       CampclashQueryGetCampLatestHeightDesc,
       GetCampLatestHeightRequest.fromPartial(request),
-      metadata,
-    );
-  }
-
-  PushUserActivity(
-    request: DeepPartial<PushUserActivityRequest>,
-    metadata?: grpc.Metadata,
-  ): Observable<PushUserActivityResponse> {
-    return this.rpc.invoke(CampclashQueryPushUserActivityDesc, PushUserActivityRequest.fromPartial(request), metadata);
-  }
-
-  SubscribeUserActivity(
-    request: DeepPartial<SubscribeUserActivityRequest>,
-    metadata?: grpc.Metadata,
-  ): Observable<SubscribeUserActivityResponse> {
-    return this.rpc.invoke(
-      CampclashQuerySubscribeUserActivityDesc,
-      SubscribeUserActivityRequest.fromPartial(request),
       metadata,
     );
   }
@@ -4348,52 +3983,6 @@ export const CampclashQueryGetCampLatestHeightDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = GetCampLatestHeightResponse.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const CampclashQueryPushUserActivityDesc: UnaryMethodDefinitionish = {
-  methodName: "PushUserActivity",
-  service: CampclashQueryDesc,
-  requestStream: false,
-  responseStream: true,
-  requestType: {
-    serializeBinary() {
-      return PushUserActivityRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = PushUserActivityResponse.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const CampclashQuerySubscribeUserActivityDesc: UnaryMethodDefinitionish = {
-  methodName: "SubscribeUserActivity",
-  service: CampclashQueryDesc,
-  requestStream: false,
-  responseStream: true,
-  requestType: {
-    serializeBinary() {
-      return SubscribeUserActivityRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = SubscribeUserActivityResponse.decode(data);
       return {
         ...value,
         toObject() {
