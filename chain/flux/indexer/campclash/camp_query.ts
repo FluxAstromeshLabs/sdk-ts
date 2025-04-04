@@ -168,6 +168,7 @@ export interface GetLeaderboardRequest {
   pagination: PageRequest | undefined;
   camp_type: string;
   sort_by: string;
+  include_graduated: boolean;
 }
 
 export interface GetLeaderboardResponse {
@@ -1993,7 +1994,7 @@ export const StreamCommentsResponse = {
 };
 
 function createBaseGetLeaderboardRequest(): GetLeaderboardRequest {
-  return { pagination: undefined, camp_type: "", sort_by: "" };
+  return { pagination: undefined, camp_type: "", sort_by: "", include_graduated: false };
 }
 
 export const GetLeaderboardRequest = {
@@ -2008,6 +2009,9 @@ export const GetLeaderboardRequest = {
     }
     if (message.sort_by !== "") {
       writer.uint32(26).string(message.sort_by);
+    }
+    if (message.include_graduated !== false) {
+      writer.uint32(32).bool(message.include_graduated);
     }
     return writer;
   },
@@ -2040,6 +2044,13 @@ export const GetLeaderboardRequest = {
 
           message.sort_by = reader.string();
           continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.include_graduated = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2054,6 +2065,7 @@ export const GetLeaderboardRequest = {
       pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
       camp_type: isSet(object.camp_type) ? globalThis.String(object.camp_type) : "",
       sort_by: isSet(object.sort_by) ? globalThis.String(object.sort_by) : "",
+      include_graduated: isSet(object.include_graduated) ? globalThis.Boolean(object.include_graduated) : false,
     };
   },
 
@@ -2068,6 +2080,9 @@ export const GetLeaderboardRequest = {
     if (message.sort_by !== undefined) {
       obj.sort_by = message.sort_by;
     }
+    if (message.include_graduated !== undefined) {
+      obj.include_graduated = message.include_graduated;
+    }
     return obj;
   },
 
@@ -2081,6 +2096,7 @@ export const GetLeaderboardRequest = {
       : undefined;
     message.camp_type = object.camp_type ?? "";
     message.sort_by = object.sort_by ?? "";
+    message.include_graduated = object.include_graduated ?? false;
     return message;
   },
 };
