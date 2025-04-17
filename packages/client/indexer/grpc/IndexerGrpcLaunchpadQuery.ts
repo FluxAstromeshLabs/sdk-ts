@@ -1,15 +1,13 @@
-import BaseIndexerGrpc from '../../BaseIndexerGrpc'
-import * as launchpadQuery from '../../../../chain/flux/indexer/campclash/launchpad_query'
 import { Subscription } from 'rxjs'
+import * as launchpadQuery from '../../../../chain/flux/indexer/campclash/launchpad_query'
+import BaseIndexerGrpc from '../../BaseIndexerGrpc'
 
 export class IndexerGrpcLaunchpadQuery extends BaseIndexerGrpc {
   protected client: launchpadQuery.LaunchpadQueryClientImpl
 
   constructor(endpoint: string) {
     super(endpoint)
-    this.client = new launchpadQuery.LaunchpadQueryClientImpl(
-      this.getGrpcWebImpl(endpoint)
-    )
+    this.client = new launchpadQuery.LaunchpadQueryClientImpl(this.getGrpcWebImpl(endpoint))
   }
 
   async listProjects(
@@ -34,6 +32,16 @@ export class IndexerGrpcLaunchpadQuery extends BaseIndexerGrpc {
   ): Promise<launchpadQuery.ListLaunchpadWhitelistsResponse> {
     let response = await this.retry(() => this.client.ListWhitelists(request))
     return response as launchpadQuery.ListLaunchpadWhitelistsResponse
+  }
+
+  async streamWhitelist(
+    request: Partial<launchpadQuery.StreamLaunchpadWhitelistRequest>,
+    callback: (value: launchpadQuery.StreamLaunchpadWhitelistResponse) => void,
+    onEndCallback?: (err: any) => void,
+    onStatusCallback?: () => void
+  ): Promise<Subscription> {
+    const stream = this.client.StreamWhitelist(request)
+    return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
 
   async listUsers(
