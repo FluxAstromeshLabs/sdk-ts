@@ -12,7 +12,7 @@ import _m0 from "protobufjs/minimal";
 import { Observable } from "rxjs";
 import { share } from "rxjs/operators";
 import { PageRequest, PageResponse } from "../../../cosmos/base/query/v1beta1/pagination";
-import { Challenge, ChallengeVote, Claimable, Project, Trade, UserBalance } from "./camp";
+import { Challenge, ChallengeVote, Claimable, Project, Trade, UserBalance, UserPoints } from "./camp";
 
 /**
  * Define the Action enum
@@ -291,6 +291,25 @@ export interface SubscribeUserActivityResponse {
   url: string;
   /** Action performed by the user */
   action: Action;
+}
+
+export interface ListUserPointsRequest {
+  pagination: PageRequest | undefined;
+  address: string;
+}
+
+export interface ListUserPointsResponse {
+  pagination: PageResponse | undefined;
+  user_points: UserPoints[];
+}
+
+export interface StreamUserPointsRequest {
+  address: string;
+}
+
+export interface StreamUserPointsResponse {
+  deleted: boolean;
+  user_points: UserPoints | undefined;
 }
 
 function createBaseListProjectsRequest(): ListProjectsRequest {
@@ -3723,6 +3742,301 @@ export const SubscribeUserActivityResponse = {
   },
 };
 
+function createBaseListUserPointsRequest(): ListUserPointsRequest {
+  return { pagination: undefined, address: "" };
+}
+
+export const ListUserPointsRequest = {
+  $type: "flux.indexer.campclash.ListUserPointsRequest" as const,
+
+  encode(message: ListUserPointsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.address !== "") {
+      writer.uint32(18).string(message.address);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListUserPointsRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListUserPointsRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.address = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListUserPointsRequest {
+    return {
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
+      address: isSet(object.address) ? globalThis.String(object.address) : "",
+    };
+  },
+
+  toJSON(message: ListUserPointsRequest): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageRequest.toJSON(message.pagination);
+    }
+    if (message.address !== undefined) {
+      obj.address = message.address;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListUserPointsRequest>): ListUserPointsRequest {
+    return ListUserPointsRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListUserPointsRequest>): ListUserPointsRequest {
+    const message = createBaseListUserPointsRequest();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
+    message.address = object.address ?? "";
+    return message;
+  },
+};
+
+function createBaseListUserPointsResponse(): ListUserPointsResponse {
+  return { pagination: undefined, user_points: [] };
+}
+
+export const ListUserPointsResponse = {
+  $type: "flux.indexer.campclash.ListUserPointsResponse" as const,
+
+  encode(message: ListUserPointsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    for (const v of message.user_points) {
+      UserPoints.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListUserPointsResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListUserPointsResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.user_points.push(UserPoints.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListUserPointsResponse {
+    return {
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+      user_points: globalThis.Array.isArray(object?.user_points)
+        ? object.user_points.map((e: any) => UserPoints.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: ListUserPointsResponse): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageResponse.toJSON(message.pagination);
+    }
+    if (message.user_points?.length) {
+      obj.user_points = message.user_points.map((e) => UserPoints.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListUserPointsResponse>): ListUserPointsResponse {
+    return ListUserPointsResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListUserPointsResponse>): ListUserPointsResponse {
+    const message = createBaseListUserPointsResponse();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
+    message.user_points = object.user_points?.map((e) => UserPoints.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseStreamUserPointsRequest(): StreamUserPointsRequest {
+  return { address: "" };
+}
+
+export const StreamUserPointsRequest = {
+  $type: "flux.indexer.campclash.StreamUserPointsRequest" as const,
+
+  encode(message: StreamUserPointsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.address !== "") {
+      writer.uint32(10).string(message.address);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamUserPointsRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamUserPointsRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.address = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamUserPointsRequest {
+    return { address: isSet(object.address) ? globalThis.String(object.address) : "" };
+  },
+
+  toJSON(message: StreamUserPointsRequest): unknown {
+    const obj: any = {};
+    if (message.address !== undefined) {
+      obj.address = message.address;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamUserPointsRequest>): StreamUserPointsRequest {
+    return StreamUserPointsRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamUserPointsRequest>): StreamUserPointsRequest {
+    const message = createBaseStreamUserPointsRequest();
+    message.address = object.address ?? "";
+    return message;
+  },
+};
+
+function createBaseStreamUserPointsResponse(): StreamUserPointsResponse {
+  return { deleted: false, user_points: undefined };
+}
+
+export const StreamUserPointsResponse = {
+  $type: "flux.indexer.campclash.StreamUserPointsResponse" as const,
+
+  encode(message: StreamUserPointsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.deleted !== false) {
+      writer.uint32(8).bool(message.deleted);
+    }
+    if (message.user_points !== undefined) {
+      UserPoints.encode(message.user_points, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamUserPointsResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamUserPointsResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.deleted = reader.bool();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.user_points = UserPoints.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamUserPointsResponse {
+    return {
+      deleted: isSet(object.deleted) ? globalThis.Boolean(object.deleted) : false,
+      user_points: isSet(object.user_points) ? UserPoints.fromJSON(object.user_points) : undefined,
+    };
+  },
+
+  toJSON(message: StreamUserPointsResponse): unknown {
+    const obj: any = {};
+    if (message.deleted !== undefined) {
+      obj.deleted = message.deleted;
+    }
+    if (message.user_points !== undefined) {
+      obj.user_points = UserPoints.toJSON(message.user_points);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamUserPointsResponse>): StreamUserPointsResponse {
+    return StreamUserPointsResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamUserPointsResponse>): StreamUserPointsResponse {
+    const message = createBaseStreamUserPointsResponse();
+    message.deleted = object.deleted ?? false;
+    message.user_points = (object.user_points !== undefined && object.user_points !== null)
+      ? UserPoints.fromPartial(object.user_points)
+      : undefined;
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface CampclashQuery {
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse>;
@@ -3785,6 +4099,14 @@ export interface CampclashQuery {
     request: DeepPartial<SubscribeUserActivityRequest>,
     metadata?: grpc.Metadata,
   ): Observable<SubscribeUserActivityResponse>;
+  ListUserPoints(
+    request: DeepPartial<ListUserPointsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ListUserPointsResponse>;
+  StreamUserPoints(
+    request: DeepPartial<StreamUserPointsRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamUserPointsResponse>;
 }
 
 export class CampclashQueryClientImpl implements CampclashQuery {
@@ -3812,6 +4134,8 @@ export class CampclashQueryClientImpl implements CampclashQuery {
     this.GetCampLatestHeight = this.GetCampLatestHeight.bind(this);
     this.PushUserActivity = this.PushUserActivity.bind(this);
     this.SubscribeUserActivity = this.SubscribeUserActivity.bind(this);
+    this.ListUserPoints = this.ListUserPoints.bind(this);
+    this.StreamUserPoints = this.StreamUserPoints.bind(this);
   }
 
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse> {
@@ -3955,6 +4279,20 @@ export class CampclashQueryClientImpl implements CampclashQuery {
       SubscribeUserActivityRequest.fromPartial(request),
       metadata,
     );
+  }
+
+  ListUserPoints(
+    request: DeepPartial<ListUserPointsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ListUserPointsResponse> {
+    return this.rpc.unary(CampclashQueryListUserPointsDesc, ListUserPointsRequest.fromPartial(request), metadata);
+  }
+
+  StreamUserPoints(
+    request: DeepPartial<StreamUserPointsRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamUserPointsResponse> {
+    return this.rpc.invoke(CampclashQueryStreamUserPointsDesc, StreamUserPointsRequest.fromPartial(request), metadata);
   }
 }
 
@@ -4410,6 +4748,52 @@ export const CampclashQuerySubscribeUserActivityDesc: UnaryMethodDefinitionish =
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = SubscribeUserActivityResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQueryListUserPointsDesc: UnaryMethodDefinitionish = {
+  methodName: "ListUserPoints",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ListUserPointsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ListUserPointsResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQueryStreamUserPointsDesc: UnaryMethodDefinitionish = {
+  methodName: "StreamUserPoints",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: true,
+  requestType: {
+    serializeBinary() {
+      return StreamUserPointsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = StreamUserPointsResponse.decode(data);
       return {
         ...value,
         toObject() {
