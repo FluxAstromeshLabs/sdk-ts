@@ -5,7 +5,7 @@ import dayjs from 'dayjs'
 // Define props and emits
 const props = defineProps({
   modelValue: {
-    type: String,
+    type: [String, Number],
     default: ''
   }, // Changed to modelValue to work with v-model
   inputClass: {
