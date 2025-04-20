@@ -162,6 +162,7 @@ export interface Challenge {
   challenger_project: Project | undefined;
   challenged_project: Project | undefined;
   created_height: string;
+  creator: string;
 }
 
 /** Define the VoteEvent message */
@@ -183,6 +184,28 @@ export interface Claimable {
   coins: Coin[];
   is_claimed: boolean;
   height: string;
+}
+
+export interface UserPoints {
+  address: string;
+  total_points: string;
+  token_points: TokenPoints | undefined;
+  challenge_points: ChallengePoints | undefined;
+  updated_height: string;
+}
+
+export interface TokenPoints {
+  create_token_points: string;
+  trade_points: string;
+  graduate_points: string;
+}
+
+export interface ChallengePoints {
+  create_challenge_points: string;
+  vote_points: string;
+  winner_points: string;
+  loser_points: string;
+  tie_points: string;
 }
 
 function createBaseCurveConfig(): CurveConfig {
@@ -1927,6 +1950,7 @@ function createBaseChallenge(): Challenge {
     challenger_project: undefined,
     challenged_project: undefined,
     created_height: "0",
+    creator: "",
   };
 }
 
@@ -1996,6 +2020,9 @@ export const Challenge = {
     }
     if (message.created_height !== "0") {
       writer.uint32(168).uint64(message.created_height);
+    }
+    if (message.creator !== "") {
+      writer.uint32(178).string(message.creator);
     }
     return writer;
   },
@@ -2154,6 +2181,13 @@ export const Challenge = {
 
           message.created_height = longToString(reader.uint64() as Long);
           continue;
+        case 22:
+          if (tag !== 178) {
+            break;
+          }
+
+          message.creator = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2192,6 +2226,7 @@ export const Challenge = {
       challenger_project: isSet(object.challenger_project) ? Project.fromJSON(object.challenger_project) : undefined,
       challenged_project: isSet(object.challenged_project) ? Project.fromJSON(object.challenged_project) : undefined,
       created_height: isSet(object.created_height) ? globalThis.String(object.created_height) : "0",
+      creator: isSet(object.creator) ? globalThis.String(object.creator) : "",
     };
   },
 
@@ -2260,6 +2295,9 @@ export const Challenge = {
     if (message.created_height !== undefined) {
       obj.created_height = message.created_height;
     }
+    if (message.creator !== undefined) {
+      obj.creator = message.creator;
+    }
     return obj;
   },
 
@@ -2301,6 +2339,7 @@ export const Challenge = {
       ? Project.fromPartial(object.challenged_project)
       : undefined;
     message.created_height = object.created_height ?? "0";
+    message.creator = object.creator ?? "";
     return message;
   },
 };
@@ -2598,6 +2637,345 @@ export const Claimable = {
     message.coins = object.coins?.map((e) => Coin.fromPartial(e)) || [];
     message.is_claimed = object.is_claimed ?? false;
     message.height = object.height ?? "0";
+    return message;
+  },
+};
+
+function createBaseUserPoints(): UserPoints {
+  return { address: "", total_points: "", token_points: undefined, challenge_points: undefined, updated_height: "0" };
+}
+
+export const UserPoints = {
+  $type: "flux.indexer.campclash.UserPoints" as const,
+
+  encode(message: UserPoints, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.address !== "") {
+      writer.uint32(10).string(message.address);
+    }
+    if (message.total_points !== "") {
+      writer.uint32(18).string(message.total_points);
+    }
+    if (message.token_points !== undefined) {
+      TokenPoints.encode(message.token_points, writer.uint32(26).fork()).ldelim();
+    }
+    if (message.challenge_points !== undefined) {
+      ChallengePoints.encode(message.challenge_points, writer.uint32(34).fork()).ldelim();
+    }
+    if (message.updated_height !== "0") {
+      writer.uint32(40).uint64(message.updated_height);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): UserPoints {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUserPoints();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.address = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.total_points = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.token_points = TokenPoints.decode(reader, reader.uint32());
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.challenge_points = ChallengePoints.decode(reader, reader.uint32());
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.updated_height = longToString(reader.uint64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UserPoints {
+    return {
+      address: isSet(object.address) ? globalThis.String(object.address) : "",
+      total_points: isSet(object.total_points) ? globalThis.String(object.total_points) : "",
+      token_points: isSet(object.token_points) ? TokenPoints.fromJSON(object.token_points) : undefined,
+      challenge_points: isSet(object.challenge_points) ? ChallengePoints.fromJSON(object.challenge_points) : undefined,
+      updated_height: isSet(object.updated_height) ? globalThis.String(object.updated_height) : "0",
+    };
+  },
+
+  toJSON(message: UserPoints): unknown {
+    const obj: any = {};
+    if (message.address !== undefined) {
+      obj.address = message.address;
+    }
+    if (message.total_points !== undefined) {
+      obj.total_points = message.total_points;
+    }
+    if (message.token_points !== undefined) {
+      obj.token_points = TokenPoints.toJSON(message.token_points);
+    }
+    if (message.challenge_points !== undefined) {
+      obj.challenge_points = ChallengePoints.toJSON(message.challenge_points);
+    }
+    if (message.updated_height !== undefined) {
+      obj.updated_height = message.updated_height;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<UserPoints>): UserPoints {
+    return UserPoints.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<UserPoints>): UserPoints {
+    const message = createBaseUserPoints();
+    message.address = object.address ?? "";
+    message.total_points = object.total_points ?? "";
+    message.token_points = (object.token_points !== undefined && object.token_points !== null)
+      ? TokenPoints.fromPartial(object.token_points)
+      : undefined;
+    message.challenge_points = (object.challenge_points !== undefined && object.challenge_points !== null)
+      ? ChallengePoints.fromPartial(object.challenge_points)
+      : undefined;
+    message.updated_height = object.updated_height ?? "0";
+    return message;
+  },
+};
+
+function createBaseTokenPoints(): TokenPoints {
+  return { create_token_points: "", trade_points: "", graduate_points: "" };
+}
+
+export const TokenPoints = {
+  $type: "flux.indexer.campclash.TokenPoints" as const,
+
+  encode(message: TokenPoints, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.create_token_points !== "") {
+      writer.uint32(10).string(message.create_token_points);
+    }
+    if (message.trade_points !== "") {
+      writer.uint32(18).string(message.trade_points);
+    }
+    if (message.graduate_points !== "") {
+      writer.uint32(26).string(message.graduate_points);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): TokenPoints {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTokenPoints();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.create_token_points = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.trade_points = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.graduate_points = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): TokenPoints {
+    return {
+      create_token_points: isSet(object.create_token_points) ? globalThis.String(object.create_token_points) : "",
+      trade_points: isSet(object.trade_points) ? globalThis.String(object.trade_points) : "",
+      graduate_points: isSet(object.graduate_points) ? globalThis.String(object.graduate_points) : "",
+    };
+  },
+
+  toJSON(message: TokenPoints): unknown {
+    const obj: any = {};
+    if (message.create_token_points !== undefined) {
+      obj.create_token_points = message.create_token_points;
+    }
+    if (message.trade_points !== undefined) {
+      obj.trade_points = message.trade_points;
+    }
+    if (message.graduate_points !== undefined) {
+      obj.graduate_points = message.graduate_points;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<TokenPoints>): TokenPoints {
+    return TokenPoints.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<TokenPoints>): TokenPoints {
+    const message = createBaseTokenPoints();
+    message.create_token_points = object.create_token_points ?? "";
+    message.trade_points = object.trade_points ?? "";
+    message.graduate_points = object.graduate_points ?? "";
+    return message;
+  },
+};
+
+function createBaseChallengePoints(): ChallengePoints {
+  return { create_challenge_points: "", vote_points: "", winner_points: "", loser_points: "", tie_points: "" };
+}
+
+export const ChallengePoints = {
+  $type: "flux.indexer.campclash.ChallengePoints" as const,
+
+  encode(message: ChallengePoints, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.create_challenge_points !== "") {
+      writer.uint32(10).string(message.create_challenge_points);
+    }
+    if (message.vote_points !== "") {
+      writer.uint32(18).string(message.vote_points);
+    }
+    if (message.winner_points !== "") {
+      writer.uint32(26).string(message.winner_points);
+    }
+    if (message.loser_points !== "") {
+      writer.uint32(34).string(message.loser_points);
+    }
+    if (message.tie_points !== "") {
+      writer.uint32(42).string(message.tie_points);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ChallengePoints {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseChallengePoints();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.create_challenge_points = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.vote_points = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.winner_points = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.loser_points = reader.string();
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.tie_points = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ChallengePoints {
+    return {
+      create_challenge_points: isSet(object.create_challenge_points)
+        ? globalThis.String(object.create_challenge_points)
+        : "",
+      vote_points: isSet(object.vote_points) ? globalThis.String(object.vote_points) : "",
+      winner_points: isSet(object.winner_points) ? globalThis.String(object.winner_points) : "",
+      loser_points: isSet(object.loser_points) ? globalThis.String(object.loser_points) : "",
+      tie_points: isSet(object.tie_points) ? globalThis.String(object.tie_points) : "",
+    };
+  },
+
+  toJSON(message: ChallengePoints): unknown {
+    const obj: any = {};
+    if (message.create_challenge_points !== undefined) {
+      obj.create_challenge_points = message.create_challenge_points;
+    }
+    if (message.vote_points !== undefined) {
+      obj.vote_points = message.vote_points;
+    }
+    if (message.winner_points !== undefined) {
+      obj.winner_points = message.winner_points;
+    }
+    if (message.loser_points !== undefined) {
+      obj.loser_points = message.loser_points;
+    }
+    if (message.tie_points !== undefined) {
+      obj.tie_points = message.tie_points;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ChallengePoints>): ChallengePoints {
+    return ChallengePoints.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ChallengePoints>): ChallengePoints {
+    const message = createBaseChallengePoints();
+    message.create_challenge_points = object.create_challenge_points ?? "";
+    message.vote_points = object.vote_points ?? "";
+    message.winner_points = object.winner_points ?? "";
+    message.loser_points = object.loser_points ?? "";
+    message.tie_points = object.tie_points ?? "";
     return message;
   },
 };
