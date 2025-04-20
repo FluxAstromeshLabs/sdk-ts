@@ -28,6 +28,8 @@ export interface LaunchpadProjectInfo {
   min_buy: string;
   max_buy: string;
   creator: string;
+  description: string;
+  website: string;
 }
 
 export interface LaunchpadWhitelist {
@@ -76,6 +78,8 @@ function createBaseLaunchpadProjectInfo(): LaunchpadProjectInfo {
     min_buy: "",
     max_buy: "",
     creator: "",
+    description: "",
+    website: "",
   };
 }
 
@@ -136,6 +140,12 @@ export const LaunchpadProjectInfo = {
     }
     if (message.creator !== "") {
       writer.uint32(146).string(message.creator);
+    }
+    if (message.description !== "") {
+      writer.uint32(154).string(message.description);
+    }
+    if (message.website !== "") {
+      writer.uint32(162).string(message.website);
     }
     return writer;
   },
@@ -273,6 +283,20 @@ export const LaunchpadProjectInfo = {
 
           message.creator = reader.string();
           continue;
+        case 19:
+          if (tag !== 154) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        case 20:
+          if (tag !== 162) {
+            break;
+          }
+
+          message.website = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -302,6 +326,8 @@ export const LaunchpadProjectInfo = {
       min_buy: isSet(object.min_buy) ? globalThis.String(object.min_buy) : "",
       max_buy: isSet(object.max_buy) ? globalThis.String(object.max_buy) : "",
       creator: isSet(object.creator) ? globalThis.String(object.creator) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : "",
+      website: isSet(object.website) ? globalThis.String(object.website) : "",
     };
   },
 
@@ -361,6 +387,12 @@ export const LaunchpadProjectInfo = {
     if (message.creator !== undefined) {
       obj.creator = message.creator;
     }
+    if (message.description !== undefined) {
+      obj.description = message.description;
+    }
+    if (message.website !== undefined) {
+      obj.website = message.website;
+    }
     return obj;
   },
 
@@ -387,6 +419,8 @@ export const LaunchpadProjectInfo = {
     message.min_buy = object.min_buy ?? "";
     message.max_buy = object.max_buy ?? "";
     message.creator = object.creator ?? "";
+    message.description = object.description ?? "";
+    message.website = object.website ?? "";
     return message;
   },
 };
