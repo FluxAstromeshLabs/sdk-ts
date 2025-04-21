@@ -145,4 +145,19 @@ export class IndexerGrpcCampQuery extends BaseIndexerGrpc {
     const stream = this.client.PushUserActivity(request)
     return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
+  async listUserPoints(
+    request: Partial<campclashQuery.ListUserPointsRequest>
+  ): Promise<campclashQuery.ListUserPointsResponse> {
+    let response = await this.retry(() => this.client.ListUserPoints(request))
+    return response as campclashQuery.ListUserPointsResponse
+  }
+  async streamUserPoints(
+    request: Partial<campclashQuery.StreamUserPointsRequest>,
+    callback: (value: campclashQuery.StreamUserPointsResponse) => void,
+    onEndCallback?: (err: any) => void,
+    onStatusCallback?: () => void
+  ): Promise<Subscription> {
+    const stream = this.client.StreamUserPoints(request)
+    return stream.subscribe(callback, onEndCallback, onStatusCallback)
+  }
 }
