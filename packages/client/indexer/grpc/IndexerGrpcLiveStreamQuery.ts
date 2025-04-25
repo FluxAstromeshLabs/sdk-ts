@@ -1,5 +1,6 @@
 import * as livestreamQuery from '../../../../chain/flux/indexer/campclash/livestream'
 import BaseIndexerGrpc from '../../BaseIndexerGrpc'
+import { Subscription } from 'rxjs'
 export class IndexerGrpcLiveStreamQuery extends BaseIndexerGrpc {
   protected client: livestreamQuery.LivestreamServiceClientImpl
   constructor(endpoint: string) {
@@ -7,18 +8,21 @@ export class IndexerGrpcLiveStreamQuery extends BaseIndexerGrpc {
     this.client = new livestreamQuery.LivestreamServiceClientImpl(this.getGrpcWebImpl(endpoint))
   }
 
-  async initiate(
-    request: Partial<livestreamQuery.InitiateRequest>
-  ): Promise<livestreamQuery.InitiateResponse> {
-    let response = await this.retry(() => this.client.Initiate(request))
-    return response as livestreamQuery.InitiateResponse
+  async startStream(
+    request: Partial<livestreamQuery.StartStreamRequest>,
+    callback: (value: livestreamQuery.StartStreamResponse) => void,
+    onEndCallback?: (err: any) => void,
+    onStatusCallback?: () => void
+  ): Promise<Subscription> {
+    const stream = this.client.StartStream(request)
+    return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
 
-  async stopStream(
-    request: Partial<livestreamQuery.StopStreamRequest>
-  ): Promise<livestreamQuery.StopStreamResponse> {
-    let response = await this.retry(() => this.client.StopStream(request))
-    return response as livestreamQuery.StopStreamResponse
+  async viewStream(
+    request: Partial<livestreamQuery.ViewStreamRequest>
+  ): Promise<livestreamQuery.ViewStreamResponse> {
+    let response = await this.retry(() => this.client.ViewStream(request))
+    return response as livestreamQuery.ViewStreamResponse
   }
 
   async queryStreamInfo(
