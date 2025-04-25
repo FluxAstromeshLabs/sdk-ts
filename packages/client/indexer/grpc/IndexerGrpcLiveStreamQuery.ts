@@ -19,10 +19,13 @@ export class IndexerGrpcLiveStreamQuery extends BaseIndexerGrpc {
   }
 
   async viewStream(
-    request: Partial<livestreamQuery.ViewStreamRequest>
-  ): Promise<livestreamQuery.ViewStreamResponse> {
-    let response = await this.retry(() => this.client.ViewStream(request))
-    return response as livestreamQuery.ViewStreamResponse
+    request: Partial<livestreamQuery.ViewStreamRequest>,
+    callback: (value: livestreamQuery.ViewStreamResponse) => void,
+    onEndCallback?: (err: any) => void,
+    onStatusCallback?: () => void
+  ): Promise<Subscription> {
+    const stream = this.client.ViewStream(request)
+    return stream.subscribe(callback, onEndCallback, onStatusCallback)
   }
 
   async queryStreamInfo(
