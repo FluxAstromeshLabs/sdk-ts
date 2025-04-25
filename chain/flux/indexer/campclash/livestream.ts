@@ -7,25 +7,28 @@
 /* eslint-disable */
 import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
+import Long from "long";
 import _m0 from "protobufjs/minimal";
+import { Observable } from "rxjs";
+import { share } from "rxjs/operators";
 
-export interface InitiateRequest {
+export interface StartStreamRequest {
   project: string;
   address: string;
 }
 
-export interface InitiateResponse {
+export interface StartStreamResponse {
   chat_room: ChatRoom | undefined;
   stream_channels: StreamChannel[];
 }
 
-export interface StopStreamRequest {
-  channel_arn: string;
+export interface ViewStreamRequest {
   address: string;
   project: string;
 }
 
-export interface StopStreamResponse {
+export interface ViewStreamResponse {
+  viewer: string;
 }
 
 export interface QueryStreamInfoRequest {
@@ -64,14 +67,14 @@ export interface StreamChannel {
   created_at: string;
 }
 
-function createBaseInitiateRequest(): InitiateRequest {
+function createBaseStartStreamRequest(): StartStreamRequest {
   return { project: "", address: "" };
 }
 
-export const InitiateRequest = {
-  $type: "flux.indexer.campclash.InitiateRequest" as const,
+export const StartStreamRequest = {
+  $type: "flux.indexer.campclash.StartStreamRequest" as const,
 
-  encode(message: InitiateRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: StartStreamRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.project !== "") {
       writer.uint32(10).string(message.project);
     }
@@ -81,10 +84,10 @@ export const InitiateRequest = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): InitiateRequest {
+  decode(input: _m0.Reader | Uint8Array, length?: number): StartStreamRequest {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseInitiateRequest();
+    const message = createBaseStartStreamRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -111,14 +114,14 @@ export const InitiateRequest = {
     return message;
   },
 
-  fromJSON(object: any): InitiateRequest {
+  fromJSON(object: any): StartStreamRequest {
     return {
       project: isSet(object.project) ? globalThis.String(object.project) : "",
       address: isSet(object.address) ? globalThis.String(object.address) : "",
     };
   },
 
-  toJSON(message: InitiateRequest): unknown {
+  toJSON(message: StartStreamRequest): unknown {
     const obj: any = {};
     if (message.project !== undefined) {
       obj.project = message.project;
@@ -129,25 +132,25 @@ export const InitiateRequest = {
     return obj;
   },
 
-  create(base?: DeepPartial<InitiateRequest>): InitiateRequest {
-    return InitiateRequest.fromPartial(base ?? {});
+  create(base?: DeepPartial<StartStreamRequest>): StartStreamRequest {
+    return StartStreamRequest.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<InitiateRequest>): InitiateRequest {
-    const message = createBaseInitiateRequest();
+  fromPartial(object: DeepPartial<StartStreamRequest>): StartStreamRequest {
+    const message = createBaseStartStreamRequest();
     message.project = object.project ?? "";
     message.address = object.address ?? "";
     return message;
   },
 };
 
-function createBaseInitiateResponse(): InitiateResponse {
+function createBaseStartStreamResponse(): StartStreamResponse {
   return { chat_room: undefined, stream_channels: [] };
 }
 
-export const InitiateResponse = {
-  $type: "flux.indexer.campclash.InitiateResponse" as const,
+export const StartStreamResponse = {
+  $type: "flux.indexer.campclash.StartStreamResponse" as const,
 
-  encode(message: InitiateResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: StartStreamResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.chat_room !== undefined) {
       ChatRoom.encode(message.chat_room, writer.uint32(10).fork()).ldelim();
     }
@@ -157,10 +160,10 @@ export const InitiateResponse = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): InitiateResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): StartStreamResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseInitiateResponse();
+    const message = createBaseStartStreamResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -187,7 +190,7 @@ export const InitiateResponse = {
     return message;
   },
 
-  fromJSON(object: any): InitiateResponse {
+  fromJSON(object: any): StartStreamResponse {
     return {
       chat_room: isSet(object.chat_room) ? ChatRoom.fromJSON(object.chat_room) : undefined,
       stream_channels: globalThis.Array.isArray(object?.stream_channels)
@@ -196,7 +199,7 @@ export const InitiateResponse = {
     };
   },
 
-  toJSON(message: InitiateResponse): unknown {
+  toJSON(message: StartStreamResponse): unknown {
     const obj: any = {};
     if (message.chat_room !== undefined) {
       obj.chat_room = ChatRoom.toJSON(message.chat_room);
@@ -207,11 +210,11 @@ export const InitiateResponse = {
     return obj;
   },
 
-  create(base?: DeepPartial<InitiateResponse>): InitiateResponse {
-    return InitiateResponse.fromPartial(base ?? {});
+  create(base?: DeepPartial<StartStreamResponse>): StartStreamResponse {
+    return StartStreamResponse.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<InitiateResponse>): InitiateResponse {
-    const message = createBaseInitiateResponse();
+  fromPartial(object: DeepPartial<StartStreamResponse>): StartStreamResponse {
+    const message = createBaseStartStreamResponse();
     message.chat_room = (object.chat_room !== undefined && object.chat_room !== null)
       ? ChatRoom.fromPartial(object.chat_room)
       : undefined;
@@ -220,30 +223,27 @@ export const InitiateResponse = {
   },
 };
 
-function createBaseStopStreamRequest(): StopStreamRequest {
-  return { channel_arn: "", address: "", project: "" };
+function createBaseViewStreamRequest(): ViewStreamRequest {
+  return { address: "", project: "" };
 }
 
-export const StopStreamRequest = {
-  $type: "flux.indexer.campclash.StopStreamRequest" as const,
+export const ViewStreamRequest = {
+  $type: "flux.indexer.campclash.ViewStreamRequest" as const,
 
-  encode(message: StopStreamRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.channel_arn !== "") {
-      writer.uint32(10).string(message.channel_arn);
-    }
+  encode(message: ViewStreamRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.address !== "") {
-      writer.uint32(18).string(message.address);
+      writer.uint32(10).string(message.address);
     }
     if (message.project !== "") {
-      writer.uint32(26).string(message.project);
+      writer.uint32(18).string(message.project);
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): StopStreamRequest {
+  decode(input: _m0.Reader | Uint8Array, length?: number): ViewStreamRequest {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseStopStreamRequest();
+    const message = createBaseViewStreamRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -252,17 +252,10 @@ export const StopStreamRequest = {
             break;
           }
 
-          message.channel_arn = reader.string();
+          message.address = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
-            break;
-          }
-
-          message.address = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
             break;
           }
 
@@ -277,19 +270,15 @@ export const StopStreamRequest = {
     return message;
   },
 
-  fromJSON(object: any): StopStreamRequest {
+  fromJSON(object: any): ViewStreamRequest {
     return {
-      channel_arn: isSet(object.channel_arn) ? globalThis.String(object.channel_arn) : "",
       address: isSet(object.address) ? globalThis.String(object.address) : "",
       project: isSet(object.project) ? globalThis.String(object.project) : "",
     };
   },
 
-  toJSON(message: StopStreamRequest): unknown {
+  toJSON(message: ViewStreamRequest): unknown {
     const obj: any = {};
-    if (message.channel_arn !== undefined) {
-      obj.channel_arn = message.channel_arn;
-    }
     if (message.address !== undefined) {
       obj.address = message.address;
     }
@@ -299,36 +288,45 @@ export const StopStreamRequest = {
     return obj;
   },
 
-  create(base?: DeepPartial<StopStreamRequest>): StopStreamRequest {
-    return StopStreamRequest.fromPartial(base ?? {});
+  create(base?: DeepPartial<ViewStreamRequest>): ViewStreamRequest {
+    return ViewStreamRequest.fromPartial(base ?? {});
   },
-  fromPartial(object: DeepPartial<StopStreamRequest>): StopStreamRequest {
-    const message = createBaseStopStreamRequest();
-    message.channel_arn = object.channel_arn ?? "";
+  fromPartial(object: DeepPartial<ViewStreamRequest>): ViewStreamRequest {
+    const message = createBaseViewStreamRequest();
     message.address = object.address ?? "";
     message.project = object.project ?? "";
     return message;
   },
 };
 
-function createBaseStopStreamResponse(): StopStreamResponse {
-  return {};
+function createBaseViewStreamResponse(): ViewStreamResponse {
+  return { viewer: "0" };
 }
 
-export const StopStreamResponse = {
-  $type: "flux.indexer.campclash.StopStreamResponse" as const,
+export const ViewStreamResponse = {
+  $type: "flux.indexer.campclash.ViewStreamResponse" as const,
 
-  encode(_: StopStreamResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: ViewStreamResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.viewer !== "0") {
+      writer.uint32(8).int64(message.viewer);
+    }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): StopStreamResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): ViewStreamResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseStopStreamResponse();
+    const message = createBaseViewStreamResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.viewer = longToString(reader.int64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -338,20 +336,24 @@ export const StopStreamResponse = {
     return message;
   },
 
-  fromJSON(_: any): StopStreamResponse {
-    return {};
+  fromJSON(object: any): ViewStreamResponse {
+    return { viewer: isSet(object.viewer) ? globalThis.String(object.viewer) : "0" };
   },
 
-  toJSON(_: StopStreamResponse): unknown {
+  toJSON(message: ViewStreamResponse): unknown {
     const obj: any = {};
+    if (message.viewer !== undefined) {
+      obj.viewer = message.viewer;
+    }
     return obj;
   },
 
-  create(base?: DeepPartial<StopStreamResponse>): StopStreamResponse {
-    return StopStreamResponse.fromPartial(base ?? {});
+  create(base?: DeepPartial<ViewStreamResponse>): ViewStreamResponse {
+    return ViewStreamResponse.fromPartial(base ?? {});
   },
-  fromPartial(_: DeepPartial<StopStreamResponse>): StopStreamResponse {
-    const message = createBaseStopStreamResponse();
+  fromPartial(object: DeepPartial<ViewStreamResponse>): ViewStreamResponse {
+    const message = createBaseViewStreamResponse();
+    message.viewer = object.viewer ?? "0";
     return message;
   },
 };
@@ -911,8 +913,8 @@ export const StreamChannel = {
 };
 
 export interface LivestreamService {
-  Initiate(request: DeepPartial<InitiateRequest>, metadata?: grpc.Metadata): Promise<InitiateResponse>;
-  StopStream(request: DeepPartial<StopStreamRequest>, metadata?: grpc.Metadata): Promise<StopStreamResponse>;
+  StartStream(request: DeepPartial<StartStreamRequest>, metadata?: grpc.Metadata): Observable<StartStreamResponse>;
+  ViewStream(request: DeepPartial<ViewStreamRequest>, metadata?: grpc.Metadata): Observable<ViewStreamResponse>;
   QueryStreamInfo(
     request: DeepPartial<QueryStreamInfoRequest>,
     metadata?: grpc.Metadata,
@@ -928,18 +930,18 @@ export class LivestreamServiceClientImpl implements LivestreamService {
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Initiate = this.Initiate.bind(this);
-    this.StopStream = this.StopStream.bind(this);
+    this.StartStream = this.StartStream.bind(this);
+    this.ViewStream = this.ViewStream.bind(this);
     this.QueryStreamInfo = this.QueryStreamInfo.bind(this);
     this.CreateChatToken = this.CreateChatToken.bind(this);
   }
 
-  Initiate(request: DeepPartial<InitiateRequest>, metadata?: grpc.Metadata): Promise<InitiateResponse> {
-    return this.rpc.unary(LivestreamServiceInitiateDesc, InitiateRequest.fromPartial(request), metadata);
+  StartStream(request: DeepPartial<StartStreamRequest>, metadata?: grpc.Metadata): Observable<StartStreamResponse> {
+    return this.rpc.invoke(LivestreamServiceStartStreamDesc, StartStreamRequest.fromPartial(request), metadata);
   }
 
-  StopStream(request: DeepPartial<StopStreamRequest>, metadata?: grpc.Metadata): Promise<StopStreamResponse> {
-    return this.rpc.unary(LivestreamServiceStopStreamDesc, StopStreamRequest.fromPartial(request), metadata);
+  ViewStream(request: DeepPartial<ViewStreamRequest>, metadata?: grpc.Metadata): Observable<ViewStreamResponse> {
+    return this.rpc.invoke(LivestreamServiceViewStreamDesc, ViewStreamRequest.fromPartial(request), metadata);
   }
 
   QueryStreamInfo(
@@ -959,19 +961,19 @@ export class LivestreamServiceClientImpl implements LivestreamService {
 
 export const LivestreamServiceDesc = { serviceName: "flux.indexer.campclash.LivestreamService" };
 
-export const LivestreamServiceInitiateDesc: UnaryMethodDefinitionish = {
-  methodName: "Initiate",
+export const LivestreamServiceStartStreamDesc: UnaryMethodDefinitionish = {
+  methodName: "StartStream",
   service: LivestreamServiceDesc,
   requestStream: false,
-  responseStream: false,
+  responseStream: true,
   requestType: {
     serializeBinary() {
-      return InitiateRequest.encode(this).finish();
+      return StartStreamRequest.encode(this).finish();
     },
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = InitiateResponse.decode(data);
+      const value = StartStreamResponse.decode(data);
       return {
         ...value,
         toObject() {
@@ -982,19 +984,19 @@ export const LivestreamServiceInitiateDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const LivestreamServiceStopStreamDesc: UnaryMethodDefinitionish = {
-  methodName: "StopStream",
+export const LivestreamServiceViewStreamDesc: UnaryMethodDefinitionish = {
+  methodName: "ViewStream",
   service: LivestreamServiceDesc,
   requestStream: false,
-  responseStream: false,
+  responseStream: true,
   requestType: {
     serializeBinary() {
-      return StopStreamRequest.encode(this).finish();
+      return ViewStreamRequest.encode(this).finish();
     },
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = StopStreamResponse.decode(data);
+      const value = ViewStreamResponse.decode(data);
       return {
         ...value,
         toObject() {
@@ -1064,13 +1066,18 @@ interface Rpc {
     request: any,
     metadata: grpc.Metadata | undefined,
   ): Promise<any>;
+  invoke<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Observable<any>;
 }
 
 export class GrpcWebImpl {
   private host: string;
   private options: {
     transport?: grpc.TransportFactory;
-
+    streamingTransport?: grpc.TransportFactory;
     debug?: boolean;
     metadata?: grpc.Metadata;
     upStreamRetryCodes?: number[];
@@ -1080,7 +1087,7 @@ export class GrpcWebImpl {
     host: string,
     options: {
       transport?: grpc.TransportFactory;
-
+      streamingTransport?: grpc.TransportFactory;
       debug?: boolean;
       metadata?: grpc.Metadata;
       upStreamRetryCodes?: number[];
@@ -1117,6 +1124,46 @@ export class GrpcWebImpl {
       });
     });
   }
+
+  invoke<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Observable<any> {
+    const upStreamCodes = this.options.upStreamRetryCodes ?? [];
+    const DEFAULT_TIMEOUT_TIME: number = 3_000;
+    const request = { ..._request, ...methodDesc.requestType };
+    const transport = this.options.streamingTransport ?? this.options.transport;
+    const maybeCombinedMetadata = metadata && this.options.metadata
+      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+      : metadata ?? this.options.metadata;
+    return new Observable((observer) => {
+      const upStream = () => {
+        const client = grpc.invoke(methodDesc, {
+          host: this.host,
+          request,
+          ...(transport !== undefined ? { transport } : {}),
+          metadata: maybeCombinedMetadata ?? {},
+          debug: this.options.debug ?? false,
+          onMessage: (next) => observer.next(next),
+          onEnd: (code: grpc.Code, message: string, trailers: grpc.Metadata) => {
+            if (code === 0) {
+              observer.complete();
+            } else if (upStreamCodes.includes(code)) {
+              setTimeout(upStream, DEFAULT_TIMEOUT_TIME);
+            } else {
+              const err = new Error(message) as any;
+              err.code = code;
+              err.metadata = trailers;
+              observer.error(err);
+            }
+          },
+        });
+        observer.add(() => client.close());
+      };
+      upStream();
+    }).pipe(share());
+  }
 }
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
@@ -1126,6 +1173,15 @@ type DeepPartial<T> = T extends Builtin ? T
   : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
+
+function longToString(long: Long) {
+  return long.toString();
+}
+
+if (_m0.util.Long !== Long) {
+  _m0.util.Long = Long as any;
+  _m0.configure();
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
