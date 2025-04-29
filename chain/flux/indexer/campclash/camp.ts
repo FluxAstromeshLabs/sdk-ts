@@ -52,6 +52,7 @@ export interface Project {
   market_id: string;
   curve_config: CurveConfig | undefined;
   defeated: boolean;
+  is_livestream: boolean;
 }
 
 export interface Tweet {
@@ -359,6 +360,7 @@ function createBaseProject(): Project {
     market_id: "",
     curve_config: undefined,
     defeated: false,
+    is_livestream: false,
   };
 }
 
@@ -449,6 +451,9 @@ export const Project = {
     }
     if (message.defeated !== false) {
       writer.uint32(224).bool(message.defeated);
+    }
+    if (message.is_livestream !== false) {
+      writer.uint32(232).bool(message.is_livestream);
     }
     return writer;
   },
@@ -656,6 +661,13 @@ export const Project = {
 
           message.defeated = reader.bool();
           continue;
+        case 29:
+          if (tag !== 232) {
+            break;
+          }
+
+          message.is_livestream = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -695,6 +707,7 @@ export const Project = {
       market_id: isSet(object.market_id) ? globalThis.String(object.market_id) : "",
       curve_config: isSet(object.curve_config) ? CurveConfig.fromJSON(object.curve_config) : undefined,
       defeated: isSet(object.defeated) ? globalThis.Boolean(object.defeated) : false,
+      is_livestream: isSet(object.is_livestream) ? globalThis.Boolean(object.is_livestream) : false,
     };
   },
 
@@ -784,6 +797,9 @@ export const Project = {
     if (message.defeated !== undefined) {
       obj.defeated = message.defeated;
     }
+    if (message.is_livestream !== undefined) {
+      obj.is_livestream = message.is_livestream;
+    }
     return obj;
   },
 
@@ -826,6 +842,7 @@ export const Project = {
       ? CurveConfig.fromPartial(object.curve_config)
       : undefined;
     message.defeated = object.defeated ?? false;
+    message.is_livestream = object.is_livestream ?? false;
     return message;
   },
 };

@@ -8,7 +8,8 @@ import {
   IndexerGrpcExplorerQuery,
   IndexerGrpcCampQuery,
   IndexerGrpcOHLCVQuery,
-  IndexerGrpcLaunchpadQuery
+  IndexerGrpcLaunchpadQuery,
+  IndexerGrpcLiveStreamQuery,
 } from './grpc'
 
 export class IndexerGrpcClient {
@@ -22,6 +23,7 @@ export class IndexerGrpcClient {
   campclash: IndexerGrpcCampQuery
   ohlcv: IndexerGrpcOHLCVQuery
   launchpad: IndexerGrpcLaunchpadQuery
+  livestream: IndexerGrpcLiveStreamQuery
   constructor(endpoint: string) {
     this.web3gw = new IndexerGrpcWeb3gwQuery(endpoint)
     this.media = new IndexerGrpcMediaQuery(endpoint)
@@ -33,6 +35,7 @@ export class IndexerGrpcClient {
     this.campclash = new IndexerGrpcCampQuery(endpoint)
     this.ohlcv = new IndexerGrpcOHLCVQuery(endpoint)
     this.launchpad = new IndexerGrpcLaunchpadQuery(endpoint)
+    this.livestream = new IndexerGrpcLiveStreamQuery(endpoint)
   }
 
   changeEndpoint(endpoint: string) {
@@ -46,5 +49,6 @@ export class IndexerGrpcClient {
     this.campclash = new IndexerGrpcCampQuery(endpoint)
     this.ohlcv = new IndexerGrpcOHLCVQuery(endpoint)
     this.launchpad = new IndexerGrpcLaunchpadQuery(endpoint)
+    this.livestream = new IndexerGrpcLiveStreamQuery(endpoint)
   }
 }

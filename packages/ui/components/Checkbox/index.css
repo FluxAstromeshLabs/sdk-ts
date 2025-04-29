@@ -24,3 +24,8 @@
 .neutral .checkbox.checked .checkbox__box {
   @apply bg-neutral-900;
 }
+
+.neutral .checkbox.checked .checkbox__box svg {
+  @apply text-black dark:text-white;
+  transition: all 0.3s ease;
+}
