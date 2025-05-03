@@ -16,6 +16,8 @@ import { LaunchpadBuy, LaunchpadProjectInfo, LaunchpadUser, LaunchpadWhitelist }
 export interface ListLaunchpadProjectsRequest {
   pagination: PageRequest | undefined;
   ticker: string;
+  search: string;
+  status: string;
 }
 
 export interface ListLaunchpadProjectsResponse {
@@ -89,7 +91,7 @@ export interface StreamLaunchpadBuyResponse {
 }
 
 function createBaseListLaunchpadProjectsRequest(): ListLaunchpadProjectsRequest {
-  return { pagination: undefined, ticker: "" };
+  return { pagination: undefined, ticker: "", search: "", status: "" };
 }
 
 export const ListLaunchpadProjectsRequest = {
@@ -101,6 +103,12 @@ export const ListLaunchpadProjectsRequest = {
     }
     if (message.ticker !== "") {
       writer.uint32(18).string(message.ticker);
+    }
+    if (message.search !== "") {
+      writer.uint32(26).string(message.search);
+    }
+    if (message.status !== "") {
+      writer.uint32(34).string(message.status);
     }
     return writer;
   },
@@ -126,6 +134,20 @@ export const ListLaunchpadProjectsRequest = {
 
           message.ticker = reader.string();
           continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.search = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.status = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -139,6 +161,8 @@ export const ListLaunchpadProjectsRequest = {
     return {
       pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
       ticker: isSet(object.ticker) ? globalThis.String(object.ticker) : "",
+      search: isSet(object.search) ? globalThis.String(object.search) : "",
+      status: isSet(object.status) ? globalThis.String(object.status) : "",
     };
   },
 
@@ -149,6 +173,12 @@ export const ListLaunchpadProjectsRequest = {
     }
     if (message.ticker !== undefined) {
       obj.ticker = message.ticker;
+    }
+    if (message.search !== undefined) {
+      obj.search = message.search;
+    }
+    if (message.status !== undefined) {
+      obj.status = message.status;
     }
     return obj;
   },
@@ -162,6 +192,8 @@ export const ListLaunchpadProjectsRequest = {
       ? PageRequest.fromPartial(object.pagination)
       : undefined;
     message.ticker = object.ticker ?? "";
+    message.search = object.search ?? "";
+    message.status = object.status ?? "";
     return message;
   },
 };

@@ -12,7 +12,6 @@ import _m0 from "protobufjs/minimal";
 import { Observable } from "rxjs";
 import { share } from "rxjs/operators";
 import { PageRequest, PageResponse } from "../../../cosmos/base/query/v1beta1/pagination";
-import { BoolValue } from "../../../google/protobuf/wrappers";
 import { Challenge, ChallengeVote, Claimable, Project, Trade, UserBalance, UserPoints } from "./camp";
 
 /**
@@ -64,7 +63,6 @@ export interface ListProjectsRequest {
   only_challengeable: boolean;
   graduate_progress: number;
   creator: string;
-  is_livestream: boolean | undefined;
 }
 
 export interface ListProjectsResponse {
@@ -327,7 +325,6 @@ function createBaseListProjectsRequest(): ListProjectsRequest {
     only_challengeable: false,
     graduate_progress: 0,
     creator: "",
-    is_livestream: undefined,
   };
 }
 
@@ -361,9 +358,6 @@ export const ListProjectsRequest = {
     }
     if (message.creator !== "") {
       writer.uint32(74).string(message.creator);
-    }
-    if (message.is_livestream !== undefined) {
-      BoolValue.encode({ value: message.is_livestream! }, writer.uint32(82).fork()).ldelim();
     }
     return writer;
   },
@@ -438,13 +432,6 @@ export const ListProjectsRequest = {
 
           message.creator = reader.string();
           continue;
-        case 10:
-          if (tag !== 82) {
-            break;
-          }
-
-          message.is_livestream = BoolValue.decode(reader, reader.uint32()).value;
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -467,7 +454,6 @@ export const ListProjectsRequest = {
       only_challengeable: isSet(object.only_challengeable) ? globalThis.Boolean(object.only_challengeable) : false,
       graduate_progress: isSet(object.graduate_progress) ? globalThis.Number(object.graduate_progress) : 0,
       creator: isSet(object.creator) ? globalThis.String(object.creator) : "",
-      is_livestream: isSet(object.is_livestream) ? Boolean(object.is_livestream) : undefined,
     };
   },
 
@@ -500,9 +486,6 @@ export const ListProjectsRequest = {
     if (message.creator !== undefined) {
       obj.creator = message.creator;
     }
-    if (message.is_livestream !== undefined) {
-      obj.is_livestream = message.is_livestream;
-    }
     return obj;
   },
 
@@ -522,7 +505,6 @@ export const ListProjectsRequest = {
     message.only_challengeable = object.only_challengeable ?? false;
     message.graduate_progress = object.graduate_progress ?? 0;
     message.creator = object.creator ?? "";
-    message.is_livestream = object.is_livestream ?? undefined;
     return message;
   },
 };
