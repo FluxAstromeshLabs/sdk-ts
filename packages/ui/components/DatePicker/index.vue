@@ -1,37 +1,38 @@
 <script lang="ts" setup>
 import Datepicker from '@vuepic/vue-datepicker'
+import BaseTextField from '../TextField/index.vue'
 import { ref, watch, computed, useAttrs } from 'vue'
 import dayjs from 'dayjs'
 // Define props and emits
 const props = defineProps({
   modelValue: {
-    type: String,
-    default: ''
+    type: [String, Number],
+    default: '',
   }, // Changed to modelValue to work with v-model
   inputClass: {
     type: String,
-    default: ''
+    default: '',
   },
   format: {
     type: String,
-    default: 'MM/DD/YYYY'
+    default: 'MM/DD/YYYY',
   },
   hideDetails: {
     type: Boolean,
-    default: false
+    default: false,
   },
   disabled: {
     type: Boolean,
-    default: false
+    default: false,
   },
   errorMessage: {
     type: String,
-    default: ''
+    default: '',
   },
   label: {
     type: String,
-    default: ''
-  }
+    default: '',
+  },
 })
 const emit = defineEmits(['update:modelValue'])
 const attrs = useAttrs()
