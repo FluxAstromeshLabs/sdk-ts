@@ -25,6 +25,20 @@ import BaseSwitch from './components/Switch/index.vue'
 import BaseProgressCircular from './components/ProgressCircular.vue'
 import Autocomplete from './components/Autocomplete/index.vue'
 import JsonViewer from './components/JsonViewer/index.vue'
+// New Card Components
+import BaseCard from './components/Card/index.vue'
+import BaseCardHeader from './components/Card/Header.vue'
+import BaseCardContent from './components/Card/Content.vue'
+import BaseCardTitle from './components/Card/Title.vue'
+import BaseCardFooter from './components/Card/Footer.vue'
+import BaseProgress from './components/Progress/index.vue'
+// RewardsHub Components
+import RewardsHubUserRankCard from '../../../components/RewardsHub/UserRankCard.vue'
+import RewardsHubStatsOverview from '../../../components/RewardsHub/StatsOverview.vue'
+import RewardsHubMissionCard from '../../../components/RewardsHub/MissionCard.vue'
+import RewardsHubDailyCheckinMission from '../../../components/RewardsHub/DailyCheckinMission.vue'
+import RewardsHubCheckinModal from '../../../components/RewardsHub/CheckinModal.vue'
+
 export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.component('BaseButton', BaseButton)
   nuxtApp.vueApp.component('BaseTextField', BaseTextField)
@@ -51,4 +65,17 @@ export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.component('BaseSwitch', BaseSwitch)
   nuxtApp.vueApp.component('BaseAutocomplete', Autocomplete)
   nuxtApp.vueApp.component('BaseJsonViewer', JsonViewer)
+  // Register new components
+  nuxtApp.vueApp.component('BaseCard', BaseCard)
+  nuxtApp.vueApp.component('BaseCardHeader', BaseCardHeader)
+  nuxtApp.vueApp.component('BaseCardContent', BaseCardContent)
+  nuxtApp.vueApp.component('BaseCardTitle', BaseCardTitle)
+  nuxtApp.vueApp.component('BaseCardFooter', BaseCardFooter)
+  nuxtApp.vueApp.component('BaseProgress', BaseProgress)
+  // RewardsHub Components
+  nuxtApp.vueApp.component('RewardsHubUserRankCard', RewardsHubUserRankCard)
+  nuxtApp.vueApp.component('RewardsHubStatsOverview', RewardsHubStatsOverview)
+  nuxtApp.vueApp.component('RewardsHubMissionCard', RewardsHubMissionCard)
+  nuxtApp.vueApp.component('RewardsHubDailyCheckinMission', RewardsHubDailyCheckinMission)
+  nuxtApp.vueApp.component('RewardsHubCheckinModal', RewardsHubCheckinModal)
 })
