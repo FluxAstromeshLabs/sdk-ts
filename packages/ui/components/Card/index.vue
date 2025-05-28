@@ -18,7 +18,7 @@ withDefaults(defineProps<CardProps>(), {
 
 <style scoped>
 .base-card {
-  @apply rounded-xl border border-gray-700 bg-gray-800 text-white shadow-sm;
+  @apply p-4 dark:bg-dark-secondary rounded-xl border-2 border-light-alpha-200 dark:border-dark-alpha-200 space-y-2;
 }
 
 .base-card.outlined {

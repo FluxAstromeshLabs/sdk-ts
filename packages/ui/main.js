@@ -38,6 +38,7 @@ import RewardsHubStatsOverview from '../../../components/RewardsHub/StatsOvervie
 import RewardsHubMissionCard from '../../../components/RewardsHub/MissionCard.vue'
 import RewardsHubDailyCheckinMission from '../../../components/RewardsHub/DailyCheckinMission.vue'
 import RewardsHubCheckinModal from '../../../components/RewardsHub/CheckinModal.vue'
+import RewardsHubRankTiers from '../../../components/RewardsHub/RankTiers.vue'
 
 export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.component('BaseButton', BaseButton)
@@ -78,4 +79,5 @@ export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.component('RewardsHubMissionCard', RewardsHubMissionCard)
   nuxtApp.vueApp.component('RewardsHubDailyCheckinMission', RewardsHubDailyCheckinMission)
   nuxtApp.vueApp.component('RewardsHubCheckinModal', RewardsHubCheckinModal)
+  nuxtApp.vueApp.component('RewardsHubRankTiers', RewardsHubRankTiers)
 })
