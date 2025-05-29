@@ -32,13 +32,7 @@ import BaseCardContent from './components/Card/Content.vue'
 import BaseCardTitle from './components/Card/Title.vue'
 import BaseCardFooter from './components/Card/Footer.vue'
 import BaseProgress from './components/Progress/index.vue'
-// RewardsHub Components
-import RewardsHubUserRankCard from '../../../components/RewardsHub/UserRankCard.vue'
-import RewardsHubStatsOverview from '../../../components/RewardsHub/StatsOverview.vue'
-import RewardsHubMissionCard from '../../../components/RewardsHub/MissionCard.vue'
-import RewardsHubDailyCheckinMission from '../../../components/RewardsHub/DailyCheckinMission.vue'
-import RewardsHubCheckinModal from '../../../components/RewardsHub/CheckinModal.vue'
-import RewardsHubRankTiers from '../../../components/RewardsHub/RankTiers.vue'
+
 
 export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.component('BaseButton', BaseButton)
@@ -73,11 +67,5 @@ export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.component('BaseCardTitle', BaseCardTitle)
   nuxtApp.vueApp.component('BaseCardFooter', BaseCardFooter)
   nuxtApp.vueApp.component('BaseProgress', BaseProgress)
-  // RewardsHub Components
-  nuxtApp.vueApp.component('RewardsHubUserRankCard', RewardsHubUserRankCard)
-  nuxtApp.vueApp.component('RewardsHubStatsOverview', RewardsHubStatsOverview)
-  nuxtApp.vueApp.component('RewardsHubMissionCard', RewardsHubMissionCard)
-  nuxtApp.vueApp.component('RewardsHubDailyCheckinMission', RewardsHubDailyCheckinMission)
-  nuxtApp.vueApp.component('RewardsHubCheckinModal', RewardsHubCheckinModal)
-  nuxtApp.vueApp.component('RewardsHubRankTiers', RewardsHubRankTiers)
+
 })
