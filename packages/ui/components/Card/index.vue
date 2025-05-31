@@ -29,11 +29,6 @@ withDefaults(defineProps<CardProps>(), {
   @apply shadow-lg border-gray-600;
 }
 
-/* Hover effects */
-.base-card:hover {
-  @apply border-gray-600 transition-colors duration-200;
-}
-
 .base-card.outlined:hover {
   @apply border-gray-500;
 }
