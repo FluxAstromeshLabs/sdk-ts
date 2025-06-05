@@ -30,6 +30,7 @@ export interface LaunchpadProjectInfo {
   creator: string;
   description: string;
   website: string;
+  end_time: string;
 }
 
 export interface LaunchpadWhitelist {
@@ -56,6 +57,7 @@ export interface LaunchpadBuy {
   amount: string;
   fee: string;
   height: string;
+  timestamp: string;
 }
 
 function createBaseLaunchpadProjectInfo(): LaunchpadProjectInfo {
@@ -80,6 +82,7 @@ function createBaseLaunchpadProjectInfo(): LaunchpadProjectInfo {
     creator: "",
     description: "",
     website: "",
+    end_time: "0",
   };
 }
 
@@ -146,6 +149,9 @@ export const LaunchpadProjectInfo = {
     }
     if (message.website !== "") {
       writer.uint32(162).string(message.website);
+    }
+    if (message.end_time !== "0") {
+      writer.uint32(168).uint64(message.end_time);
     }
     return writer;
   },
@@ -297,6 +303,13 @@ export const LaunchpadProjectInfo = {
 
           message.website = reader.string();
           continue;
+        case 21:
+          if (tag !== 168) {
+            break;
+          }
+
+          message.end_time = longToString(reader.uint64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -328,6 +341,7 @@ export const LaunchpadProjectInfo = {
       creator: isSet(object.creator) ? globalThis.String(object.creator) : "",
       description: isSet(object.description) ? globalThis.String(object.description) : "",
       website: isSet(object.website) ? globalThis.String(object.website) : "",
+      end_time: isSet(object.end_time) ? globalThis.String(object.end_time) : "0",
     };
   },
 
@@ -393,6 +407,9 @@ export const LaunchpadProjectInfo = {
     if (message.website !== undefined) {
       obj.website = message.website;
     }
+    if (message.end_time !== undefined) {
+      obj.end_time = message.end_time;
+    }
     return obj;
   },
 
@@ -421,6 +438,7 @@ export const LaunchpadProjectInfo = {
     message.creator = object.creator ?? "";
     message.description = object.description ?? "";
     message.website = object.website ?? "";
+    message.end_time = object.end_time ?? "0";
     return message;
   },
 };
@@ -692,7 +710,7 @@ export const LaunchpadUser = {
 };
 
 function createBaseLaunchpadBuy(): LaunchpadBuy {
-  return { ticker: "", address: "", denom: "", amount: "", fee: "", height: "0" };
+  return { ticker: "", address: "", denom: "", amount: "", fee: "", height: "0", timestamp: "0" };
 }
 
 export const LaunchpadBuy = {
@@ -716,6 +734,9 @@ export const LaunchpadBuy = {
     }
     if (message.height !== "0") {
       writer.uint32(48).uint64(message.height);
+    }
+    if (message.timestamp !== "0") {
+      writer.uint32(56).int64(message.timestamp);
     }
     return writer;
   },
@@ -769,6 +790,13 @@ export const LaunchpadBuy = {
 
           message.height = longToString(reader.uint64() as Long);
           continue;
+        case 7:
+          if (tag !== 56) {
+            break;
+          }
+
+          message.timestamp = longToString(reader.int64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -786,6 +814,7 @@ export const LaunchpadBuy = {
       amount: isSet(object.amount) ? globalThis.String(object.amount) : "",
       fee: isSet(object.fee) ? globalThis.String(object.fee) : "",
       height: isSet(object.height) ? globalThis.String(object.height) : "0",
+      timestamp: isSet(object.timestamp) ? globalThis.String(object.timestamp) : "0",
     };
   },
 
@@ -809,6 +838,9 @@ export const LaunchpadBuy = {
     if (message.height !== undefined) {
       obj.height = message.height;
     }
+    if (message.timestamp !== undefined) {
+      obj.timestamp = message.timestamp;
+    }
     return obj;
   },
 
@@ -823,6 +855,7 @@ export const LaunchpadBuy = {
     message.amount = object.amount ?? "";
     message.fee = object.fee ?? "";
     message.height = object.height ?? "0";
+    message.timestamp = object.timestamp ?? "0";
     return message;
   },
 };
