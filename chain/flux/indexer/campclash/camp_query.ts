@@ -12,6 +12,7 @@ import _m0 from "protobufjs/minimal";
 import { Observable } from "rxjs";
 import { share } from "rxjs/operators";
 import { PageRequest, PageResponse } from "../../../cosmos/base/query/v1beta1/pagination";
+import { BoolValue } from "../../../google/protobuf/wrappers";
 import { Challenge, ChallengeVote, Claimable, Project, Trade, UserBalance, UserPoints } from "./camp";
 
 /**
@@ -63,6 +64,7 @@ export interface ListProjectsRequest {
   only_challengeable: boolean;
   graduate_progress: number;
   creator: string;
+  is_livestream: boolean | undefined;
 }
 
 export interface ListProjectsResponse {
@@ -314,6 +316,35 @@ export interface StreamUserPointsResponse {
   user_points: UserPoints | undefined;
 }
 
+export interface GetMissionsRequest {
+  address: string;
+}
+
+export interface GetMissionsResponse {
+  rank: string;
+  total_traded_volume: number;
+  completed_missions_count: number;
+  checkin_days_count: number;
+  missions: Mission[];
+}
+
+export interface Mission {
+  address: string;
+  id: string;
+  progress: number;
+  completed: boolean;
+  date_unix: string;
+}
+
+export interface CheckinDailyLoginRequest {
+  address: string;
+}
+
+export interface CheckinDailyLoginResponse {
+  /** "ok", "already logged in" */
+  status: string;
+}
+
 function createBaseListProjectsRequest(): ListProjectsRequest {
   return {
     pagination: undefined,
@@ -325,6 +356,7 @@ function createBaseListProjectsRequest(): ListProjectsRequest {
     only_challengeable: false,
     graduate_progress: 0,
     creator: "",
+    is_livestream: undefined,
   };
 }
 
@@ -358,6 +390,9 @@ export const ListProjectsRequest = {
     }
     if (message.creator !== "") {
       writer.uint32(74).string(message.creator);
+    }
+    if (message.is_livestream !== undefined) {
+      BoolValue.encode({ value: message.is_livestream! }, writer.uint32(82).fork()).ldelim();
     }
     return writer;
   },
@@ -432,6 +467,13 @@ export const ListProjectsRequest = {
 
           message.creator = reader.string();
           continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.is_livestream = BoolValue.decode(reader, reader.uint32()).value;
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -454,6 +496,7 @@ export const ListProjectsRequest = {
       only_challengeable: isSet(object.only_challengeable) ? globalThis.Boolean(object.only_challengeable) : false,
       graduate_progress: isSet(object.graduate_progress) ? globalThis.Number(object.graduate_progress) : 0,
       creator: isSet(object.creator) ? globalThis.String(object.creator) : "",
+      is_livestream: isSet(object.is_livestream) ? Boolean(object.is_livestream) : undefined,
     };
   },
 
@@ -486,6 +529,9 @@ export const ListProjectsRequest = {
     if (message.creator !== undefined) {
       obj.creator = message.creator;
     }
+    if (message.is_livestream !== undefined) {
+      obj.is_livestream = message.is_livestream;
+    }
     return obj;
   },
 
@@ -505,6 +551,7 @@ export const ListProjectsRequest = {
     message.only_challengeable = object.only_challengeable ?? false;
     message.graduate_progress = object.graduate_progress ?? 0;
     message.creator = object.creator ?? "";
+    message.is_livestream = object.is_livestream ?? undefined;
     return message;
   },
 };
@@ -4071,6 +4118,427 @@ export const StreamUserPointsResponse = {
   },
 };
 
+function createBaseGetMissionsRequest(): GetMissionsRequest {
+  return { address: "" };
+}
+
+export const GetMissionsRequest = {
+  $type: "flux.indexer.campclash.GetMissionsRequest" as const,
+
+  encode(message: GetMissionsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.address !== "") {
+      writer.uint32(10).string(message.address);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetMissionsRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetMissionsRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.address = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetMissionsRequest {
+    return { address: isSet(object.address) ? globalThis.String(object.address) : "" };
+  },
+
+  toJSON(message: GetMissionsRequest): unknown {
+    const obj: any = {};
+    if (message.address !== undefined) {
+      obj.address = message.address;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GetMissionsRequest>): GetMissionsRequest {
+    return GetMissionsRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GetMissionsRequest>): GetMissionsRequest {
+    const message = createBaseGetMissionsRequest();
+    message.address = object.address ?? "";
+    return message;
+  },
+};
+
+function createBaseGetMissionsResponse(): GetMissionsResponse {
+  return { rank: "", total_traded_volume: 0, completed_missions_count: 0, checkin_days_count: 0, missions: [] };
+}
+
+export const GetMissionsResponse = {
+  $type: "flux.indexer.campclash.GetMissionsResponse" as const,
+
+  encode(message: GetMissionsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.rank !== "") {
+      writer.uint32(10).string(message.rank);
+    }
+    if (message.total_traded_volume !== 0) {
+      writer.uint32(21).float(message.total_traded_volume);
+    }
+    if (message.completed_missions_count !== 0) {
+      writer.uint32(24).int32(message.completed_missions_count);
+    }
+    if (message.checkin_days_count !== 0) {
+      writer.uint32(32).int32(message.checkin_days_count);
+    }
+    for (const v of message.missions) {
+      Mission.encode(v!, writer.uint32(42).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetMissionsResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetMissionsResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.rank = reader.string();
+          continue;
+        case 2:
+          if (tag !== 21) {
+            break;
+          }
+
+          message.total_traded_volume = reader.float();
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.completed_missions_count = reader.int32();
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.checkin_days_count = reader.int32();
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.missions.push(Mission.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetMissionsResponse {
+    return {
+      rank: isSet(object.rank) ? globalThis.String(object.rank) : "",
+      total_traded_volume: isSet(object.total_traded_volume) ? globalThis.Number(object.total_traded_volume) : 0,
+      completed_missions_count: isSet(object.completed_missions_count)
+        ? globalThis.Number(object.completed_missions_count)
+        : 0,
+      checkin_days_count: isSet(object.checkin_days_count) ? globalThis.Number(object.checkin_days_count) : 0,
+      missions: globalThis.Array.isArray(object?.missions) ? object.missions.map((e: any) => Mission.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: GetMissionsResponse): unknown {
+    const obj: any = {};
+    if (message.rank !== undefined) {
+      obj.rank = message.rank;
+    }
+    if (message.total_traded_volume !== undefined) {
+      obj.total_traded_volume = message.total_traded_volume;
+    }
+    if (message.completed_missions_count !== undefined) {
+      obj.completed_missions_count = Math.round(message.completed_missions_count);
+    }
+    if (message.checkin_days_count !== undefined) {
+      obj.checkin_days_count = Math.round(message.checkin_days_count);
+    }
+    if (message.missions?.length) {
+      obj.missions = message.missions.map((e) => Mission.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<GetMissionsResponse>): GetMissionsResponse {
+    return GetMissionsResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<GetMissionsResponse>): GetMissionsResponse {
+    const message = createBaseGetMissionsResponse();
+    message.rank = object.rank ?? "";
+    message.total_traded_volume = object.total_traded_volume ?? 0;
+    message.completed_missions_count = object.completed_missions_count ?? 0;
+    message.checkin_days_count = object.checkin_days_count ?? 0;
+    message.missions = object.missions?.map((e) => Mission.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseMission(): Mission {
+  return { address: "", id: "", progress: 0, completed: false, date_unix: "0" };
+}
+
+export const Mission = {
+  $type: "flux.indexer.campclash.Mission" as const,
+
+  encode(message: Mission, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.address !== "") {
+      writer.uint32(10).string(message.address);
+    }
+    if (message.id !== "") {
+      writer.uint32(18).string(message.id);
+    }
+    if (message.progress !== 0) {
+      writer.uint32(29).float(message.progress);
+    }
+    if (message.completed !== false) {
+      writer.uint32(32).bool(message.completed);
+    }
+    if (message.date_unix !== "0") {
+      writer.uint32(40).int64(message.date_unix);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Mission {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMission();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.address = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        case 3:
+          if (tag !== 29) {
+            break;
+          }
+
+          message.progress = reader.float();
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.completed = reader.bool();
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.date_unix = longToString(reader.int64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Mission {
+    return {
+      address: isSet(object.address) ? globalThis.String(object.address) : "",
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      progress: isSet(object.progress) ? globalThis.Number(object.progress) : 0,
+      completed: isSet(object.completed) ? globalThis.Boolean(object.completed) : false,
+      date_unix: isSet(object.date_unix) ? globalThis.String(object.date_unix) : "0",
+    };
+  },
+
+  toJSON(message: Mission): unknown {
+    const obj: any = {};
+    if (message.address !== undefined) {
+      obj.address = message.address;
+    }
+    if (message.id !== undefined) {
+      obj.id = message.id;
+    }
+    if (message.progress !== undefined) {
+      obj.progress = message.progress;
+    }
+    if (message.completed !== undefined) {
+      obj.completed = message.completed;
+    }
+    if (message.date_unix !== undefined) {
+      obj.date_unix = message.date_unix;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Mission>): Mission {
+    return Mission.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Mission>): Mission {
+    const message = createBaseMission();
+    message.address = object.address ?? "";
+    message.id = object.id ?? "";
+    message.progress = object.progress ?? 0;
+    message.completed = object.completed ?? false;
+    message.date_unix = object.date_unix ?? "0";
+    return message;
+  },
+};
+
+function createBaseCheckinDailyLoginRequest(): CheckinDailyLoginRequest {
+  return { address: "" };
+}
+
+export const CheckinDailyLoginRequest = {
+  $type: "flux.indexer.campclash.CheckinDailyLoginRequest" as const,
+
+  encode(message: CheckinDailyLoginRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.address !== "") {
+      writer.uint32(10).string(message.address);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CheckinDailyLoginRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCheckinDailyLoginRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.address = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CheckinDailyLoginRequest {
+    return { address: isSet(object.address) ? globalThis.String(object.address) : "" };
+  },
+
+  toJSON(message: CheckinDailyLoginRequest): unknown {
+    const obj: any = {};
+    if (message.address !== undefined) {
+      obj.address = message.address;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<CheckinDailyLoginRequest>): CheckinDailyLoginRequest {
+    return CheckinDailyLoginRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<CheckinDailyLoginRequest>): CheckinDailyLoginRequest {
+    const message = createBaseCheckinDailyLoginRequest();
+    message.address = object.address ?? "";
+    return message;
+  },
+};
+
+function createBaseCheckinDailyLoginResponse(): CheckinDailyLoginResponse {
+  return { status: "" };
+}
+
+export const CheckinDailyLoginResponse = {
+  $type: "flux.indexer.campclash.CheckinDailyLoginResponse" as const,
+
+  encode(message: CheckinDailyLoginResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.status !== "") {
+      writer.uint32(10).string(message.status);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CheckinDailyLoginResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCheckinDailyLoginResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.status = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CheckinDailyLoginResponse {
+    return { status: isSet(object.status) ? globalThis.String(object.status) : "" };
+  },
+
+  toJSON(message: CheckinDailyLoginResponse): unknown {
+    const obj: any = {};
+    if (message.status !== undefined) {
+      obj.status = message.status;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<CheckinDailyLoginResponse>): CheckinDailyLoginResponse {
+    return CheckinDailyLoginResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<CheckinDailyLoginResponse>): CheckinDailyLoginResponse {
+    const message = createBaseCheckinDailyLoginResponse();
+    message.status = object.status ?? "";
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface CampclashQuery {
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse>;
@@ -4141,6 +4609,11 @@ export interface CampclashQuery {
     request: DeepPartial<StreamUserPointsRequest>,
     metadata?: grpc.Metadata,
   ): Observable<StreamUserPointsResponse>;
+  GetMissions(request: DeepPartial<GetMissionsRequest>, metadata?: grpc.Metadata): Promise<GetMissionsResponse>;
+  CheckinDailyLogin(
+    request: DeepPartial<CheckinDailyLoginRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<CheckinDailyLoginResponse>;
 }
 
 export class CampclashQueryClientImpl implements CampclashQuery {
@@ -4170,6 +4643,8 @@ export class CampclashQueryClientImpl implements CampclashQuery {
     this.SubscribeUserActivity = this.SubscribeUserActivity.bind(this);
     this.ListUserPoints = this.ListUserPoints.bind(this);
     this.StreamUserPoints = this.StreamUserPoints.bind(this);
+    this.GetMissions = this.GetMissions.bind(this);
+    this.CheckinDailyLogin = this.CheckinDailyLogin.bind(this);
   }
 
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse> {
@@ -4327,6 +4802,17 @@ export class CampclashQueryClientImpl implements CampclashQuery {
     metadata?: grpc.Metadata,
   ): Observable<StreamUserPointsResponse> {
     return this.rpc.invoke(CampclashQueryStreamUserPointsDesc, StreamUserPointsRequest.fromPartial(request), metadata);
+  }
+
+  GetMissions(request: DeepPartial<GetMissionsRequest>, metadata?: grpc.Metadata): Promise<GetMissionsResponse> {
+    return this.rpc.unary(CampclashQueryGetMissionsDesc, GetMissionsRequest.fromPartial(request), metadata);
+  }
+
+  CheckinDailyLogin(
+    request: DeepPartial<CheckinDailyLoginRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<CheckinDailyLoginResponse> {
+    return this.rpc.unary(CampclashQueryCheckinDailyLoginDesc, CheckinDailyLoginRequest.fromPartial(request), metadata);
   }
 }
 
@@ -4828,6 +5314,52 @@ export const CampclashQueryStreamUserPointsDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = StreamUserPointsResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQueryGetMissionsDesc: UnaryMethodDefinitionish = {
+  methodName: "GetMissions",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetMissionsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetMissionsResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQueryCheckinDailyLoginDesc: UnaryMethodDefinitionish = {
+  methodName: "CheckinDailyLogin",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return CheckinDailyLoginRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = CheckinDailyLoginResponse.decode(data);
       return {
         ...value,
         toObject() {
