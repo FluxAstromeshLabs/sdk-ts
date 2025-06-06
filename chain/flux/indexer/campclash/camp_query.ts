@@ -327,6 +327,7 @@ export interface GetMissionsResponse {
   checkin_days_count: number;
   missions: Mission[];
   address: string;
+  metadata: Metadata[];
 }
 
 export interface Mission {
@@ -348,6 +349,17 @@ export interface CheckinDailyLoginRequest {
 export interface CheckinDailyLoginResponse {
   /** "ok", "already logged in" */
   status: string;
+}
+
+export interface Metadata {
+  id: string;
+  title: string;
+  description: string;
+  target: number;
+  point: number;
+  icon: string;
+  buttonText: string;
+  buttonLink: string;
 }
 
 function createBaseListProjectsRequest(): ListProjectsRequest {
@@ -4190,6 +4202,7 @@ function createBaseGetMissionsResponse(): GetMissionsResponse {
     checkin_days_count: 0,
     missions: [],
     address: "",
+    metadata: [],
   };
 }
 
@@ -4214,6 +4227,9 @@ export const GetMissionsResponse = {
     }
     if (message.address !== "") {
       writer.uint32(50).string(message.address);
+    }
+    for (const v of message.metadata) {
+      Metadata.encode(v!, writer.uint32(58).fork()).ldelim();
     }
     return writer;
   },
@@ -4267,6 +4283,13 @@ export const GetMissionsResponse = {
 
           message.address = reader.string();
           continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.metadata.push(Metadata.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -4286,6 +4309,7 @@ export const GetMissionsResponse = {
       checkin_days_count: isSet(object.checkin_days_count) ? globalThis.Number(object.checkin_days_count) : 0,
       missions: globalThis.Array.isArray(object?.missions) ? object.missions.map((e: any) => Mission.fromJSON(e)) : [],
       address: isSet(object.address) ? globalThis.String(object.address) : "",
+      metadata: globalThis.Array.isArray(object?.metadata) ? object.metadata.map((e: any) => Metadata.fromJSON(e)) : [],
     };
   },
 
@@ -4309,6 +4333,9 @@ export const GetMissionsResponse = {
     if (message.address !== undefined) {
       obj.address = message.address;
     }
+    if (message.metadata?.length) {
+      obj.metadata = message.metadata.map((e) => Metadata.toJSON(e));
+    }
     return obj;
   },
 
@@ -4323,6 +4350,7 @@ export const GetMissionsResponse = {
     message.checkin_days_count = object.checkin_days_count ?? 0;
     message.missions = object.missions?.map((e) => Mission.fromPartial(e)) || [];
     message.address = object.address ?? "";
+    message.metadata = object.metadata?.map((e) => Metadata.fromPartial(e)) || [];
     return message;
   },
 };
@@ -4632,6 +4660,172 @@ export const CheckinDailyLoginResponse = {
   fromPartial(object: DeepPartial<CheckinDailyLoginResponse>): CheckinDailyLoginResponse {
     const message = createBaseCheckinDailyLoginResponse();
     message.status = object.status ?? "";
+    return message;
+  },
+};
+
+function createBaseMetadata(): Metadata {
+  return { id: "", title: "", description: "", target: 0, point: 0, icon: "", buttonText: "", buttonLink: "" };
+}
+
+export const Metadata = {
+  $type: "flux.indexer.campclash.Metadata" as const,
+
+  encode(message: Metadata, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.title !== "") {
+      writer.uint32(18).string(message.title);
+    }
+    if (message.description !== "") {
+      writer.uint32(26).string(message.description);
+    }
+    if (message.target !== 0) {
+      writer.uint32(32).uint32(message.target);
+    }
+    if (message.point !== 0) {
+      writer.uint32(40).uint32(message.point);
+    }
+    if (message.icon !== "") {
+      writer.uint32(50).string(message.icon);
+    }
+    if (message.buttonText !== "") {
+      writer.uint32(58).string(message.buttonText);
+    }
+    if (message.buttonLink !== "") {
+      writer.uint32(66).string(message.buttonLink);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Metadata {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMetadata();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.title = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.target = reader.uint32();
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.point = reader.uint32();
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.icon = reader.string();
+          continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.buttonText = reader.string();
+          continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.buttonLink = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Metadata {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      title: isSet(object.title) ? globalThis.String(object.title) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : "",
+      target: isSet(object.target) ? globalThis.Number(object.target) : 0,
+      point: isSet(object.point) ? globalThis.Number(object.point) : 0,
+      icon: isSet(object.icon) ? globalThis.String(object.icon) : "",
+      buttonText: isSet(object.buttonText) ? globalThis.String(object.buttonText) : "",
+      buttonLink: isSet(object.buttonLink) ? globalThis.String(object.buttonLink) : "",
+    };
+  },
+
+  toJSON(message: Metadata): unknown {
+    const obj: any = {};
+    if (message.id !== undefined) {
+      obj.id = message.id;
+    }
+    if (message.title !== undefined) {
+      obj.title = message.title;
+    }
+    if (message.description !== undefined) {
+      obj.description = message.description;
+    }
+    if (message.target !== undefined) {
+      obj.target = Math.round(message.target);
+    }
+    if (message.point !== undefined) {
+      obj.point = Math.round(message.point);
+    }
+    if (message.icon !== undefined) {
+      obj.icon = message.icon;
+    }
+    if (message.buttonText !== undefined) {
+      obj.buttonText = message.buttonText;
+    }
+    if (message.buttonLink !== undefined) {
+      obj.buttonLink = message.buttonLink;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Metadata>): Metadata {
+    return Metadata.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Metadata>): Metadata {
+    const message = createBaseMetadata();
+    message.id = object.id ?? "";
+    message.title = object.title ?? "";
+    message.description = object.description ?? "";
+    message.target = object.target ?? 0;
+    message.point = object.point ?? 0;
+    message.icon = object.icon ?? "";
+    message.buttonText = object.buttonText ?? "";
+    message.buttonLink = object.buttonLink ?? "";
     return message;
   },
 };
