@@ -329,6 +329,7 @@ export interface GetMissionsResponse {
   address: string;
   metadata: Metadata[];
   updated_at: string;
+  date_unix: string;
 }
 
 export interface Mission {
@@ -4205,6 +4206,7 @@ function createBaseGetMissionsResponse(): GetMissionsResponse {
     address: "",
     metadata: [],
     updated_at: "0",
+    date_unix: "0",
   };
 }
 
@@ -4234,7 +4236,10 @@ export const GetMissionsResponse = {
       Metadata.encode(v!, writer.uint32(58).fork()).ldelim();
     }
     if (message.updated_at !== "0") {
-      writer.uint32(80).int64(message.updated_at);
+      writer.uint32(64).int64(message.updated_at);
+    }
+    if (message.date_unix !== "0") {
+      writer.uint32(72).int64(message.date_unix);
     }
     return writer;
   },
@@ -4295,12 +4300,19 @@ export const GetMissionsResponse = {
 
           message.metadata.push(Metadata.decode(reader, reader.uint32()));
           continue;
-        case 10:
-          if (tag !== 80) {
+        case 8:
+          if (tag !== 64) {
             break;
           }
 
           message.updated_at = longToString(reader.int64() as Long);
+          continue;
+        case 9:
+          if (tag !== 72) {
+            break;
+          }
+
+          message.date_unix = longToString(reader.int64() as Long);
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -4323,6 +4335,7 @@ export const GetMissionsResponse = {
       address: isSet(object.address) ? globalThis.String(object.address) : "",
       metadata: globalThis.Array.isArray(object?.metadata) ? object.metadata.map((e: any) => Metadata.fromJSON(e)) : [],
       updated_at: isSet(object.updated_at) ? globalThis.String(object.updated_at) : "0",
+      date_unix: isSet(object.date_unix) ? globalThis.String(object.date_unix) : "0",
     };
   },
 
@@ -4352,6 +4365,9 @@ export const GetMissionsResponse = {
     if (message.updated_at !== undefined) {
       obj.updated_at = message.updated_at;
     }
+    if (message.date_unix !== undefined) {
+      obj.date_unix = message.date_unix;
+    }
     return obj;
   },
 
@@ -4368,6 +4384,7 @@ export const GetMissionsResponse = {
     message.address = object.address ?? "";
     message.metadata = object.metadata?.map((e) => Metadata.fromPartial(e)) || [];
     message.updated_at = object.updated_at ?? "0";
+    message.date_unix = object.date_unix ?? "0";
     return message;
   },
 };
