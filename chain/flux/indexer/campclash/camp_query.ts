@@ -328,6 +328,7 @@ export interface GetMissionsResponse {
   missions: Mission[];
   address: string;
   metadata: Metadata[];
+  updated_at: string;
 }
 
 export interface Mission {
@@ -4203,6 +4204,7 @@ function createBaseGetMissionsResponse(): GetMissionsResponse {
     missions: [],
     address: "",
     metadata: [],
+    updated_at: "0",
   };
 }
 
@@ -4230,6 +4232,9 @@ export const GetMissionsResponse = {
     }
     for (const v of message.metadata) {
       Metadata.encode(v!, writer.uint32(58).fork()).ldelim();
+    }
+    if (message.updated_at !== "0") {
+      writer.uint32(80).int64(message.updated_at);
     }
     return writer;
   },
@@ -4290,6 +4295,13 @@ export const GetMissionsResponse = {
 
           message.metadata.push(Metadata.decode(reader, reader.uint32()));
           continue;
+        case 10:
+          if (tag !== 80) {
+            break;
+          }
+
+          message.updated_at = longToString(reader.int64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -4310,6 +4322,7 @@ export const GetMissionsResponse = {
       missions: globalThis.Array.isArray(object?.missions) ? object.missions.map((e: any) => Mission.fromJSON(e)) : [],
       address: isSet(object.address) ? globalThis.String(object.address) : "",
       metadata: globalThis.Array.isArray(object?.metadata) ? object.metadata.map((e: any) => Metadata.fromJSON(e)) : [],
+      updated_at: isSet(object.updated_at) ? globalThis.String(object.updated_at) : "0",
     };
   },
 
@@ -4336,6 +4349,9 @@ export const GetMissionsResponse = {
     if (message.metadata?.length) {
       obj.metadata = message.metadata.map((e) => Metadata.toJSON(e));
     }
+    if (message.updated_at !== undefined) {
+      obj.updated_at = message.updated_at;
+    }
     return obj;
   },
 
@@ -4351,6 +4367,7 @@ export const GetMissionsResponse = {
     message.missions = object.missions?.map((e) => Mission.fromPartial(e)) || [];
     message.address = object.address ?? "";
     message.metadata = object.metadata?.map((e) => Metadata.fromPartial(e)) || [];
+    message.updated_at = object.updated_at ?? "0";
     return message;
   },
 };
