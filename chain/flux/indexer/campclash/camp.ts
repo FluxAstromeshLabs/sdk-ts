@@ -53,6 +53,7 @@ export interface Project {
   curve_config: CurveConfig | undefined;
   defeated: boolean;
   is_livestream: boolean;
+  created_height: string;
 }
 
 export interface Tweet {
@@ -164,6 +165,7 @@ export interface Challenge {
   challenged_project: Project | undefined;
   created_height: string;
   creator: string;
+  created_at: string;
 }
 
 /** Define the VoteEvent message */
@@ -176,6 +178,7 @@ export interface ChallengeVote {
   vote_type: string;
   height: string;
   locked_coin: Coin | undefined;
+  timestamp: string;
 }
 
 export interface Claimable {
@@ -193,6 +196,7 @@ export interface UserPoints {
   token_points: TokenPoints | undefined;
   challenge_points: ChallengePoints | undefined;
   updated_height: string;
+  mission_points: string;
 }
 
 export interface TokenPoints {
@@ -361,6 +365,7 @@ function createBaseProject(): Project {
     curve_config: undefined,
     defeated: false,
     is_livestream: false,
+    created_height: "0",
   };
 }
 
@@ -454,6 +459,9 @@ export const Project = {
     }
     if (message.is_livestream !== false) {
       writer.uint32(232).bool(message.is_livestream);
+    }
+    if (message.created_height !== "0") {
+      writer.uint32(240).uint64(message.created_height);
     }
     return writer;
   },
@@ -668,6 +676,13 @@ export const Project = {
 
           message.is_livestream = reader.bool();
           continue;
+        case 30:
+          if (tag !== 240) {
+            break;
+          }
+
+          message.created_height = longToString(reader.uint64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -708,6 +723,7 @@ export const Project = {
       curve_config: isSet(object.curve_config) ? CurveConfig.fromJSON(object.curve_config) : undefined,
       defeated: isSet(object.defeated) ? globalThis.Boolean(object.defeated) : false,
       is_livestream: isSet(object.is_livestream) ? globalThis.Boolean(object.is_livestream) : false,
+      created_height: isSet(object.created_height) ? globalThis.String(object.created_height) : "0",
     };
   },
 
@@ -800,6 +816,9 @@ export const Project = {
     if (message.is_livestream !== undefined) {
       obj.is_livestream = message.is_livestream;
     }
+    if (message.created_height !== undefined) {
+      obj.created_height = message.created_height;
+    }
     return obj;
   },
 
@@ -843,6 +862,7 @@ export const Project = {
       : undefined;
     message.defeated = object.defeated ?? false;
     message.is_livestream = object.is_livestream ?? false;
+    message.created_height = object.created_height ?? "0";
     return message;
   },
 };
@@ -1968,6 +1988,7 @@ function createBaseChallenge(): Challenge {
     challenged_project: undefined,
     created_height: "0",
     creator: "",
+    created_at: "0",
   };
 }
 
@@ -2040,6 +2061,9 @@ export const Challenge = {
     }
     if (message.creator !== "") {
       writer.uint32(178).string(message.creator);
+    }
+    if (message.created_at !== "0") {
+      writer.uint32(184).int64(message.created_at);
     }
     return writer;
   },
@@ -2205,6 +2229,13 @@ export const Challenge = {
 
           message.creator = reader.string();
           continue;
+        case 23:
+          if (tag !== 184) {
+            break;
+          }
+
+          message.created_at = longToString(reader.int64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2244,6 +2275,7 @@ export const Challenge = {
       challenged_project: isSet(object.challenged_project) ? Project.fromJSON(object.challenged_project) : undefined,
       created_height: isSet(object.created_height) ? globalThis.String(object.created_height) : "0",
       creator: isSet(object.creator) ? globalThis.String(object.creator) : "",
+      created_at: isSet(object.created_at) ? globalThis.String(object.created_at) : "0",
     };
   },
 
@@ -2315,6 +2347,9 @@ export const Challenge = {
     if (message.creator !== undefined) {
       obj.creator = message.creator;
     }
+    if (message.created_at !== undefined) {
+      obj.created_at = message.created_at;
+    }
     return obj;
   },
 
@@ -2357,6 +2392,7 @@ export const Challenge = {
       : undefined;
     message.created_height = object.created_height ?? "0";
     message.creator = object.creator ?? "";
+    message.created_at = object.created_at ?? "0";
     return message;
   },
 };
@@ -2370,6 +2406,7 @@ function createBaseChallengeVote(): ChallengeVote {
     vote_type: "",
     height: "0",
     locked_coin: undefined,
+    timestamp: "0",
   };
 }
 
@@ -2397,6 +2434,9 @@ export const ChallengeVote = {
     }
     if (message.locked_coin !== undefined) {
       Coin.encode(message.locked_coin, writer.uint32(58).fork()).ldelim();
+    }
+    if (message.timestamp !== "0") {
+      writer.uint32(64).int64(message.timestamp);
     }
     return writer;
   },
@@ -2457,6 +2497,13 @@ export const ChallengeVote = {
 
           message.locked_coin = Coin.decode(reader, reader.uint32());
           continue;
+        case 8:
+          if (tag !== 64) {
+            break;
+          }
+
+          message.timestamp = longToString(reader.int64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2475,6 +2522,7 @@ export const ChallengeVote = {
       vote_type: isSet(object.vote_type) ? globalThis.String(object.vote_type) : "",
       height: isSet(object.height) ? globalThis.String(object.height) : "0",
       locked_coin: isSet(object.locked_coin) ? Coin.fromJSON(object.locked_coin) : undefined,
+      timestamp: isSet(object.timestamp) ? globalThis.String(object.timestamp) : "0",
     };
   },
 
@@ -2501,6 +2549,9 @@ export const ChallengeVote = {
     if (message.locked_coin !== undefined) {
       obj.locked_coin = Coin.toJSON(message.locked_coin);
     }
+    if (message.timestamp !== undefined) {
+      obj.timestamp = message.timestamp;
+    }
     return obj;
   },
 
@@ -2518,6 +2569,7 @@ export const ChallengeVote = {
     message.locked_coin = (object.locked_coin !== undefined && object.locked_coin !== null)
       ? Coin.fromPartial(object.locked_coin)
       : undefined;
+    message.timestamp = object.timestamp ?? "0";
     return message;
   },
 };
@@ -2659,7 +2711,14 @@ export const Claimable = {
 };
 
 function createBaseUserPoints(): UserPoints {
-  return { address: "", total_points: "", token_points: undefined, challenge_points: undefined, updated_height: "0" };
+  return {
+    address: "",
+    total_points: "",
+    token_points: undefined,
+    challenge_points: undefined,
+    updated_height: "0",
+    mission_points: "",
+  };
 }
 
 export const UserPoints = {
@@ -2680,6 +2739,9 @@ export const UserPoints = {
     }
     if (message.updated_height !== "0") {
       writer.uint32(40).uint64(message.updated_height);
+    }
+    if (message.mission_points !== "") {
+      writer.uint32(50).string(message.mission_points);
     }
     return writer;
   },
@@ -2726,6 +2788,13 @@ export const UserPoints = {
 
           message.updated_height = longToString(reader.uint64() as Long);
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.mission_points = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2742,6 +2811,7 @@ export const UserPoints = {
       token_points: isSet(object.token_points) ? TokenPoints.fromJSON(object.token_points) : undefined,
       challenge_points: isSet(object.challenge_points) ? ChallengePoints.fromJSON(object.challenge_points) : undefined,
       updated_height: isSet(object.updated_height) ? globalThis.String(object.updated_height) : "0",
+      mission_points: isSet(object.mission_points) ? globalThis.String(object.mission_points) : "",
     };
   },
 
@@ -2762,6 +2832,9 @@ export const UserPoints = {
     if (message.updated_height !== undefined) {
       obj.updated_height = message.updated_height;
     }
+    if (message.mission_points !== undefined) {
+      obj.mission_points = message.mission_points;
+    }
     return obj;
   },
 
@@ -2779,6 +2852,7 @@ export const UserPoints = {
       ? ChallengePoints.fromPartial(object.challenge_points)
       : undefined;
     message.updated_height = object.updated_height ?? "0";
+    message.mission_points = object.mission_points ?? "";
     return message;
   },
 };

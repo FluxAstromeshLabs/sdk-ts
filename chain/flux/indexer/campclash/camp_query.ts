@@ -326,6 +326,10 @@ export interface GetMissionsResponse {
   completed_missions_count: number;
   checkin_days_count: number;
   missions: Mission[];
+  address: string;
+  metadata: Metadata[];
+  updated_at: string;
+  date_unix: string;
 }
 
 export interface Mission {
@@ -334,6 +338,10 @@ export interface Mission {
   progress: number;
   completed: boolean;
   date_unix: string;
+  title: string;
+  description: string;
+  target: string;
+  point: string;
 }
 
 export interface CheckinDailyLoginRequest {
@@ -343,6 +351,17 @@ export interface CheckinDailyLoginRequest {
 export interface CheckinDailyLoginResponse {
   /** "ok", "already logged in" */
   status: string;
+}
+
+export interface Metadata {
+  id: string;
+  title: string;
+  description: string;
+  target: number;
+  point: number;
+  icon: string;
+  buttonText: string;
+  buttonLink: string;
 }
 
 function createBaseListProjectsRequest(): ListProjectsRequest {
@@ -4178,7 +4197,17 @@ export const GetMissionsRequest = {
 };
 
 function createBaseGetMissionsResponse(): GetMissionsResponse {
-  return { rank: "", total_traded_volume: 0, completed_missions_count: 0, checkin_days_count: 0, missions: [] };
+  return {
+    rank: "",
+    total_traded_volume: 0,
+    completed_missions_count: 0,
+    checkin_days_count: 0,
+    missions: [],
+    address: "",
+    metadata: [],
+    updated_at: "0",
+    date_unix: "0",
+  };
 }
 
 export const GetMissionsResponse = {
@@ -4189,7 +4218,7 @@ export const GetMissionsResponse = {
       writer.uint32(10).string(message.rank);
     }
     if (message.total_traded_volume !== 0) {
-      writer.uint32(21).float(message.total_traded_volume);
+      writer.uint32(17).double(message.total_traded_volume);
     }
     if (message.completed_missions_count !== 0) {
       writer.uint32(24).int32(message.completed_missions_count);
@@ -4199,6 +4228,18 @@ export const GetMissionsResponse = {
     }
     for (const v of message.missions) {
       Mission.encode(v!, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.address !== "") {
+      writer.uint32(50).string(message.address);
+    }
+    for (const v of message.metadata) {
+      Metadata.encode(v!, writer.uint32(58).fork()).ldelim();
+    }
+    if (message.updated_at !== "0") {
+      writer.uint32(64).int64(message.updated_at);
+    }
+    if (message.date_unix !== "0") {
+      writer.uint32(72).int64(message.date_unix);
     }
     return writer;
   },
@@ -4218,11 +4259,11 @@ export const GetMissionsResponse = {
           message.rank = reader.string();
           continue;
         case 2:
-          if (tag !== 21) {
+          if (tag !== 17) {
             break;
           }
 
-          message.total_traded_volume = reader.float();
+          message.total_traded_volume = reader.double();
           continue;
         case 3:
           if (tag !== 24) {
@@ -4245,6 +4286,34 @@ export const GetMissionsResponse = {
 
           message.missions.push(Mission.decode(reader, reader.uint32()));
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.address = reader.string();
+          continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.metadata.push(Metadata.decode(reader, reader.uint32()));
+          continue;
+        case 8:
+          if (tag !== 64) {
+            break;
+          }
+
+          message.updated_at = longToString(reader.int64() as Long);
+          continue;
+        case 9:
+          if (tag !== 72) {
+            break;
+          }
+
+          message.date_unix = longToString(reader.int64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -4263,6 +4332,10 @@ export const GetMissionsResponse = {
         : 0,
       checkin_days_count: isSet(object.checkin_days_count) ? globalThis.Number(object.checkin_days_count) : 0,
       missions: globalThis.Array.isArray(object?.missions) ? object.missions.map((e: any) => Mission.fromJSON(e)) : [],
+      address: isSet(object.address) ? globalThis.String(object.address) : "",
+      metadata: globalThis.Array.isArray(object?.metadata) ? object.metadata.map((e: any) => Metadata.fromJSON(e)) : [],
+      updated_at: isSet(object.updated_at) ? globalThis.String(object.updated_at) : "0",
+      date_unix: isSet(object.date_unix) ? globalThis.String(object.date_unix) : "0",
     };
   },
 
@@ -4283,6 +4356,18 @@ export const GetMissionsResponse = {
     if (message.missions?.length) {
       obj.missions = message.missions.map((e) => Mission.toJSON(e));
     }
+    if (message.address !== undefined) {
+      obj.address = message.address;
+    }
+    if (message.metadata?.length) {
+      obj.metadata = message.metadata.map((e) => Metadata.toJSON(e));
+    }
+    if (message.updated_at !== undefined) {
+      obj.updated_at = message.updated_at;
+    }
+    if (message.date_unix !== undefined) {
+      obj.date_unix = message.date_unix;
+    }
     return obj;
   },
 
@@ -4296,12 +4381,26 @@ export const GetMissionsResponse = {
     message.completed_missions_count = object.completed_missions_count ?? 0;
     message.checkin_days_count = object.checkin_days_count ?? 0;
     message.missions = object.missions?.map((e) => Mission.fromPartial(e)) || [];
+    message.address = object.address ?? "";
+    message.metadata = object.metadata?.map((e) => Metadata.fromPartial(e)) || [];
+    message.updated_at = object.updated_at ?? "0";
+    message.date_unix = object.date_unix ?? "0";
     return message;
   },
 };
 
 function createBaseMission(): Mission {
-  return { address: "", id: "", progress: 0, completed: false, date_unix: "0" };
+  return {
+    address: "",
+    id: "",
+    progress: 0,
+    completed: false,
+    date_unix: "0",
+    title: "",
+    description: "",
+    target: "0",
+    point: "0",
+  };
 }
 
 export const Mission = {
@@ -4315,13 +4414,25 @@ export const Mission = {
       writer.uint32(18).string(message.id);
     }
     if (message.progress !== 0) {
-      writer.uint32(29).float(message.progress);
+      writer.uint32(25).double(message.progress);
     }
     if (message.completed !== false) {
       writer.uint32(32).bool(message.completed);
     }
     if (message.date_unix !== "0") {
       writer.uint32(40).int64(message.date_unix);
+    }
+    if (message.title !== "") {
+      writer.uint32(50).string(message.title);
+    }
+    if (message.description !== "") {
+      writer.uint32(58).string(message.description);
+    }
+    if (message.target !== "0") {
+      writer.uint32(64).int64(message.target);
+    }
+    if (message.point !== "0") {
+      writer.uint32(72).int64(message.point);
     }
     return writer;
   },
@@ -4348,11 +4459,11 @@ export const Mission = {
           message.id = reader.string();
           continue;
         case 3:
-          if (tag !== 29) {
+          if (tag !== 25) {
             break;
           }
 
-          message.progress = reader.float();
+          message.progress = reader.double();
           continue;
         case 4:
           if (tag !== 32) {
@@ -4367,6 +4478,34 @@ export const Mission = {
           }
 
           message.date_unix = longToString(reader.int64() as Long);
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.title = reader.string();
+          continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        case 8:
+          if (tag !== 64) {
+            break;
+          }
+
+          message.target = longToString(reader.int64() as Long);
+          continue;
+        case 9:
+          if (tag !== 72) {
+            break;
+          }
+
+          message.point = longToString(reader.int64() as Long);
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -4384,6 +4523,10 @@ export const Mission = {
       progress: isSet(object.progress) ? globalThis.Number(object.progress) : 0,
       completed: isSet(object.completed) ? globalThis.Boolean(object.completed) : false,
       date_unix: isSet(object.date_unix) ? globalThis.String(object.date_unix) : "0",
+      title: isSet(object.title) ? globalThis.String(object.title) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : "",
+      target: isSet(object.target) ? globalThis.String(object.target) : "0",
+      point: isSet(object.point) ? globalThis.String(object.point) : "0",
     };
   },
 
@@ -4404,6 +4547,18 @@ export const Mission = {
     if (message.date_unix !== undefined) {
       obj.date_unix = message.date_unix;
     }
+    if (message.title !== undefined) {
+      obj.title = message.title;
+    }
+    if (message.description !== undefined) {
+      obj.description = message.description;
+    }
+    if (message.target !== undefined) {
+      obj.target = message.target;
+    }
+    if (message.point !== undefined) {
+      obj.point = message.point;
+    }
     return obj;
   },
 
@@ -4417,6 +4572,10 @@ export const Mission = {
     message.progress = object.progress ?? 0;
     message.completed = object.completed ?? false;
     message.date_unix = object.date_unix ?? "0";
+    message.title = object.title ?? "";
+    message.description = object.description ?? "";
+    message.target = object.target ?? "0";
+    message.point = object.point ?? "0";
     return message;
   },
 };
@@ -4535,6 +4694,172 @@ export const CheckinDailyLoginResponse = {
   fromPartial(object: DeepPartial<CheckinDailyLoginResponse>): CheckinDailyLoginResponse {
     const message = createBaseCheckinDailyLoginResponse();
     message.status = object.status ?? "";
+    return message;
+  },
+};
+
+function createBaseMetadata(): Metadata {
+  return { id: "", title: "", description: "", target: 0, point: 0, icon: "", buttonText: "", buttonLink: "" };
+}
+
+export const Metadata = {
+  $type: "flux.indexer.campclash.Metadata" as const,
+
+  encode(message: Metadata, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.title !== "") {
+      writer.uint32(18).string(message.title);
+    }
+    if (message.description !== "") {
+      writer.uint32(26).string(message.description);
+    }
+    if (message.target !== 0) {
+      writer.uint32(32).uint32(message.target);
+    }
+    if (message.point !== 0) {
+      writer.uint32(40).uint32(message.point);
+    }
+    if (message.icon !== "") {
+      writer.uint32(50).string(message.icon);
+    }
+    if (message.buttonText !== "") {
+      writer.uint32(58).string(message.buttonText);
+    }
+    if (message.buttonLink !== "") {
+      writer.uint32(66).string(message.buttonLink);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Metadata {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMetadata();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.title = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.target = reader.uint32();
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.point = reader.uint32();
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.icon = reader.string();
+          continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.buttonText = reader.string();
+          continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.buttonLink = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Metadata {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      title: isSet(object.title) ? globalThis.String(object.title) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : "",
+      target: isSet(object.target) ? globalThis.Number(object.target) : 0,
+      point: isSet(object.point) ? globalThis.Number(object.point) : 0,
+      icon: isSet(object.icon) ? globalThis.String(object.icon) : "",
+      buttonText: isSet(object.buttonText) ? globalThis.String(object.buttonText) : "",
+      buttonLink: isSet(object.buttonLink) ? globalThis.String(object.buttonLink) : "",
+    };
+  },
+
+  toJSON(message: Metadata): unknown {
+    const obj: any = {};
+    if (message.id !== undefined) {
+      obj.id = message.id;
+    }
+    if (message.title !== undefined) {
+      obj.title = message.title;
+    }
+    if (message.description !== undefined) {
+      obj.description = message.description;
+    }
+    if (message.target !== undefined) {
+      obj.target = Math.round(message.target);
+    }
+    if (message.point !== undefined) {
+      obj.point = Math.round(message.point);
+    }
+    if (message.icon !== undefined) {
+      obj.icon = message.icon;
+    }
+    if (message.buttonText !== undefined) {
+      obj.buttonText = message.buttonText;
+    }
+    if (message.buttonLink !== undefined) {
+      obj.buttonLink = message.buttonLink;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<Metadata>): Metadata {
+    return Metadata.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<Metadata>): Metadata {
+    const message = createBaseMetadata();
+    message.id = object.id ?? "";
+    message.title = object.title ?? "";
+    message.description = object.description ?? "";
+    message.target = object.target ?? 0;
+    message.point = object.point ?? 0;
+    message.icon = object.icon ?? "";
+    message.buttonText = object.buttonText ?? "";
+    message.buttonLink = object.buttonLink ?? "";
     return message;
   },
 };
