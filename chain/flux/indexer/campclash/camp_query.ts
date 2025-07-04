@@ -370,6 +370,8 @@ export interface ListCampTypesRequest {
     | undefined;
   /** filter by type (optional) */
   camp_type: string;
+  search: string;
+  creator: string;
 }
 
 export interface ListCampTypesResponse {
@@ -4878,7 +4880,7 @@ export const Metadata = {
 };
 
 function createBaseListCampTypesRequest(): ListCampTypesRequest {
-  return { pagination: undefined, camp_type: "" };
+  return { pagination: undefined, camp_type: "", search: "", creator: "" };
 }
 
 export const ListCampTypesRequest = {
@@ -4890,6 +4892,12 @@ export const ListCampTypesRequest = {
     }
     if (message.camp_type !== "") {
       writer.uint32(18).string(message.camp_type);
+    }
+    if (message.search !== "") {
+      writer.uint32(26).string(message.search);
+    }
+    if (message.creator !== "") {
+      writer.uint32(34).string(message.creator);
     }
     return writer;
   },
@@ -4915,6 +4923,20 @@ export const ListCampTypesRequest = {
 
           message.camp_type = reader.string();
           continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.search = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.creator = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -4928,6 +4950,8 @@ export const ListCampTypesRequest = {
     return {
       pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
       camp_type: isSet(object.camp_type) ? globalThis.String(object.camp_type) : "",
+      search: isSet(object.search) ? globalThis.String(object.search) : "",
+      creator: isSet(object.creator) ? globalThis.String(object.creator) : "",
     };
   },
 
@@ -4938,6 +4962,12 @@ export const ListCampTypesRequest = {
     }
     if (message.camp_type !== undefined) {
       obj.camp_type = message.camp_type;
+    }
+    if (message.search !== undefined) {
+      obj.search = message.search;
+    }
+    if (message.creator !== undefined) {
+      obj.creator = message.creator;
     }
     return obj;
   },
@@ -4951,6 +4981,8 @@ export const ListCampTypesRequest = {
       ? PageRequest.fromPartial(object.pagination)
       : undefined;
     message.camp_type = object.camp_type ?? "";
+    message.search = object.search ?? "";
+    message.creator = object.creator ?? "";
     return message;
   },
 };
