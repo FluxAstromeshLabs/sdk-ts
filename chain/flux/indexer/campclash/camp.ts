@@ -213,6 +213,20 @@ export interface ChallengePoints {
   tie_points: string;
 }
 
+export interface CampTypeInfo {
+  contract_address: string;
+  name: string;
+  description: string;
+  creator: string;
+  logo: string;
+  timestamp: string;
+  camp_denoms: string[];
+  camp_projects: Project[];
+  project_count: string;
+  total_market_cap: string;
+  traded_volume: string;
+}
+
 function createBaseCurveConfig(): CurveConfig {
   return { a: "", b: "", c: "", graduation_threshold: "", cap: "" };
 }
@@ -3067,6 +3081,233 @@ export const ChallengePoints = {
     message.winner_points = object.winner_points ?? "";
     message.loser_points = object.loser_points ?? "";
     message.tie_points = object.tie_points ?? "";
+    return message;
+  },
+};
+
+function createBaseCampTypeInfo(): CampTypeInfo {
+  return {
+    contract_address: "",
+    name: "",
+    description: "",
+    creator: "",
+    logo: "",
+    timestamp: "0",
+    camp_denoms: [],
+    camp_projects: [],
+    project_count: "0",
+    total_market_cap: "",
+    traded_volume: "",
+  };
+}
+
+export const CampTypeInfo = {
+  $type: "flux.indexer.campclash.CampTypeInfo" as const,
+
+  encode(message: CampTypeInfo, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.contract_address !== "") {
+      writer.uint32(10).string(message.contract_address);
+    }
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    if (message.description !== "") {
+      writer.uint32(26).string(message.description);
+    }
+    if (message.creator !== "") {
+      writer.uint32(34).string(message.creator);
+    }
+    if (message.logo !== "") {
+      writer.uint32(42).string(message.logo);
+    }
+    if (message.timestamp !== "0") {
+      writer.uint32(48).int64(message.timestamp);
+    }
+    for (const v of message.camp_denoms) {
+      writer.uint32(58).string(v!);
+    }
+    for (const v of message.camp_projects) {
+      Project.encode(v!, writer.uint32(66).fork()).ldelim();
+    }
+    if (message.project_count !== "0") {
+      writer.uint32(72).int64(message.project_count);
+    }
+    if (message.total_market_cap !== "") {
+      writer.uint32(82).string(message.total_market_cap);
+    }
+    if (message.traded_volume !== "") {
+      writer.uint32(98).string(message.traded_volume);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CampTypeInfo {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCampTypeInfo();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.contract_address = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.creator = reader.string();
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.logo = reader.string();
+          continue;
+        case 6:
+          if (tag !== 48) {
+            break;
+          }
+
+          message.timestamp = longToString(reader.int64() as Long);
+          continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.camp_denoms.push(reader.string());
+          continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.camp_projects.push(Project.decode(reader, reader.uint32()));
+          continue;
+        case 9:
+          if (tag !== 72) {
+            break;
+          }
+
+          message.project_count = longToString(reader.int64() as Long);
+          continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.total_market_cap = reader.string();
+          continue;
+        case 12:
+          if (tag !== 98) {
+            break;
+          }
+
+          message.traded_volume = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CampTypeInfo {
+    return {
+      contract_address: isSet(object.contract_address) ? globalThis.String(object.contract_address) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : "",
+      creator: isSet(object.creator) ? globalThis.String(object.creator) : "",
+      logo: isSet(object.logo) ? globalThis.String(object.logo) : "",
+      timestamp: isSet(object.timestamp) ? globalThis.String(object.timestamp) : "0",
+      camp_denoms: globalThis.Array.isArray(object?.camp_denoms)
+        ? object.camp_denoms.map((e: any) => globalThis.String(e))
+        : [],
+      camp_projects: globalThis.Array.isArray(object?.camp_projects)
+        ? object.camp_projects.map((e: any) => Project.fromJSON(e))
+        : [],
+      project_count: isSet(object.project_count) ? globalThis.String(object.project_count) : "0",
+      total_market_cap: isSet(object.total_market_cap) ? globalThis.String(object.total_market_cap) : "",
+      traded_volume: isSet(object.traded_volume) ? globalThis.String(object.traded_volume) : "",
+    };
+  },
+
+  toJSON(message: CampTypeInfo): unknown {
+    const obj: any = {};
+    if (message.contract_address !== undefined) {
+      obj.contract_address = message.contract_address;
+    }
+    if (message.name !== undefined) {
+      obj.name = message.name;
+    }
+    if (message.description !== undefined) {
+      obj.description = message.description;
+    }
+    if (message.creator !== undefined) {
+      obj.creator = message.creator;
+    }
+    if (message.logo !== undefined) {
+      obj.logo = message.logo;
+    }
+    if (message.timestamp !== undefined) {
+      obj.timestamp = message.timestamp;
+    }
+    if (message.camp_denoms?.length) {
+      obj.camp_denoms = message.camp_denoms;
+    }
+    if (message.camp_projects?.length) {
+      obj.camp_projects = message.camp_projects.map((e) => Project.toJSON(e));
+    }
+    if (message.project_count !== undefined) {
+      obj.project_count = message.project_count;
+    }
+    if (message.total_market_cap !== undefined) {
+      obj.total_market_cap = message.total_market_cap;
+    }
+    if (message.traded_volume !== undefined) {
+      obj.traded_volume = message.traded_volume;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<CampTypeInfo>): CampTypeInfo {
+    return CampTypeInfo.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<CampTypeInfo>): CampTypeInfo {
+    const message = createBaseCampTypeInfo();
+    message.contract_address = object.contract_address ?? "";
+    message.name = object.name ?? "";
+    message.description = object.description ?? "";
+    message.creator = object.creator ?? "";
+    message.logo = object.logo ?? "";
+    message.timestamp = object.timestamp ?? "0";
+    message.camp_denoms = object.camp_denoms?.map((e) => e) || [];
+    message.camp_projects = object.camp_projects?.map((e) => Project.fromPartial(e)) || [];
+    message.project_count = object.project_count ?? "0";
+    message.total_market_cap = object.total_market_cap ?? "";
+    message.traded_volume = object.traded_volume ?? "";
     return message;
   },
 };

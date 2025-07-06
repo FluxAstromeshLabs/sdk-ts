@@ -13,7 +13,7 @@ import { Observable } from "rxjs";
 import { share } from "rxjs/operators";
 import { PageRequest, PageResponse } from "../../../cosmos/base/query/v1beta1/pagination";
 import { BoolValue } from "../../../google/protobuf/wrappers";
-import { Challenge, ChallengeVote, Claimable, Project, Trade, UserBalance, UserPoints } from "./camp";
+import { CampTypeInfo, Challenge, ChallengeVote, Claimable, Project, Trade, UserBalance, UserPoints } from "./camp";
 
 /**
  * Define the Action enum
@@ -362,6 +362,21 @@ export interface Metadata {
   icon: string;
   buttonText: string;
   buttonLink: string;
+}
+
+export interface ListCampTypesRequest {
+  pagination:
+    | PageRequest
+    | undefined;
+  /** filter by type (optional) */
+  camp_type: string;
+  search: string;
+  creator: string;
+}
+
+export interface ListCampTypesResponse {
+  pagination: PageResponse | undefined;
+  info: CampTypeInfo[];
 }
 
 function createBaseListProjectsRequest(): ListProjectsRequest {
@@ -4864,6 +4879,192 @@ export const Metadata = {
   },
 };
 
+function createBaseListCampTypesRequest(): ListCampTypesRequest {
+  return { pagination: undefined, camp_type: "", search: "", creator: "" };
+}
+
+export const ListCampTypesRequest = {
+  $type: "flux.indexer.campclash.ListCampTypesRequest" as const,
+
+  encode(message: ListCampTypesRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.camp_type !== "") {
+      writer.uint32(18).string(message.camp_type);
+    }
+    if (message.search !== "") {
+      writer.uint32(26).string(message.search);
+    }
+    if (message.creator !== "") {
+      writer.uint32(34).string(message.creator);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListCampTypesRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListCampTypesRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.camp_type = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.search = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.creator = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListCampTypesRequest {
+    return {
+      pagination: isSet(object.pagination) ? PageRequest.fromJSON(object.pagination) : undefined,
+      camp_type: isSet(object.camp_type) ? globalThis.String(object.camp_type) : "",
+      search: isSet(object.search) ? globalThis.String(object.search) : "",
+      creator: isSet(object.creator) ? globalThis.String(object.creator) : "",
+    };
+  },
+
+  toJSON(message: ListCampTypesRequest): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageRequest.toJSON(message.pagination);
+    }
+    if (message.camp_type !== undefined) {
+      obj.camp_type = message.camp_type;
+    }
+    if (message.search !== undefined) {
+      obj.search = message.search;
+    }
+    if (message.creator !== undefined) {
+      obj.creator = message.creator;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListCampTypesRequest>): ListCampTypesRequest {
+    return ListCampTypesRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListCampTypesRequest>): ListCampTypesRequest {
+    const message = createBaseListCampTypesRequest();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageRequest.fromPartial(object.pagination)
+      : undefined;
+    message.camp_type = object.camp_type ?? "";
+    message.search = object.search ?? "";
+    message.creator = object.creator ?? "";
+    return message;
+  },
+};
+
+function createBaseListCampTypesResponse(): ListCampTypesResponse {
+  return { pagination: undefined, info: [] };
+}
+
+export const ListCampTypesResponse = {
+  $type: "flux.indexer.campclash.ListCampTypesResponse" as const,
+
+  encode(message: ListCampTypesResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.pagination !== undefined) {
+      PageResponse.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    for (const v of message.info) {
+      CampTypeInfo.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListCampTypesResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListCampTypesResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.info.push(CampTypeInfo.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListCampTypesResponse {
+    return {
+      pagination: isSet(object.pagination) ? PageResponse.fromJSON(object.pagination) : undefined,
+      info: globalThis.Array.isArray(object?.info) ? object.info.map((e: any) => CampTypeInfo.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: ListCampTypesResponse): unknown {
+    const obj: any = {};
+    if (message.pagination !== undefined) {
+      obj.pagination = PageResponse.toJSON(message.pagination);
+    }
+    if (message.info?.length) {
+      obj.info = message.info.map((e) => CampTypeInfo.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListCampTypesResponse>): ListCampTypesResponse {
+    return ListCampTypesResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListCampTypesResponse>): ListCampTypesResponse {
+    const message = createBaseListCampTypesResponse();
+    message.pagination = (object.pagination !== undefined && object.pagination !== null)
+      ? PageResponse.fromPartial(object.pagination)
+      : undefined;
+    message.info = object.info?.map((e) => CampTypeInfo.fromPartial(e)) || [];
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface CampclashQuery {
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse>;
@@ -4939,6 +5140,7 @@ export interface CampclashQuery {
     request: DeepPartial<CheckinDailyLoginRequest>,
     metadata?: grpc.Metadata,
   ): Promise<CheckinDailyLoginResponse>;
+  ListCampTypes(request: DeepPartial<ListCampTypesRequest>, metadata?: grpc.Metadata): Promise<ListCampTypesResponse>;
 }
 
 export class CampclashQueryClientImpl implements CampclashQuery {
@@ -4970,6 +5172,7 @@ export class CampclashQueryClientImpl implements CampclashQuery {
     this.StreamUserPoints = this.StreamUserPoints.bind(this);
     this.GetMissions = this.GetMissions.bind(this);
     this.CheckinDailyLogin = this.CheckinDailyLogin.bind(this);
+    this.ListCampTypes = this.ListCampTypes.bind(this);
   }
 
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse> {
@@ -5138,6 +5341,10 @@ export class CampclashQueryClientImpl implements CampclashQuery {
     metadata?: grpc.Metadata,
   ): Promise<CheckinDailyLoginResponse> {
     return this.rpc.unary(CampclashQueryCheckinDailyLoginDesc, CheckinDailyLoginRequest.fromPartial(request), metadata);
+  }
+
+  ListCampTypes(request: DeepPartial<ListCampTypesRequest>, metadata?: grpc.Metadata): Promise<ListCampTypesResponse> {
+    return this.rpc.unary(CampclashQueryListCampTypesDesc, ListCampTypesRequest.fromPartial(request), metadata);
   }
 }
 
@@ -5685,6 +5892,29 @@ export const CampclashQueryCheckinDailyLoginDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = CheckinDailyLoginResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQueryListCampTypesDesc: UnaryMethodDefinitionish = {
+  methodName: "ListCampTypes",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ListCampTypesRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ListCampTypesResponse.decode(data);
       return {
         ...value,
         toObject() {

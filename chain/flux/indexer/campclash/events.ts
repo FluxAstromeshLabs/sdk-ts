@@ -8,7 +8,7 @@
 import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { Coin } from "../../../cosmos/base/v1beta1/coin";
-import { Challenge, Project } from "./camp";
+import { CampTypeInfo, Challenge, Project } from "./camp";
 
 /** Enum for operations */
 export enum CampEventOps {
@@ -102,6 +102,39 @@ export function challengeEventOpToJSON(object: ChallengeEventOp): string {
   }
 }
 
+export enum CampTypeEventOp {
+  OpCampTypeCreate = 0,
+  OpCampTypeUpdate = 1,
+  UNRECOGNIZED = -1,
+}
+
+export function campTypeEventOpFromJSON(object: any): CampTypeEventOp {
+  switch (object) {
+    case 0:
+    case "OpCampTypeCreate":
+      return CampTypeEventOp.OpCampTypeCreate;
+    case 1:
+    case "OpCampTypeUpdate":
+      return CampTypeEventOp.OpCampTypeUpdate;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return CampTypeEventOp.UNRECOGNIZED;
+  }
+}
+
+export function campTypeEventOpToJSON(object: CampTypeEventOp): string {
+  switch (object) {
+    case CampTypeEventOp.OpCampTypeCreate:
+      return "OpCampTypeCreate";
+    case CampTypeEventOp.OpCampTypeUpdate:
+      return "OpCampTypeUpdate";
+    case CampTypeEventOp.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 /** Event for camp-related operations */
 export interface CampEvent {
   /** Contract address */
@@ -168,6 +201,12 @@ export interface CampBalanceEvent {
   contract_address: string;
   denom: string;
   updates: CampBalanceUpdate[];
+}
+
+export interface CampTypeEvent {
+  contract_address: string;
+  op: CampTypeEventOp;
+  info: CampTypeInfo | undefined;
 }
 
 function createBaseCampEvent(): CampEvent {
@@ -901,6 +940,99 @@ export const CampBalanceEvent = {
     message.contract_address = object.contract_address ?? "";
     message.denom = object.denom ?? "";
     message.updates = object.updates?.map((e) => CampBalanceUpdate.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseCampTypeEvent(): CampTypeEvent {
+  return { contract_address: "", op: 0, info: undefined };
+}
+
+export const CampTypeEvent = {
+  $type: "flux.indexer.campclash.CampTypeEvent" as const,
+
+  encode(message: CampTypeEvent, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.contract_address !== "") {
+      writer.uint32(10).string(message.contract_address);
+    }
+    if (message.op !== 0) {
+      writer.uint32(16).int32(message.op);
+    }
+    if (message.info !== undefined) {
+      CampTypeInfo.encode(message.info, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CampTypeEvent {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCampTypeEvent();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.contract_address = reader.string();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.op = reader.int32() as any;
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.info = CampTypeInfo.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CampTypeEvent {
+    return {
+      contract_address: isSet(object.contract_address) ? globalThis.String(object.contract_address) : "",
+      op: isSet(object.op) ? campTypeEventOpFromJSON(object.op) : 0,
+      info: isSet(object.info) ? CampTypeInfo.fromJSON(object.info) : undefined,
+    };
+  },
+
+  toJSON(message: CampTypeEvent): unknown {
+    const obj: any = {};
+    if (message.contract_address !== undefined) {
+      obj.contract_address = message.contract_address;
+    }
+    if (message.op !== undefined) {
+      obj.op = campTypeEventOpToJSON(message.op);
+    }
+    if (message.info !== undefined) {
+      obj.info = CampTypeInfo.toJSON(message.info);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<CampTypeEvent>): CampTypeEvent {
+    return CampTypeEvent.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<CampTypeEvent>): CampTypeEvent {
+    const message = createBaseCampTypeEvent();
+    message.contract_address = object.contract_address ?? "";
+    message.op = object.op ?? 0;
+    message.info = (object.info !== undefined && object.info !== null)
+      ? CampTypeInfo.fromPartial(object.info)
+      : undefined;
     return message;
   },
 };

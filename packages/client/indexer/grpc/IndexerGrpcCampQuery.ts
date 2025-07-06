@@ -172,4 +172,11 @@ export class IndexerGrpcCampQuery extends BaseIndexerGrpc {
     let response = await this.retry(() => this.client.CheckinDailyLogin(request))
     return response as campclashQuery.CheckinDailyLoginResponse
   }
+
+  async listCampTypes(
+    request: Partial<campclashQuery.ListCampTypesRequest>,
+  ): Promise<campclashQuery.ListCampTypesResponse> {
+    let response = await this.retry(() => this.client.ListCampTypes(request))
+    return response as campclashQuery.ListCampTypesResponse
+  }
 }
