@@ -379,6 +379,24 @@ export interface ListCampTypesResponse {
   info: CampTypeInfo[];
 }
 
+export interface StreamCampTypesRequest {
+  /** optional */
+  name: string;
+}
+
+export interface StreamCampTypesResponse {
+  deleted: boolean;
+  type: CampTypeInfo | undefined;
+}
+
+export interface MigratePointRequest {
+  address: string;
+  signature: string;
+}
+
+export interface MigratePointResponse {
+}
+
 function createBaseListProjectsRequest(): ListProjectsRequest {
   return {
     pagination: undefined,
@@ -5065,6 +5083,264 @@ export const ListCampTypesResponse = {
   },
 };
 
+function createBaseStreamCampTypesRequest(): StreamCampTypesRequest {
+  return { name: "" };
+}
+
+export const StreamCampTypesRequest = {
+  $type: "flux.indexer.campclash.StreamCampTypesRequest" as const,
+
+  encode(message: StreamCampTypesRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamCampTypesRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamCampTypesRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamCampTypesRequest {
+    return { name: isSet(object.name) ? globalThis.String(object.name) : "" };
+  },
+
+  toJSON(message: StreamCampTypesRequest): unknown {
+    const obj: any = {};
+    if (message.name !== undefined) {
+      obj.name = message.name;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamCampTypesRequest>): StreamCampTypesRequest {
+    return StreamCampTypesRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamCampTypesRequest>): StreamCampTypesRequest {
+    const message = createBaseStreamCampTypesRequest();
+    message.name = object.name ?? "";
+    return message;
+  },
+};
+
+function createBaseStreamCampTypesResponse(): StreamCampTypesResponse {
+  return { deleted: false, type: undefined };
+}
+
+export const StreamCampTypesResponse = {
+  $type: "flux.indexer.campclash.StreamCampTypesResponse" as const,
+
+  encode(message: StreamCampTypesResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.deleted !== false) {
+      writer.uint32(8).bool(message.deleted);
+    }
+    if (message.type !== undefined) {
+      CampTypeInfo.encode(message.type, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StreamCampTypesResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamCampTypesResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.deleted = reader.bool();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.type = CampTypeInfo.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamCampTypesResponse {
+    return {
+      deleted: isSet(object.deleted) ? globalThis.Boolean(object.deleted) : false,
+      type: isSet(object.type) ? CampTypeInfo.fromJSON(object.type) : undefined,
+    };
+  },
+
+  toJSON(message: StreamCampTypesResponse): unknown {
+    const obj: any = {};
+    if (message.deleted !== undefined) {
+      obj.deleted = message.deleted;
+    }
+    if (message.type !== undefined) {
+      obj.type = CampTypeInfo.toJSON(message.type);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<StreamCampTypesResponse>): StreamCampTypesResponse {
+    return StreamCampTypesResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<StreamCampTypesResponse>): StreamCampTypesResponse {
+    const message = createBaseStreamCampTypesResponse();
+    message.deleted = object.deleted ?? false;
+    message.type = (object.type !== undefined && object.type !== null)
+      ? CampTypeInfo.fromPartial(object.type)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseMigratePointRequest(): MigratePointRequest {
+  return { address: "", signature: "" };
+}
+
+export const MigratePointRequest = {
+  $type: "flux.indexer.campclash.MigratePointRequest" as const,
+
+  encode(message: MigratePointRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.address !== "") {
+      writer.uint32(10).string(message.address);
+    }
+    if (message.signature !== "") {
+      writer.uint32(18).string(message.signature);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MigratePointRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMigratePointRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.address = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.signature = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MigratePointRequest {
+    return {
+      address: isSet(object.address) ? globalThis.String(object.address) : "",
+      signature: isSet(object.signature) ? globalThis.String(object.signature) : "",
+    };
+  },
+
+  toJSON(message: MigratePointRequest): unknown {
+    const obj: any = {};
+    if (message.address !== undefined) {
+      obj.address = message.address;
+    }
+    if (message.signature !== undefined) {
+      obj.signature = message.signature;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<MigratePointRequest>): MigratePointRequest {
+    return MigratePointRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<MigratePointRequest>): MigratePointRequest {
+    const message = createBaseMigratePointRequest();
+    message.address = object.address ?? "";
+    message.signature = object.signature ?? "";
+    return message;
+  },
+};
+
+function createBaseMigratePointResponse(): MigratePointResponse {
+  return {};
+}
+
+export const MigratePointResponse = {
+  $type: "flux.indexer.campclash.MigratePointResponse" as const,
+
+  encode(_: MigratePointResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MigratePointResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMigratePointResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MigratePointResponse {
+    return {};
+  },
+
+  toJSON(_: MigratePointResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<MigratePointResponse>): MigratePointResponse {
+    return MigratePointResponse.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<MigratePointResponse>): MigratePointResponse {
+    const message = createBaseMigratePointResponse();
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface CampclashQuery {
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse>;
@@ -5141,6 +5417,11 @@ export interface CampclashQuery {
     metadata?: grpc.Metadata,
   ): Promise<CheckinDailyLoginResponse>;
   ListCampTypes(request: DeepPartial<ListCampTypesRequest>, metadata?: grpc.Metadata): Promise<ListCampTypesResponse>;
+  StreamCampTypes(
+    request: DeepPartial<StreamCampTypesRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamCampTypesResponse>;
+  MigratePoint(request: DeepPartial<MigratePointRequest>, metadata?: grpc.Metadata): Promise<MigratePointResponse>;
 }
 
 export class CampclashQueryClientImpl implements CampclashQuery {
@@ -5173,6 +5454,8 @@ export class CampclashQueryClientImpl implements CampclashQuery {
     this.GetMissions = this.GetMissions.bind(this);
     this.CheckinDailyLogin = this.CheckinDailyLogin.bind(this);
     this.ListCampTypes = this.ListCampTypes.bind(this);
+    this.StreamCampTypes = this.StreamCampTypes.bind(this);
+    this.MigratePoint = this.MigratePoint.bind(this);
   }
 
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse> {
@@ -5345,6 +5628,17 @@ export class CampclashQueryClientImpl implements CampclashQuery {
 
   ListCampTypes(request: DeepPartial<ListCampTypesRequest>, metadata?: grpc.Metadata): Promise<ListCampTypesResponse> {
     return this.rpc.unary(CampclashQueryListCampTypesDesc, ListCampTypesRequest.fromPartial(request), metadata);
+  }
+
+  StreamCampTypes(
+    request: DeepPartial<StreamCampTypesRequest>,
+    metadata?: grpc.Metadata,
+  ): Observable<StreamCampTypesResponse> {
+    return this.rpc.invoke(CampclashQueryStreamCampTypesDesc, StreamCampTypesRequest.fromPartial(request), metadata);
+  }
+
+  MigratePoint(request: DeepPartial<MigratePointRequest>, metadata?: grpc.Metadata): Promise<MigratePointResponse> {
+    return this.rpc.unary(CampclashQueryMigratePointDesc, MigratePointRequest.fromPartial(request), metadata);
   }
 }
 
@@ -5915,6 +6209,52 @@ export const CampclashQueryListCampTypesDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = ListCampTypesResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQueryStreamCampTypesDesc: UnaryMethodDefinitionish = {
+  methodName: "StreamCampTypes",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: true,
+  requestType: {
+    serializeBinary() {
+      return StreamCampTypesRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = StreamCampTypesResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQueryMigratePointDesc: UnaryMethodDefinitionish = {
+  methodName: "MigratePoint",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return MigratePointRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = MigratePointResponse.decode(data);
       return {
         ...value,
         toObject() {

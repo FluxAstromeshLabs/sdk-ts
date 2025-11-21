@@ -149,12 +149,12 @@ export interface ContractInfo {
   /** Created Tx position when the contract was instantiated. */
   created: AbsoluteTxPosition | undefined;
   ibc_port_id: string;
-  ibc2_port_id: string;
   /**
    * Extension is an extension point to store custom metadata within the
    * persistence model.
    */
   extension: Any | undefined;
+  ibc2_port_id: string;
 }
 
 /** ContractCodeHistoryEntry metadata to a contract. */
@@ -511,8 +511,8 @@ function createBaseContractInfo(): ContractInfo {
     label: "",
     created: undefined,
     ibc_port_id: "",
-    ibc2_port_id: "",
     extension: undefined,
+    ibc2_port_id: "",
   };
 }
 
@@ -538,11 +538,11 @@ export const ContractInfo = {
     if (message.ibc_port_id !== "") {
       writer.uint32(50).string(message.ibc_port_id);
     }
-    if (message.ibc2_port_id !== "") {
-      writer.uint32(58).string(message.ibc2_port_id);
-    }
     if (message.extension !== undefined) {
-      Any.encode(message.extension, writer.uint32(66).fork()).ldelim();
+      Any.encode(message.extension, writer.uint32(58).fork()).ldelim();
+    }
+    if (message.ibc2_port_id !== "") {
+      writer.uint32(66).string(message.ibc2_port_id);
     }
     return writer;
   },
@@ -601,14 +601,14 @@ export const ContractInfo = {
             break;
           }
 
-          message.ibc2_port_id = reader.string();
+          message.extension = Any.decode(reader, reader.uint32());
           continue;
         case 8:
           if (tag !== 66) {
             break;
           }
 
-          message.extension = Any.decode(reader, reader.uint32());
+          message.ibc2_port_id = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -627,8 +627,8 @@ export const ContractInfo = {
       label: isSet(object.label) ? globalThis.String(object.label) : "",
       created: isSet(object.created) ? AbsoluteTxPosition.fromJSON(object.created) : undefined,
       ibc_port_id: isSet(object.ibc_port_id) ? globalThis.String(object.ibc_port_id) : "",
-      ibc2_port_id: isSet(object.ibc2_port_id) ? globalThis.String(object.ibc2_port_id) : "",
       extension: isSet(object.extension) ? Any.fromJSON(object.extension) : undefined,
+      ibc2_port_id: isSet(object.ibc2_port_id) ? globalThis.String(object.ibc2_port_id) : "",
     };
   },
 
@@ -652,11 +652,11 @@ export const ContractInfo = {
     if (message.ibc_port_id !== undefined) {
       obj.ibc_port_id = message.ibc_port_id;
     }
-    if (message.ibc2_port_id !== undefined) {
-      obj.ibc2_port_id = message.ibc2_port_id;
-    }
     if (message.extension !== undefined) {
       obj.extension = Any.toJSON(message.extension);
+    }
+    if (message.ibc2_port_id !== undefined) {
+      obj.ibc2_port_id = message.ibc2_port_id;
     }
     return obj;
   },
@@ -674,10 +674,10 @@ export const ContractInfo = {
       ? AbsoluteTxPosition.fromPartial(object.created)
       : undefined;
     message.ibc_port_id = object.ibc_port_id ?? "";
-    message.ibc2_port_id = object.ibc2_port_id ?? "";
     message.extension = (object.extension !== undefined && object.extension !== null)
       ? Any.fromPartial(object.extension)
       : undefined;
+    message.ibc2_port_id = object.ibc2_port_id ?? "";
     return message;
   },
 };

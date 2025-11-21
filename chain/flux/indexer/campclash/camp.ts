@@ -197,6 +197,7 @@ export interface UserPoints {
   challenge_points: ChallengePoints | undefined;
   updated_height: string;
   mission_points: string;
+  rebel_challenge_points: string;
 }
 
 export interface TokenPoints {
@@ -225,6 +226,7 @@ export interface CampTypeInfo {
   project_count: string;
   total_market_cap: string;
   traded_volume: string;
+  height: string;
 }
 
 function createBaseCurveConfig(): CurveConfig {
@@ -2732,6 +2734,7 @@ function createBaseUserPoints(): UserPoints {
     challenge_points: undefined,
     updated_height: "0",
     mission_points: "",
+    rebel_challenge_points: "",
   };
 }
 
@@ -2756,6 +2759,9 @@ export const UserPoints = {
     }
     if (message.mission_points !== "") {
       writer.uint32(50).string(message.mission_points);
+    }
+    if (message.rebel_challenge_points !== "") {
+      writer.uint32(58).string(message.rebel_challenge_points);
     }
     return writer;
   },
@@ -2809,6 +2815,13 @@ export const UserPoints = {
 
           message.mission_points = reader.string();
           continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.rebel_challenge_points = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2826,6 +2839,9 @@ export const UserPoints = {
       challenge_points: isSet(object.challenge_points) ? ChallengePoints.fromJSON(object.challenge_points) : undefined,
       updated_height: isSet(object.updated_height) ? globalThis.String(object.updated_height) : "0",
       mission_points: isSet(object.mission_points) ? globalThis.String(object.mission_points) : "",
+      rebel_challenge_points: isSet(object.rebel_challenge_points)
+        ? globalThis.String(object.rebel_challenge_points)
+        : "",
     };
   },
 
@@ -2849,6 +2865,9 @@ export const UserPoints = {
     if (message.mission_points !== undefined) {
       obj.mission_points = message.mission_points;
     }
+    if (message.rebel_challenge_points !== undefined) {
+      obj.rebel_challenge_points = message.rebel_challenge_points;
+    }
     return obj;
   },
 
@@ -2867,6 +2886,7 @@ export const UserPoints = {
       : undefined;
     message.updated_height = object.updated_height ?? "0";
     message.mission_points = object.mission_points ?? "";
+    message.rebel_challenge_points = object.rebel_challenge_points ?? "";
     return message;
   },
 };
@@ -3098,6 +3118,7 @@ function createBaseCampTypeInfo(): CampTypeInfo {
     project_count: "0",
     total_market_cap: "",
     traded_volume: "",
+    height: "0",
   };
 }
 
@@ -3137,6 +3158,9 @@ export const CampTypeInfo = {
     }
     if (message.traded_volume !== "") {
       writer.uint32(98).string(message.traded_volume);
+    }
+    if (message.height !== "0") {
+      writer.uint32(104).int64(message.height);
     }
     return writer;
   },
@@ -3225,6 +3249,13 @@ export const CampTypeInfo = {
 
           message.traded_volume = reader.string();
           continue;
+        case 13:
+          if (tag !== 104) {
+            break;
+          }
+
+          message.height = longToString(reader.int64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3251,6 +3282,7 @@ export const CampTypeInfo = {
       project_count: isSet(object.project_count) ? globalThis.String(object.project_count) : "0",
       total_market_cap: isSet(object.total_market_cap) ? globalThis.String(object.total_market_cap) : "",
       traded_volume: isSet(object.traded_volume) ? globalThis.String(object.traded_volume) : "",
+      height: isSet(object.height) ? globalThis.String(object.height) : "0",
     };
   },
 
@@ -3289,6 +3321,9 @@ export const CampTypeInfo = {
     if (message.traded_volume !== undefined) {
       obj.traded_volume = message.traded_volume;
     }
+    if (message.height !== undefined) {
+      obj.height = message.height;
+    }
     return obj;
   },
 
@@ -3308,6 +3343,7 @@ export const CampTypeInfo = {
     message.project_count = object.project_count ?? "0";
     message.total_market_cap = object.total_market_cap ?? "";
     message.traded_volume = object.traded_volume ?? "";
+    message.height = object.height ?? "0";
     return message;
   },
 };
