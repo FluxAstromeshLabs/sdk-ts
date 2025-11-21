@@ -198,6 +198,7 @@ export interface UserPoints {
   updated_height: string;
   mission_points: string;
   rebel_challenge_points: string;
+  point_migrated: boolean;
 }
 
 export interface TokenPoints {
@@ -2735,6 +2736,7 @@ function createBaseUserPoints(): UserPoints {
     updated_height: "0",
     mission_points: "",
     rebel_challenge_points: "",
+    point_migrated: false,
   };
 }
 
@@ -2762,6 +2764,9 @@ export const UserPoints = {
     }
     if (message.rebel_challenge_points !== "") {
       writer.uint32(58).string(message.rebel_challenge_points);
+    }
+    if (message.point_migrated !== false) {
+      writer.uint32(64).bool(message.point_migrated);
     }
     return writer;
   },
@@ -2822,6 +2827,13 @@ export const UserPoints = {
 
           message.rebel_challenge_points = reader.string();
           continue;
+        case 8:
+          if (tag !== 64) {
+            break;
+          }
+
+          message.point_migrated = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2842,6 +2854,7 @@ export const UserPoints = {
       rebel_challenge_points: isSet(object.rebel_challenge_points)
         ? globalThis.String(object.rebel_challenge_points)
         : "",
+      point_migrated: isSet(object.point_migrated) ? globalThis.Boolean(object.point_migrated) : false,
     };
   },
 
@@ -2868,6 +2881,9 @@ export const UserPoints = {
     if (message.rebel_challenge_points !== undefined) {
       obj.rebel_challenge_points = message.rebel_challenge_points;
     }
+    if (message.point_migrated !== undefined) {
+      obj.point_migrated = message.point_migrated;
+    }
     return obj;
   },
 
@@ -2887,6 +2903,7 @@ export const UserPoints = {
     message.updated_height = object.updated_height ?? "0";
     message.mission_points = object.mission_points ?? "";
     message.rebel_challenge_points = object.rebel_challenge_points ?? "";
+    message.point_migrated = object.point_migrated ?? false;
     return message;
   },
 };
