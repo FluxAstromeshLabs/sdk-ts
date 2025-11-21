@@ -5,30 +5,30 @@ import BaseSkeleton from '../Skeleton/index.vue'
 const props = defineProps({
   src: {
     type: String,
-    default: ''
+    default: '',
   },
   size: {
     type: String,
     default: 'md',
     validator: (value: string) => {
       return ['sm', 'md', 'lg'].includes(value)
-    }
+    },
   },
   number: {
     type: Number,
     default: 0,
     validator: (value: number) => {
       return value >= 0 && value <= 4
-    }
+    },
   },
   fallback: {
     type: String,
-    default: ''
+    default: '',
   },
   fallbackTimeout: {
     type: Number,
-    default: 5000
-  }
+    default: 60000,
+  },
 })
 const realSrc = ref(props.src)
 const loading = ref(true)
