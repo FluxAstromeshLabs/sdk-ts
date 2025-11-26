@@ -397,6 +397,33 @@ export interface MigratePointRequest {
 export interface MigratePointResponse {
 }
 
+export interface FollowMetadata {
+  id: string;
+  title: string;
+  description: string;
+  target: number;
+  point: number;
+  icon: string;
+  buttonText: string;
+  buttonLink: string;
+  subs: Metadata[];
+}
+
+export interface ListQuestRequest {
+}
+
+export interface ListQuestResponse {
+  metadata: FollowMetadata | undefined;
+}
+
+export interface ListQuestsClickedRequest {
+  id: string;
+  address: string;
+}
+
+export interface ListQuestsClickedResponse {
+}
+
 function createBaseListProjectsRequest(): ListProjectsRequest {
   return {
     pagination: undefined,
@@ -5341,6 +5368,424 @@ export const MigratePointResponse = {
   },
 };
 
+function createBaseFollowMetadata(): FollowMetadata {
+  return {
+    id: "",
+    title: "",
+    description: "",
+    target: 0,
+    point: 0,
+    icon: "",
+    buttonText: "",
+    buttonLink: "",
+    subs: [],
+  };
+}
+
+export const FollowMetadata = {
+  $type: "flux.indexer.campclash.FollowMetadata" as const,
+
+  encode(message: FollowMetadata, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.title !== "") {
+      writer.uint32(18).string(message.title);
+    }
+    if (message.description !== "") {
+      writer.uint32(26).string(message.description);
+    }
+    if (message.target !== 0) {
+      writer.uint32(32).uint32(message.target);
+    }
+    if (message.point !== 0) {
+      writer.uint32(40).uint32(message.point);
+    }
+    if (message.icon !== "") {
+      writer.uint32(50).string(message.icon);
+    }
+    if (message.buttonText !== "") {
+      writer.uint32(58).string(message.buttonText);
+    }
+    if (message.buttonLink !== "") {
+      writer.uint32(66).string(message.buttonLink);
+    }
+    for (const v of message.subs) {
+      Metadata.encode(v!, writer.uint32(74).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): FollowMetadata {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseFollowMetadata();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.title = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.target = reader.uint32();
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.point = reader.uint32();
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.icon = reader.string();
+          continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.buttonText = reader.string();
+          continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.buttonLink = reader.string();
+          continue;
+        case 9:
+          if (tag !== 74) {
+            break;
+          }
+
+          message.subs.push(Metadata.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): FollowMetadata {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      title: isSet(object.title) ? globalThis.String(object.title) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : "",
+      target: isSet(object.target) ? globalThis.Number(object.target) : 0,
+      point: isSet(object.point) ? globalThis.Number(object.point) : 0,
+      icon: isSet(object.icon) ? globalThis.String(object.icon) : "",
+      buttonText: isSet(object.buttonText) ? globalThis.String(object.buttonText) : "",
+      buttonLink: isSet(object.buttonLink) ? globalThis.String(object.buttonLink) : "",
+      subs: globalThis.Array.isArray(object?.subs) ? object.subs.map((e: any) => Metadata.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: FollowMetadata): unknown {
+    const obj: any = {};
+    if (message.id !== undefined) {
+      obj.id = message.id;
+    }
+    if (message.title !== undefined) {
+      obj.title = message.title;
+    }
+    if (message.description !== undefined) {
+      obj.description = message.description;
+    }
+    if (message.target !== undefined) {
+      obj.target = Math.round(message.target);
+    }
+    if (message.point !== undefined) {
+      obj.point = Math.round(message.point);
+    }
+    if (message.icon !== undefined) {
+      obj.icon = message.icon;
+    }
+    if (message.buttonText !== undefined) {
+      obj.buttonText = message.buttonText;
+    }
+    if (message.buttonLink !== undefined) {
+      obj.buttonLink = message.buttonLink;
+    }
+    if (message.subs?.length) {
+      obj.subs = message.subs.map((e) => Metadata.toJSON(e));
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<FollowMetadata>): FollowMetadata {
+    return FollowMetadata.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<FollowMetadata>): FollowMetadata {
+    const message = createBaseFollowMetadata();
+    message.id = object.id ?? "";
+    message.title = object.title ?? "";
+    message.description = object.description ?? "";
+    message.target = object.target ?? 0;
+    message.point = object.point ?? 0;
+    message.icon = object.icon ?? "";
+    message.buttonText = object.buttonText ?? "";
+    message.buttonLink = object.buttonLink ?? "";
+    message.subs = object.subs?.map((e) => Metadata.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseListQuestRequest(): ListQuestRequest {
+  return {};
+}
+
+export const ListQuestRequest = {
+  $type: "flux.indexer.campclash.ListQuestRequest" as const,
+
+  encode(_: ListQuestRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListQuestRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListQuestRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): ListQuestRequest {
+    return {};
+  },
+
+  toJSON(_: ListQuestRequest): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListQuestRequest>): ListQuestRequest {
+    return ListQuestRequest.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<ListQuestRequest>): ListQuestRequest {
+    const message = createBaseListQuestRequest();
+    return message;
+  },
+};
+
+function createBaseListQuestResponse(): ListQuestResponse {
+  return { metadata: undefined };
+}
+
+export const ListQuestResponse = {
+  $type: "flux.indexer.campclash.ListQuestResponse" as const,
+
+  encode(message: ListQuestResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.metadata !== undefined) {
+      FollowMetadata.encode(message.metadata, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListQuestResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListQuestResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.metadata = FollowMetadata.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListQuestResponse {
+    return { metadata: isSet(object.metadata) ? FollowMetadata.fromJSON(object.metadata) : undefined };
+  },
+
+  toJSON(message: ListQuestResponse): unknown {
+    const obj: any = {};
+    if (message.metadata !== undefined) {
+      obj.metadata = FollowMetadata.toJSON(message.metadata);
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListQuestResponse>): ListQuestResponse {
+    return ListQuestResponse.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListQuestResponse>): ListQuestResponse {
+    const message = createBaseListQuestResponse();
+    message.metadata = (object.metadata !== undefined && object.metadata !== null)
+      ? FollowMetadata.fromPartial(object.metadata)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseListQuestsClickedRequest(): ListQuestsClickedRequest {
+  return { id: "", address: "" };
+}
+
+export const ListQuestsClickedRequest = {
+  $type: "flux.indexer.campclash.ListQuestsClickedRequest" as const,
+
+  encode(message: ListQuestsClickedRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.address !== "") {
+      writer.uint32(18).string(message.address);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListQuestsClickedRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListQuestsClickedRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.address = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListQuestsClickedRequest {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      address: isSet(object.address) ? globalThis.String(object.address) : "",
+    };
+  },
+
+  toJSON(message: ListQuestsClickedRequest): unknown {
+    const obj: any = {};
+    if (message.id !== undefined) {
+      obj.id = message.id;
+    }
+    if (message.address !== undefined) {
+      obj.address = message.address;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListQuestsClickedRequest>): ListQuestsClickedRequest {
+    return ListQuestsClickedRequest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ListQuestsClickedRequest>): ListQuestsClickedRequest {
+    const message = createBaseListQuestsClickedRequest();
+    message.id = object.id ?? "";
+    message.address = object.address ?? "";
+    return message;
+  },
+};
+
+function createBaseListQuestsClickedResponse(): ListQuestsClickedResponse {
+  return {};
+}
+
+export const ListQuestsClickedResponse = {
+  $type: "flux.indexer.campclash.ListQuestsClickedResponse" as const,
+
+  encode(_: ListQuestsClickedResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListQuestsClickedResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListQuestsClickedResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): ListQuestsClickedResponse {
+    return {};
+  },
+
+  toJSON(_: ListQuestsClickedResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create(base?: DeepPartial<ListQuestsClickedResponse>): ListQuestsClickedResponse {
+    return ListQuestsClickedResponse.fromPartial(base ?? {});
+  },
+  fromPartial(_: DeepPartial<ListQuestsClickedResponse>): ListQuestsClickedResponse {
+    const message = createBaseListQuestsClickedResponse();
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface CampclashQuery {
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse>;
@@ -5422,6 +5867,11 @@ export interface CampclashQuery {
     metadata?: grpc.Metadata,
   ): Observable<StreamCampTypesResponse>;
   MigratePoint(request: DeepPartial<MigratePointRequest>, metadata?: grpc.Metadata): Promise<MigratePointResponse>;
+  ListQuest(request: DeepPartial<ListQuestRequest>, metadata?: grpc.Metadata): Promise<ListQuestResponse>;
+  ListQuestsClicked(
+    request: DeepPartial<ListQuestsClickedRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ListQuestsClickedResponse>;
 }
 
 export class CampclashQueryClientImpl implements CampclashQuery {
@@ -5456,6 +5906,8 @@ export class CampclashQueryClientImpl implements CampclashQuery {
     this.ListCampTypes = this.ListCampTypes.bind(this);
     this.StreamCampTypes = this.StreamCampTypes.bind(this);
     this.MigratePoint = this.MigratePoint.bind(this);
+    this.ListQuest = this.ListQuest.bind(this);
+    this.ListQuestsClicked = this.ListQuestsClicked.bind(this);
   }
 
   ListProjects(request: DeepPartial<ListProjectsRequest>, metadata?: grpc.Metadata): Promise<ListProjectsResponse> {
@@ -5639,6 +6091,17 @@ export class CampclashQueryClientImpl implements CampclashQuery {
 
   MigratePoint(request: DeepPartial<MigratePointRequest>, metadata?: grpc.Metadata): Promise<MigratePointResponse> {
     return this.rpc.unary(CampclashQueryMigratePointDesc, MigratePointRequest.fromPartial(request), metadata);
+  }
+
+  ListQuest(request: DeepPartial<ListQuestRequest>, metadata?: grpc.Metadata): Promise<ListQuestResponse> {
+    return this.rpc.unary(CampclashQueryListQuestDesc, ListQuestRequest.fromPartial(request), metadata);
+  }
+
+  ListQuestsClicked(
+    request: DeepPartial<ListQuestsClickedRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<ListQuestsClickedResponse> {
+    return this.rpc.unary(CampclashQueryListQuestsClickedDesc, ListQuestsClickedRequest.fromPartial(request), metadata);
   }
 }
 
@@ -6255,6 +6718,52 @@ export const CampclashQueryMigratePointDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = MigratePointResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQueryListQuestDesc: UnaryMethodDefinitionish = {
+  methodName: "ListQuest",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ListQuestRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ListQuestResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const CampclashQueryListQuestsClickedDesc: UnaryMethodDefinitionish = {
+  methodName: "ListQuestsClicked",
+  service: CampclashQueryDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ListQuestsClickedRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ListQuestsClickedResponse.decode(data);
       return {
         ...value,
         toObject() {
