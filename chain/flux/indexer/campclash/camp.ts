@@ -199,6 +199,7 @@ export interface UserPoints {
   mission_points: string;
   rebel_challenge_points: string;
   point_migrated: boolean;
+  external_quest: ExternalQuest | undefined;
 }
 
 export interface TokenPoints {
@@ -228,6 +229,13 @@ export interface CampTypeInfo {
   total_market_cap: string;
   traded_volume: string;
   height: string;
+}
+
+export interface ExternalQuest {
+  address: string;
+  ninja_twitter: boolean;
+  ninja_website: boolean;
+  ninja_kaiju: boolean;
 }
 
 function createBaseCurveConfig(): CurveConfig {
@@ -2737,6 +2745,7 @@ function createBaseUserPoints(): UserPoints {
     mission_points: "",
     rebel_challenge_points: "",
     point_migrated: false,
+    external_quest: undefined,
   };
 }
 
@@ -2767,6 +2776,9 @@ export const UserPoints = {
     }
     if (message.point_migrated !== false) {
       writer.uint32(64).bool(message.point_migrated);
+    }
+    if (message.external_quest !== undefined) {
+      ExternalQuest.encode(message.external_quest, writer.uint32(82).fork()).ldelim();
     }
     return writer;
   },
@@ -2834,6 +2846,13 @@ export const UserPoints = {
 
           message.point_migrated = reader.bool();
           continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.external_quest = ExternalQuest.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2855,6 +2874,7 @@ export const UserPoints = {
         ? globalThis.String(object.rebel_challenge_points)
         : "",
       point_migrated: isSet(object.point_migrated) ? globalThis.Boolean(object.point_migrated) : false,
+      external_quest: isSet(object.external_quest) ? ExternalQuest.fromJSON(object.external_quest) : undefined,
     };
   },
 
@@ -2884,6 +2904,9 @@ export const UserPoints = {
     if (message.point_migrated !== undefined) {
       obj.point_migrated = message.point_migrated;
     }
+    if (message.external_quest !== undefined) {
+      obj.external_quest = ExternalQuest.toJSON(message.external_quest);
+    }
     return obj;
   },
 
@@ -2904,6 +2927,9 @@ export const UserPoints = {
     message.mission_points = object.mission_points ?? "";
     message.rebel_challenge_points = object.rebel_challenge_points ?? "";
     message.point_migrated = object.point_migrated ?? false;
+    message.external_quest = (object.external_quest !== undefined && object.external_quest !== null)
+      ? ExternalQuest.fromPartial(object.external_quest)
+      : undefined;
     return message;
   },
 };
@@ -3361,6 +3387,112 @@ export const CampTypeInfo = {
     message.total_market_cap = object.total_market_cap ?? "";
     message.traded_volume = object.traded_volume ?? "";
     message.height = object.height ?? "0";
+    return message;
+  },
+};
+
+function createBaseExternalQuest(): ExternalQuest {
+  return { address: "", ninja_twitter: false, ninja_website: false, ninja_kaiju: false };
+}
+
+export const ExternalQuest = {
+  $type: "flux.indexer.campclash.ExternalQuest" as const,
+
+  encode(message: ExternalQuest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.address !== "") {
+      writer.uint32(10).string(message.address);
+    }
+    if (message.ninja_twitter !== false) {
+      writer.uint32(16).bool(message.ninja_twitter);
+    }
+    if (message.ninja_website !== false) {
+      writer.uint32(24).bool(message.ninja_website);
+    }
+    if (message.ninja_kaiju !== false) {
+      writer.uint32(32).bool(message.ninja_kaiju);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ExternalQuest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseExternalQuest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.address = reader.string();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.ninja_twitter = reader.bool();
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.ninja_website = reader.bool();
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.ninja_kaiju = reader.bool();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ExternalQuest {
+    return {
+      address: isSet(object.address) ? globalThis.String(object.address) : "",
+      ninja_twitter: isSet(object.ninja_twitter) ? globalThis.Boolean(object.ninja_twitter) : false,
+      ninja_website: isSet(object.ninja_website) ? globalThis.Boolean(object.ninja_website) : false,
+      ninja_kaiju: isSet(object.ninja_kaiju) ? globalThis.Boolean(object.ninja_kaiju) : false,
+    };
+  },
+
+  toJSON(message: ExternalQuest): unknown {
+    const obj: any = {};
+    if (message.address !== undefined) {
+      obj.address = message.address;
+    }
+    if (message.ninja_twitter !== undefined) {
+      obj.ninja_twitter = message.ninja_twitter;
+    }
+    if (message.ninja_website !== undefined) {
+      obj.ninja_website = message.ninja_website;
+    }
+    if (message.ninja_kaiju !== undefined) {
+      obj.ninja_kaiju = message.ninja_kaiju;
+    }
+    return obj;
+  },
+
+  create(base?: DeepPartial<ExternalQuest>): ExternalQuest {
+    return ExternalQuest.fromPartial(base ?? {});
+  },
+  fromPartial(object: DeepPartial<ExternalQuest>): ExternalQuest {
+    const message = createBaseExternalQuest();
+    message.address = object.address ?? "";
+    message.ninja_twitter = object.ninja_twitter ?? false;
+    message.ninja_website = object.ninja_website ?? false;
+    message.ninja_kaiju = object.ninja_kaiju ?? false;
     return message;
   },
 };
