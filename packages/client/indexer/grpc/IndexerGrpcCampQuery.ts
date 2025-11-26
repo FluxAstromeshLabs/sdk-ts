@@ -183,8 +183,21 @@ export class IndexerGrpcCampQuery extends BaseIndexerGrpc {
   async migratePoint(
     request: Partial<campclashQuery.MigratePointRequest>,
   ): Promise<campclashQuery.MigratePointResponse> {
-    console.log('request', request)
     let response = await this.retry(() => this.client.MigratePoint(request))
     return response as campclashQuery.MigratePointResponse
+  }
+
+  async listQuestsClicked(
+    request: Partial<campclashQuery.ListQuestsClickedRequest>,
+  ): Promise<campclashQuery.ListQuestsClickedResponse> {
+    let response = await this.retry(() => this.client.ListQuestsClicked(request))
+    return response as campclashQuery.ListQuestsClickedResponse
+  }
+
+  async listQuest(
+    request: Partial<campclashQuery.ListQuestRequest>,
+  ): Promise<campclashQuery.ListQuestResponse> {
+    let response = await this.retry(() => this.client.ListQuest(request))
+    return response as campclashQuery.ListQuestResponse
   }
 }
